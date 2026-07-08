@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum CardType {
+  NFC
+  QR
+  BOTH
+}
+
+enum GalleryType {
+  IMAGE
+  YOUTUBE
+}
+
+enum WalletTxnType {
+  EARNED
+  REDEEMED
+}
+
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String    @unique
+  passwordHash   String?
+  role           Role      @default(USER)
+  googleId       String?   @unique
+  slug           String    @unique
+  planId         String?
+  plan           Plan?     @relation(fields: [planId], references: [id])
+  planExpiresAt  DateTime?
+  cardPublished  Boolean   @default(false)
+  onboardingStep Int       @default(1)
+  referralCode   String    @unique
+  walletPoints   Int       @default(0)
+  viewCount      Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  cardFields          CardField[]
+  galleryItems        GalleryItem[]
+  cardSettings        CardSettings?
+  purchases           Purchase[]
+  walletTransactions  WalletTransaction[]
+  emailLogs           EmailLog[]
+  passwordResetTokens PasswordResetToken[]
+
+  referralsMade     Referral[] @relation("ReferralReferrer")
+  referralsReceived Referral[] @relation("ReferralReferred")
+  cardViews         CardView[]
+}
+
+model CardView {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Plan {
+  id               String   @id @default(cuid())
+  name             String
+  cardType         CardType
+  price            Int
+  validityDays     Int
+  featuresJson      Json
+  maxGalleryImages Int
+  isActive         Boolean  @default(true)
+  recommended      Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  users     User[]
+  purchases Purchase[]
+}
+
+model CardField {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fieldType  String
+  label      String
+  value      String
+  order      Int      @default(0)
+  isVisible  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model GalleryItem {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        GalleryType
+  url         String
+  cloudinaryId String?
+  order       Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId])
+}
+
+model CardSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  themeId         String   @default("default")
+  brandColor      String   @default("#000000")
+  galleryLayout   String   @default("grid")
+  vcfIncludePhoto Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Purchase {
+  id                String         @id @default(cuid())
+  userId            String
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId            String
+  plan              Plan           @relation(fields: [planId], references: [id])
+  amountPaid        Int
+  walletUsed        Int            @default(0)
+  status            PurchaseStatus @default(PENDING)
+  isRenewal         Boolean        @default(false)
+  gatewayName       String         @default("mock")
+  gatewayOrderId    String?
+  gatewayPaymentId  String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  referral Referral?
+
+  @@index([userId])
+  @@index([planId])
+  @@index([gatewayOrderId])
+}
+
+model Referral {
+  id             String   @id @default(cuid())
+  referrerId     String
+  referrer       User     @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId     String
+  referred       User     @relation("ReferralReferred", fields: [referredId], references: [id], onDelete: Cascade)
+  pointsAwarded  Int      @default(0)
+  purchaseId     String?  @unique
+  purchase       Purchase? @relation(fields: [purchaseId], references: [id])
+  createdAt      DateTime @default(now())
+
+  @@index([referrerId])
+  @@index([referredId])
+}
+
+model WalletTransaction {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        WalletTxnType
+  points      Int
+  inrValue    Int
+  description String
+  createdAt   DateTime      @default(now())
+
+  @@index([userId])
+}
+
+model EmailLog {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type   String
+  sentAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model SiteContent {
+  id      String @id @default(cuid())
+  section String
+  key     String
+  value   String
+
+  @@unique([section, key])
+}
+
+model Settings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
