@@ -1,0 +1,145 @@
+{
+  "company": {
+    "name": "Priinteve Innovations",
+    "tagline": "Engineering Scalable Digital Products for Startups & Enterprises",
+    "description": "Priinteve Innovations is a technology company specializing in custom software, web and mobile applications, AI solutions, SaaS platforms, and cloud and business automation. We help startups, SMEs, and enterprises build secure, scalable, and innovative digital products.",
+    "logo": "/images/company/priinteve-logo.svg",
+    "website": "https://www.priinteve.com",
+    "email": "contact@priinteve.com",
+    "phone": "+91 98765 43210",
+    "address": "402, Zion Z1, Near Avalon Business Hub, S.G. Highway, Ahmedabad, Gujarat 380054, India",
+    "business_hours": "Mon - Sat: 10:00 AM - 7:00 PM IST"
+  },
+  "owner": {
+    "name": "Tarang Sachaniya",
+    "designation": "Founder & CEO",
+    "bio": "Tarang Sachaniya is the Founder & CEO of Priinteve Innovations, leading the company's mission to help startups and enterprises build scalable, secure digital products. He specializes in software architecture, cloud solutions, and business automation.",
+    "profile_image": "/images/owner/tarang-sachaniya.png"
+  },
+  "services": [
+    {
+      "title": "Custom Software Development",
+      "slug": "custom-software-development",
+      "short_description": "Tailored software solutions built around your unique business processes, designed to scale as you grow.",
+      "icon": "Code2",
+      "image": "https://picsum.photos/seed/custom-software-development/800/500"
+    },
+    {
+      "title": "Web Application Development",
+      "slug": "web-application-development",
+      "short_description": "Fast, secure, and responsive web applications built with modern frameworks for the best user experience.",
+      "icon": "Globe",
+      "image": "https://picsum.photos/seed/web-application-development/800/500"
+    },
+    {
+      "title": "Mobile App Development",
+      "slug": "mobile-app-development",
+      "short_description": "Native and cross-platform mobile apps for iOS and Android that deliver seamless performance.",
+      "icon": "Smartphone",
+      "image": "https://picsum.photos/seed/mobile-app-development/800/500"
+    },
+    {
+      "title": "AI Solutions",
+      "slug": "ai-solutions",
+      "short_description": "Intelligent AI and machine learning solutions that automate workflows and unlock data-driven insights.",
+      "icon": "BrainCircuit",
+      "image": "https://picsum.photos/seed/ai-solutions/800/500"
+    },
+    {
+      "title": "SaaS Platform Development",
+      "slug": "saas-platform-development",
+      "short_description": "End-to-end SaaS product development, from architecture and multi-tenancy to billing and deployment.",
+      "icon": "Layers",
+      "image": "https://picsum.photos/seed/saas-platform-development/800/500"
+    },
+    {
+      "title": "Cloud Solutions",
+      "slug": "cloud-solutions",
+      "short_description": "Cloud infrastructure design, migration, and DevOps to keep your systems reliable, secure, and cost-efficient.",
+      "icon": "Cloud",
+      "image": "https://picsum.photos/seed/cloud-solutions/800/500"
+    },
+    {
+      "title": "Business Automation",
+      "slug": "business-automation",
+      "short_description": "Workflow and process automation that eliminates manual work and boosts operational efficiency.",
+      "icon": "Workflow",
+      "image": "https://picsum.photos/seed/business-automation/800/500"
+    },
+    {
+      "title": "API Integrations",
+      "slug": "api-integrations",
+      "short_description": "Seamless integration of third-party APIs and services to connect your tools into one unified system.",
+      "icon": "Plug",
+      "image": "https://picsum.photos/seed/api-integrations/800/500"
+    },
+    {
+      "title": "UI/UX Design",
+      "slug": "ui-ux-design",
+      "short_description": "User-centered interface and experience design that makes your products intuitive and engaging.",
+      "icon": "PenTool",
+      "image": "https://picsum.photos/seed/ui-ux-design/800/500"
+    },
+    {
+      "title": "IoT & NFC Solutions",
+      "slug": "iot-nfc-solutions",
+      "short_description": "Connected IoT systems and NFC-enabled products that bridge the physical and digital worlds.",
+      "icon": "Cpu",
+      "image": "https://picsum.photos/seed/iot-nfc-solutions/800/500"
+    }
+  ],
+  "testimonials": [
+    {
+      "client_name": "Rohan Mehta",
+      "company": "Nimbus Retail Pvt. Ltd.",
+      "designation": "Chief Operating Officer",
+      "rating": 5,
+      "review": "Priinteve Innovations rebuilt our e-commerce platform from the ground up. The team delivered on time, communicated clearly, and the new system handles peak traffic without a hitch."
+    },
+    {
+      "client_name": "Ananya Kapoor",
+      "company": "Vertex Health Systems",
+      "designation": "Product Manager",
+      "rating": 5,
+      "review": "Their AI team helped us automate patient data processing, cutting turnaround time by 60%. Genuinely one of the most reliable dev partners we've worked with."
+    },
+    {
+      "client_name": "David Fernandes",
+      "company": "Skyline Logistics",
+      "designation": "Founder",
+      "rating": 4,
+      "review": "We came to Priinteve with a rough idea for a SaaS platform and they turned it into a polished, scalable product. Great technical judgment and honest communication throughout."
+    },
+    {
+      "client_name": "Priya Nair",
+      "company": "Lumen Finlabs",
+      "designation": "Head of Technology",
+      "rating": 5,
+      "review": "The mobile app they built for us has a 4.8 rating on both app stores. Priinteve's attention to detail on UX and performance really shows in the final product."
+    },
+    {
+      "client_name": "Karan Shah",
+      "company": "Orbit Manufacturing Co.",
+      "designation": "Operations Director",
+      "rating": 5,
+      "review": "Their business automation solution eliminated hours of manual reporting work every week. Professional team, clear process, and excellent post-launch support."
+    }
+  ],
+  "social_links": {
+    "website": "https://www.priinteve.com",
+    "linkedin": "https://linkedin.com/company/priinteve-innovations",
+    "github": "https://github.com/priinteve",
+    "instagram": "https://instagram.com/priinteve.innovations",
+    "facebook": "https://facebook.com/priinteveinnovations",
+    "x": "https://x.com/priinteve",
+    "youtube": "https://youtube.com/@priinteveinnovations",
+    "whatsapp": "https://wa.me/919876543210"
+  },
+  "contact": {
+    "email": "contact@priinteve.com",
+    "phone": "+91 98765 43210",
+    "whatsapp": "+91 98765 43210",
+    "address": "402, Zion Z1, Near Avalon Business Hub, S.G. Highway, Ahmedabad, Gujarat 380054, India",
+    "google_maps_url": "https://maps.google.com/?q=Priinteve+Innovations+Ahmedabad"
+  }
+}

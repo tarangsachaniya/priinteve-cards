@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { getFieldTypeMeta } from "@/lib/field-types";
 import { sanitizeRichTextServer } from "@/lib/sanitize-html";
 
@@ -25,22 +26,25 @@ function fieldHref(field: PublicCardField): string | null {
   }
 }
 
-export function CardFieldRow({ field }: { field: PublicCardField }) {
+export function CardFieldRow({ field, mapUrl }: { field: PublicCardField; mapUrl?: string }) {
   const { icon: Icon } = getFieldTypeMeta(field.fieldType);
   const href = fieldHref(field);
   const isExternal = field.fieldType === "website" || field.fieldType.startsWith("social_");
+  const shouldWrap = field.fieldType === "address" || field.fieldType === "business_hours";
 
   const content = (
     <>
       <Icon className="size-4 shrink-0" style={{ color: "var(--brand)" }} />
-      <span className="truncate">
+      <span className={shouldWrap ? "break-words" : "truncate"}>
         <span className="font-medium">{field.label}:</span> {field.value}
       </span>
     </>
   );
 
-  const rowClassName =
-    "flex items-center gap-2 rounded-lg bg-muted/50 px-2.5 py-1.5 text-sm";
+  const rowClassName = cn(
+    "flex gap-2 rounded-lg bg-muted/50 px-2.5 py-1.5 text-sm",
+    shouldWrap ? "items-start" : "items-center"
+  );
 
   if (field.fieldType === "bio") {
     return (
@@ -62,7 +66,7 @@ export function CardFieldRow({ field }: { field: PublicCardField }) {
       <div className="flex flex-col gap-1">
         <div className={rowClassName}>{content}</div>
         <a
-          href={`https://maps.google.com/?q=${encodeURIComponent(field.value)}`}
+          href={mapUrl ?? `https://maps.google.com/?q=${encodeURIComponent(field.value)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="ml-2 text-xs text-muted-foreground underline underline-offset-2"
