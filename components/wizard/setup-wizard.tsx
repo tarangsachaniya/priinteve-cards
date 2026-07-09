@@ -14,6 +14,7 @@ import type { WizardGalleryItem } from "@/components/wizard/gallery-item-list";
 export type SetupWizardProps = {
   name: string;
   slug: string;
+  initialCompany: string | null;
   initialStep: number;
   initialCardFields: WizardField[];
   initialGalleryItems: WizardGalleryItem[];
@@ -25,7 +26,8 @@ export type SetupWizardProps = {
 
 export function SetupWizard({
   name,
-  slug,
+  slug: initialSlug,
+  initialCompany,
   initialStep,
   initialCardFields,
   initialGalleryItems,
@@ -35,6 +37,7 @@ export function SetupWizard({
   initialVcfIncludePhoto,
 }: SetupWizardProps) {
   const [step, setStep] = useState(Math.min(Math.max(initialStep, 1), 5));
+  const [slug, setSlug] = useState(initialSlug);
   const [cardFields, setCardFields] = useState<WizardField[]>(initialCardFields);
   const [galleryItems, setGalleryItems] = useState<WizardGalleryItem[]>(initialGalleryItems);
   const [themeId, setThemeId] = useState(initialThemeId);
@@ -66,8 +69,10 @@ export function SetupWizard({
       {step === 1 && (
         <Step1ProfileFields
           initialFields={cardFields}
-          onSaved={(fields) => {
+          initialCompany={initialCompany}
+          onSaved={(fields, nextSlug) => {
             setCardFields(fields);
+            if (nextSlug) setSlug(nextSlug);
             setStep(2);
           }}
         />

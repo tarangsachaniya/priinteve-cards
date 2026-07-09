@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -48,38 +49,45 @@ export function EmailConfigForm({ initialRules }: { initialRules: Rule[] }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex max-w-sm flex-col gap-3">
-      {rules.map((rule, index) => (
-        <div key={index} className="flex items-end gap-2">
-          <div className="flex flex-1 flex-col gap-1.5">
-            <Label htmlFor={`rule-${index}`}>Days before expiry</Label>
-            <Input
-              id={`rule-${index}`}
-              type="number"
-              min={1}
-              value={rule.daysBeforeExpiry}
-              onChange={(e) => updateRule(index, Number(e.target.value))}
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => removeRule(index)}
-            aria-label="Remove rule"
-          >
-            <XIcon />
+    <Card className="max-w-lg">
+      <CardContent>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          {rules.map((rule, index) => (
+            <div key={index} className="flex items-end gap-2 rounded-lg border bg-muted/30 p-2.5">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                {index + 1}
+              </span>
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Label htmlFor={`rule-${index}`}>Days before expiry</Label>
+                <Input
+                  id={`rule-${index}`}
+                  type="number"
+                  min={1}
+                  value={rule.daysBeforeExpiry}
+                  onChange={(e) => updateRule(index, Number(e.target.value))}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => removeRule(index)}
+                aria-label="Remove rule"
+              >
+                <XIcon />
+              </Button>
+            </div>
+          ))}
+
+          <Button type="button" variant="outline" size="sm" onClick={addRule} className="w-fit">
+            Add reminder
           </Button>
-        </div>
-      ))}
 
-      <Button type="button" variant="outline" size="sm" onClick={addRule} className="w-fit">
-        Add reminder
-      </Button>
-
-      <Button type="submit" disabled={isSubmitting} className="mt-2 w-fit">
-        Save reminders
-      </Button>
-    </form>
+          <Button type="submit" disabled={isSubmitting} className="mt-2 w-fit">
+            Save reminders
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

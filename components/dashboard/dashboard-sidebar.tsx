@@ -13,6 +13,7 @@ import {
   ExternalLink,
   LogOut,
   Menu,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -54,7 +55,7 @@ function NavLinks({ pathname, onNavigate }: { pathname: string | null; onNavigat
   );
 }
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ isAdmin }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -71,6 +72,15 @@ export function DashboardSidebar() {
         <NavLinks pathname={pathname} />
 
         <div className="mt-auto flex flex-col gap-1 border-t pt-3">
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+            >
+              <Shield className="size-4 shrink-0" />
+              Admin Panel
+            </Link>
+          )}
           <a
             href="/"
             target="_blank"

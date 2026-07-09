@@ -1,8 +1,9 @@
 import { SocialIcon, getSocialLabel } from "@/components/card/social-icon";
+import { waHref } from "@/lib/contact-links";
 import type { SocialLink } from "@/lib/card-sections";
 
 function socialHref(link: SocialLink): string {
-  if (link.platform === "whatsapp") return `https://wa.me/${link.url.replace(/[^0-9]/g, "")}`;
+  if (link.platform === "whatsapp") return waHref(link.url);
   return link.url;
 }
 
@@ -18,7 +19,7 @@ export function SocialLinksRow({ links }: { links: SocialLink[] }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={getSocialLabel(link.platform)}
-          className="flex size-9 items-center justify-center rounded-full bg-muted/50 text-foreground/80 transition-colors hover:bg-[var(--brand)] hover:text-white"
+          className="flex size-9 items-center justify-center rounded-full bg-muted/50 text-foreground/80 ring-1 ring-foreground/10 transition-all hover:-translate-y-0.5 hover:bg-[var(--brand)] hover:text-white hover:shadow-lg hover:shadow-[var(--brand)]/30 hover:ring-transparent"
         >
           <SocialIcon platform={link.platform} className="size-4" />
         </a>

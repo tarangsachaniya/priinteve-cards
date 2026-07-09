@@ -5,6 +5,7 @@ import { Play } from "lucide-react";
 
 import { getYoutubeThumbnail, getYoutubeVideoId } from "@/lib/youtube";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { MotionItem, MotionSection } from "@/components/card/motion-section";
 
 export type PublicGalleryItem = {
   type: "IMAGE" | "YOUTUBE";
@@ -15,12 +16,16 @@ export type PublicGalleryItem = {
 function GalleryThumb({ item }: { item: PublicGalleryItem }) {
   const src = item.type === "YOUTUBE" ? getYoutubeThumbnail(item.url) ?? item.url : item.url;
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full overflow-hidden rounded-md ring-1 ring-foreground/10">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="" className="h-full w-full rounded-md object-cover" />
+      <img
+        src={src}
+        alt=""
+        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+      />
       {item.type === "YOUTUBE" && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black/20">
-          <Play className="size-8 fill-white text-white" />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
+          <Play className="size-8 fill-white text-white drop-shadow" />
         </div>
       )}
     </div>
@@ -29,17 +34,15 @@ function GalleryThumb({ item }: { item: PublicGalleryItem }) {
 
 function GalleryItemButton({
   item,
-  className,
   onOpen,
 }: {
   item: PublicGalleryItem;
-  className: string;
   onOpen: (item: PublicGalleryItem) => void;
 }) {
   return (
     <button
       type="button"
-      className={className}
+      className="group h-full w-full"
       onClick={() => onOpen(item)}
       aria-label={item.type === "YOUTUBE" ? "Play video" : "View image"}
     >
@@ -61,45 +64,43 @@ export function CardGallery({
   const sorted = [...items].sort((a, b) => a.order - b.order);
 
   const grid = (
-    <div className="grid grid-cols-2 gap-2">
+    <MotionSection stagger className="grid grid-cols-2 gap-2">
       {sorted.map((item, i) => (
-        <GalleryItemButton key={i} item={item} className="aspect-square" onOpen={setActive} />
+        <MotionItem key={i} className="aspect-square">
+          <GalleryItemButton item={item} onOpen={setActive} />
+        </MotionItem>
       ))}
-    </div>
+    </MotionSection>
   );
 
   const carousel = (
-    <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1">
+    <MotionSection stagger className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1">
       {sorted.map((item, i) => (
-        <GalleryItemButton
-          key={i}
-          item={item}
-          className="aspect-square w-full shrink-0 snap-start"
-          onOpen={setActive}
-        />
+        <MotionItem key={i} className="aspect-square w-full shrink-0 snap-start">
+          <GalleryItemButton item={item} onOpen={setActive} />
+        </MotionItem>
       ))}
-    </div>
+    </MotionSection>
   );
 
   const masonry = (
-    <div className="columns-2 gap-2 [&>*]:mb-2 [&>*]:break-inside-avoid">
+    <MotionSection stagger className="columns-2 gap-2 [&>*]:mb-2 [&>*]:break-inside-avoid">
       {sorted.map((item, i) => (
-        <GalleryItemButton
-          key={i}
-          item={item}
-          className={i % 2 === 0 ? "aspect-square w-full" : "aspect-[3/4] w-full"}
-          onOpen={setActive}
-        />
+        <MotionItem key={i} className={i % 2 === 0 ? "aspect-square w-full" : "aspect-[3/4] w-full"}>
+          <GalleryItemButton item={item} onOpen={setActive} />
+        </MotionItem>
       ))}
-    </div>
+    </MotionSection>
   );
 
   const lightbox = (
-    <div className="grid grid-cols-3 gap-2">
+    <MotionSection stagger className="grid grid-cols-3 gap-2">
       {sorted.map((item, i) => (
-        <GalleryItemButton key={i} item={item} className="aspect-square" onOpen={setActive} />
+        <MotionItem key={i} className="aspect-square">
+          <GalleryItemButton item={item} onOpen={setActive} />
+        </MotionItem>
       ))}
-    </div>
+    </MotionSection>
   );
 
   const layoutMap: Record<string, React.ReactNode> = {

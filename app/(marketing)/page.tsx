@@ -13,7 +13,19 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getSiteContentMap } from "@/lib/site-content";
+import { LogoMarquee } from "@/components/marketing/logo-marquee";
+import { TemplatesSection } from "@/components/marketing/templates-section";
+import { MarketingTestimonialsSection } from "@/components/marketing/testimonials-section";
+import { VideoDemoSection } from "@/components/marketing/video-demo-section";
+import { PricingCards } from "@/components/marketing/pricing-cards";
+import { FaqAccordion } from "@/components/marketing/faq-accordion";
+import {
+  getSiteContentEntries,
+  getSiteContentList,
+  getSiteContentMap,
+} from "@/lib/site-content";
+import { getActivePlans } from "@/lib/plans";
+import type { HomepageAccent } from "@/lib/validations/admin";
 
 export const revalidate = 3600;
 
@@ -77,7 +89,19 @@ const TRUST_BADGES = [
 ];
 
 export default async function HomePage() {
-  const hero = await getSiteContentMap("homepage_hero");
+  const [hero, logos, templates, testimonials, video, faqs, plans] = await Promise.all([
+    getSiteContentMap("homepage_hero"),
+    getSiteContentList<{ name: string }>("homepage_logos"),
+    getSiteContentList<{ industry: string; description: string; accent: HomepageAccent }>(
+      "homepage_templates"
+    ),
+    getSiteContentList<{ name: string; role: string; quote: string; rating: number }>(
+      "homepage_testimonials"
+    ),
+    getSiteContentMap("homepage_video"),
+    getSiteContentEntries("faq"),
+    getActivePlans(),
+  ]);
 
   return (
     <>
@@ -182,6 +206,8 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <LogoMarquee logos={logos} />
+
       <section className="border-y border-border/80 bg-muted/30">
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 px-6 py-10 sm:grid-cols-4">
           {STATS.map((stat) => (
@@ -192,6 +218,8 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      <TemplatesSection templates={templates} />
 
       <section className="mx-auto max-w-6xl px-6 py-20">
         <div className="mx-auto max-w-2xl text-center">
@@ -252,6 +280,59 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <MarketingTestimonialsSection testimonials={testimonials} />
+
+      <VideoDemoSection
+        videoUrl={video.videoUrl}
+        caption={video.caption}
+        durationLabel={video.durationLabel}
+      />
+
+      <section className="mx-auto max-w-6xl px-6 py-20" id="pricing">
+        <div className="mx-auto max-w-2xl text-center">
+          <Badge variant="secondary" className="h-auto rounded-full px-3 py-1">
+            Pricing
+          </Badge>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight">
+            Plans that scale with your team
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            Every plan includes unlimited profile updates. Choose what fits how you network.
+          </p>
+        </div>
+        <div className="mt-12">
+          <PricingCards plans={plans} />
+        </div>
+        <div className="mt-10 text-center">
+          <Button variant="link" render={<Link href="/pricing" />}>
+            Compare all plans
+            <ChevronRightIcon data-icon="inline-end" />
+          </Button>
+        </div>
+      </section>
+
+      {faqs.length > 0 && (
+        <section className="border-t border-border/80 bg-muted/30 py-20">
+          <div className="mx-auto max-w-3xl px-6">
+            <div className="mx-auto max-w-xl text-center">
+              <Badge variant="secondary" className="h-auto rounded-full px-3 py-1">
+                FAQ
+              </Badge>
+              <h2 className="mt-4 text-3xl font-semibold tracking-tight">Questions, answered</h2>
+            </div>
+            <div className="mt-12">
+              <FaqAccordion faqs={faqs} limit={6} />
+            </div>
+            <div className="mt-10 text-center">
+              <Button variant="link" render={<Link href="/faq" />}>
+                View all FAQs
+                <ChevronRightIcon data-icon="inline-end" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }

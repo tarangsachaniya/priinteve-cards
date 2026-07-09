@@ -7,10 +7,19 @@ export const planSchema = z.object({
   validityDays: z.coerce.number().int().positive(),
   featuresJson: z.array(z.string().min(1)),
   maxGalleryImages: z.coerce.number().int().nonnegative(),
+  maxVideos: z.coerce.number().int().nonnegative().default(0),
+  maxPdfs: z.coerce.number().int().nonnegative().default(0),
+  storageLimitMb: z.coerce.number().int().nonnegative().default(0),
   isActive: z.boolean(),
+  isDraft: z.boolean().default(false),
+  recommended: z.boolean().default(false),
 });
 
 export const planUpdateSchema = planSchema.partial();
+
+export const planCreateRequestSchema = planSchema.extend({
+  duplicateOf: z.string().optional(),
+});
 
 export const configSchema = z.object({
   pointsPerReferral: z.coerce.number().int().nonnegative(),
@@ -28,9 +37,47 @@ export const emailConfigSchema = z.object({
 
 export const siteContentSchema = z.record(z.string(), z.string());
 
+export const homepageAccentSchema = z.enum([
+  "emerald",
+  "blue",
+  "violet",
+  "amber",
+  "rose",
+  "slate",
+]);
+
+export const homepageLogoSchema = z.object({
+  name: z.string().min(1).max(60),
+});
+
+export const homepageTemplateSchema = z.object({
+  industry: z.string().min(1).max(60),
+  description: z.string().min(1).max(200),
+  accent: homepageAccentSchema,
+});
+
+export const homepageTestimonialSchema = z.object({
+  name: z.string().min(1).max(80),
+  role: z.string().min(1).max(120),
+  quote: z.string().min(1).max(500),
+  rating: z.coerce.number().int().min(1).max(5),
+});
+
+export const LIST_SECTION_SCHEMAS = {
+  homepage_logos: homepageLogoSchema,
+  homepage_templates: homepageTemplateSchema,
+  homepage_testimonials: homepageTestimonialSchema,
+} as const;
+
+export type HomepageAccent = z.infer<typeof homepageAccentSchema>;
+export type HomepageLogoInput = z.infer<typeof homepageLogoSchema>;
+export type HomepageTemplateInput = z.infer<typeof homepageTemplateSchema>;
+export type HomepageTestimonialInput = z.infer<typeof homepageTestimonialSchema>;
+
 export const createUserSchema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email(),
+  company: z.string().max(120).optional(),
   role: z.enum(["USER", "ADMIN"]).default("USER"),
   planId: z.string().optional(),
   planExpiresAt: z.coerce.date().optional(),

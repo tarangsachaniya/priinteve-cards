@@ -16,7 +16,7 @@ export default async function DashboardSetupPage() {
 
   const user = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, slug: true, onboardingStep: true, cardPublished: true },
+    select: { name: true, slug: true, company: true, onboardingStep: true, cardPublished: true },
   });
   if (!user) {
     redirect("/login");
@@ -36,6 +36,7 @@ export default async function DashboardSetupPage() {
       <SetupWizard
         name={user.name ?? ""}
         slug={user.slug}
+        initialCompany={user.company}
         initialStep={user.onboardingStep}
         initialCardFields={cardFields.map((f) => ({
           clientId: f.id,

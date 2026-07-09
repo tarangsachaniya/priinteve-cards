@@ -15,12 +15,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Plan = { id: string; name: string };
 
 type UserFormValues = {
   name: string;
   email: string;
+  company: string;
   role: "USER" | "ADMIN";
   planId: string;
   planExpiresAt: string;
@@ -29,6 +31,7 @@ type UserFormValues = {
 const EMPTY_VALUES: UserFormValues = {
   name: "",
   email: "",
+  company: "",
   role: "USER",
   planId: "",
   planExpiresAt: "",
@@ -52,6 +55,7 @@ export function UserForm({ plans, trigger, onCreated }: UserFormProps) {
       const payload = {
         name: values.name,
         email: values.email,
+        company: values.company || undefined,
         role: values.role,
         planId: values.planId || undefined,
         planExpiresAt: values.planId && values.planExpiresAt ? values.planExpiresAt : undefined,
@@ -112,33 +116,52 @@ export function UserForm({ plans, trigger, onCreated }: UserFormProps) {
           </div>
 
           <div className="flex flex-col gap-1.5">
+            <Label htmlFor="user-company">Company (optional)</Label>
+            <Input
+              id="user-company"
+              value={values.company}
+              onChange={(e) => setValues((v) => ({ ...v, company: e.target.value }))}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="user-role">Role</Label>
-            <select
-              id="user-role"
+            <Select
               value={values.role}
-              onChange={(e) => setValues((v) => ({ ...v, role: e.target.value as UserFormValues["role"] }))}
-              className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+              onValueChange={(value) =>
+                setValues((v) => ({ ...v, role: value as UserFormValues["role"] }))
+              }
             >
-              <option value="USER">User</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+              <SelectTrigger id="user-role">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USER">User</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="user-plan">Plan</Label>
-            <select
-              id="user-plan"
-              value={values.planId}
-              onChange={(e) => setValues((v) => ({ ...v, planId: e.target.value }))}
-              className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+            <Select
+              value={values.planId || "none"}
+              onValueChange={(value) =>
+                value && setValues((v) => ({ ...v, planId: value === "none" ? "" : value }))
+              }
             >
-              <option value="">No plan</option>
-              {plans.map((plan) => (
-                <option key={plan.id} value={plan.id}>
-                  {plan.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="user-plan">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No plan</SelectItem>
+                {plans.map((plan) => (
+                  <SelectItem key={plan.id} value={plan.id}>
+                    {plan.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {values.planId && (

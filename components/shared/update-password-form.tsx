@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -42,31 +43,35 @@ export function UpdatePasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex max-w-sm flex-col gap-4">
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="currentPassword">Current password</Label>
-        <Input
-          id="currentPassword"
-          type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          required
-        />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="newPassword">New password</Label>
-        <Input
-          id="newPassword"
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          minLength={8}
-          required
-        />
-      </div>
-      <Button type="submit" disabled={isSubmitting} className="w-fit">
-        Update password
-      </Button>
-    </form>
+    <Card className="max-w-sm">
+      <CardContent>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="currentPassword">Current password</Label>
+            <Input
+              id="currentPassword"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="newPassword">New password</Label>
+            <Input
+              id="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              minLength={8}
+              required
+            />
+          </div>
+          <Button type="submit" disabled={isSubmitting} className="w-fit">
+            Update password
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

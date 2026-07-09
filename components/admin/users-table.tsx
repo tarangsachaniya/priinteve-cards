@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import {
   Table,
   TableBody,
@@ -82,15 +83,18 @@ export function UsersTable({ refreshKey = 0 }: { refreshKey?: number }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Input
-        placeholder="Search by name or email"
-        value={search}
-        onChange={(e) => {
-          setSearch(e.target.value);
-          setPage(1);
-        }}
-        className="max-w-sm"
-      />
+      <div className="relative max-w-sm">
+        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search by name or email"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          className="pl-8"
+        />
+      </div>
 
       <div className="rounded-xl border">
         <Table>
@@ -111,13 +115,13 @@ export function UsersTable({ refreshKey = 0 }: { refreshKey?: number }) {
           <TableBody>
             {!isLoading && users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={COLUMNS.length} className="text-center text-muted-foreground">
+                <TableCell colSpan={COLUMNS.length} className="py-8 text-center text-muted-foreground">
                   No users found.
                 </TableCell>
               </TableRow>
             )}
-            {users.map((user) => (
-              <TableRow key={user.id}>
+            {users.map((user, i) => (
+              <TableRow key={user.id} className={i % 2 === 1 ? "bg-muted/20" : undefined}>
                 <TableCell className="font-medium">{user.name ?? "—"}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.planName ?? "—"}</TableCell>
@@ -132,31 +136,14 @@ export function UsersTable({ refreshKey = 0 }: { refreshKey?: number }) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
-          Page {page} of {totalPages} ({total} users)
-        </span>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Previous
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
-            Next
-          </Button>
+      {total > 0 && (
+        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+          <p className="text-sm text-muted-foreground">
+            Page {page} of {totalPages} ({total} users)
+          </p>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
-      </div>
+      )}
     </div>
   );
 }

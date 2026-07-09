@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ChevronDown, MessageCircleQuestion } from "lucide-react";
+import { MessageCircleQuestion } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import { getSiteContentEntries } from "@/lib/site-content";
 
 export const revalidate = 3600;
@@ -31,19 +32,8 @@ export default async function FaqPage() {
         </p>
       </div>
 
-      <div className="mt-14 flex flex-col gap-3">
-        {faqs.map((faq) => (
-          <details
-            key={faq.key}
-            className="group rounded-2xl border border-border/80 bg-card px-5 py-4 open:border-primary/30 open:shadow-sm"
-          >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium marker:content-none">
-              {faq.key}
-              <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 group-open:text-primary" />
-            </summary>
-            <p className="mt-3 text-sm text-muted-foreground">{faq.value}</p>
-          </details>
-        ))}
+      <div className="mt-14">
+        <FaqAccordion faqs={faqs} />
       </div>
 
       <div className="mt-16 flex flex-col items-center gap-3 rounded-2xl border border-border/80 bg-muted/30 px-6 py-10 text-center">

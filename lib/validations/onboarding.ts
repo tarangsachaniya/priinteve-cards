@@ -27,6 +27,7 @@ export const cardFieldInputSchema = z.object({
 
 export const saveProfileFieldsSchema = z.object({
   fields: z.array(cardFieldInputSchema).max(30),
+  company: z.string().max(120).optional(),
 });
 
 export const cardFieldUpdateSchema = z.object({

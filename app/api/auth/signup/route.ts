@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     data: {
       name,
       email,
+      company,
       passwordHash,
       slug,
       referralCode,

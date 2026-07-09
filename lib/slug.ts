@@ -11,12 +11,18 @@ function slugify(input: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export async function generateUniqueSlug(name: string, company?: string): Promise<string> {
+export async function generateUniqueSlug(
+  name: string,
+  company?: string,
+  excludeUserId?: string
+): Promise<string> {
   const base = slugify(company ? `${name}-${company}` : name) || "user";
 
   let candidate = base;
   let suffix = 1;
-  while (await db.user.findUnique({ where: { slug: candidate }, select: { id: true } })) {
+  while (true) {
+    const owner = await db.user.findUnique({ where: { slug: candidate }, select: { id: true } });
+    if (!owner || owner.id === excludeUserId) break;
     suffix += 1;
     candidate = `${base}-${suffix}`;
   }

@@ -42,6 +42,7 @@ model User {
   role           Role      @default(USER)
   googleId       String?   @unique
   slug           String    @unique
+  company        String?
   planId         String?
   plan           Plan?     @relation(fields: [planId], references: [id])
   planExpiresAt  DateTime?
@@ -95,13 +96,34 @@ model Plan {
   validityDays     Int
   featuresJson      Json
   maxGalleryImages Int
+  maxVideos        Int      @default(0)
+  maxPdfs          Int      @default(0)
+  storageLimitMb   Int      @default(0)
   isActive         Boolean  @default(true)
+  isDraft          Boolean  @default(false)
   recommended      Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   users     User[]
   purchases Purchase[]
+
+  @@index([isActive])
+  @@index([isDraft])
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actorEmail String
+  action     String
+  targetType String
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([targetType, targetId])
 }
 
 model CardField {

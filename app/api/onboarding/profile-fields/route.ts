@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { generateUniqueSlug } from "@/lib/slug";
 import { saveProfileFieldsSchema } from "@/lib/validations/onboarding";
 
 export async function POST(req: Request) {
@@ -17,7 +18,25 @@ export async function POST(req: Request) {
   }
 
   const userId = session.user.id;
-  const { fields } = parsed.data;
+  const { fields, company } = parsed.data;
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { name: true, slug: true, company: true, cardPublished: true },
+  });
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  let slug = user.slug;
+  let nextCompany = user.company;
+  if (!user.cardPublished && typeof company === "string") {
+    const trimmed = company.trim();
+    nextCompany = trimmed;
+    if (trimmed && trimmed !== (user.company ?? "")) {
+      slug = await generateUniqueSlug(user.name ?? "", trimmed, userId);
+    }
+  }
 
   await db.$transaction([
     db.cardField.deleteMany({ where: { userId } }),
@@ -34,6 +53,10 @@ export async function POST(req: Request) {
       where: { id: userId, onboardingStep: { lt: 2 } },
       data: { onboardingStep: 2 },
     }),
+    db.user.update({
+      where: { id: userId },
+      data: { company: nextCompany, slug },
+    }),
   ]);
 
   const savedFields = await db.cardField.findMany({
@@ -41,5 +64,5 @@ export async function POST(req: Request) {
     orderBy: { order: "asc" },
   });
 
-  return NextResponse.json({ success: true, fields: savedFields });
+  return NextResponse.json({ success: true, fields: savedFields, slug, company: nextCompany });
 }

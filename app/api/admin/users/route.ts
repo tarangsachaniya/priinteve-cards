@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { name, email, role, planId, planExpiresAt } = parsed.data;
+  const { name, email, company, role, planId, planExpiresAt } = parsed.data;
 
   const existing = await db.user.findUnique({ where: { email } });
   if (existing) {
@@ -93,13 +93,14 @@ export async function POST(req: Request) {
   }
 
   const passwordHash = await bcrypt.hash(randomBytes(32).toString("hex"), 10);
-  const slug = await generateUniqueSlug(name);
+  const slug = await generateUniqueSlug(name, company);
   const referralCode = await generateUniqueReferralCode();
 
   const user = await db.user.create({
     data: {
       name,
       email,
+      company,
       passwordHash,
       slug,
       referralCode,

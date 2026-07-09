@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { saveProfileFieldsSchema } from "@/lib/validations/onboarding";
 import { FieldTypePicker } from "@/components/wizard/field-type-picker";
 import { FieldInstanceRow, type WizardField } from "@/components/wizard/field-instance-row";
@@ -18,12 +20,15 @@ const SOCIAL_LABELS: Record<string, string> = {
 
 export function Step1ProfileFields({
   initialFields,
+  initialCompany,
   onSaved,
 }: {
   initialFields: WizardField[];
-  onSaved: (fields: WizardField[]) => void;
+  initialCompany: string | null;
+  onSaved: (fields: WizardField[], slug: string, company: string) => void;
 }) {
   const [fields, setFields] = useState<WizardField[]>(initialFields);
+  const [company, setCompany] = useState(initialCompany ?? "");
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -70,6 +75,7 @@ export function Step1ProfileFields({
   async function handleSave() {
     const payload = {
       fields: fields.map(({ fieldType, label, value }) => ({ fieldType, label, value })),
+      company,
     };
     const parsed = saveProfileFieldsSchema.safeParse(payload);
     if (!parsed.success) {
@@ -95,7 +101,7 @@ export function Step1ProfileFields({
         label: f.label,
         value: f.value,
       }));
-      onSaved(savedFields);
+      onSaved(savedFields, data.slug, data.company ?? "");
     } finally {
       setIsSaving(false);
     }
@@ -108,6 +114,16 @@ export function Step1ProfileFields({
         <p className="text-sm text-muted-foreground">
           Click a field type to add it to your card.
         </p>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="wizard-company">Company (optional)</Label>
+        <Input
+          id="wizard-company"
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+          placeholder="Your company name"
+        />
       </div>
 
       <FieldTypePicker onAdd={addField} onAddFile={handleAddFile} isUploadingFile={isUploadingFile} />

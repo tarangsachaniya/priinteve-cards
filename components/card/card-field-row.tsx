@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { getFieldTypeMeta } from "@/lib/field-types";
 import { sanitizeRichTextServer } from "@/lib/sanitize-html";
+import { mailtoHref, telHref, waHref } from "@/lib/contact-links";
 
 export type PublicCardField = {
   fieldType: string;
@@ -11,11 +12,11 @@ export type PublicCardField = {
 function fieldHref(field: PublicCardField): string | null {
   switch (field.fieldType) {
     case "phone":
-      return `tel:${field.value}`;
+      return telHref(field.value);
     case "email":
-      return `mailto:${field.value}`;
+      return mailtoHref(field.value);
     case "whatsapp":
-      return `https://wa.me/${field.value.replace(/[^0-9]/g, "")}`;
+      return waHref(field.value);
     case "website":
       return field.value;
     case "file":
@@ -42,7 +43,8 @@ export function CardFieldRow({ field, mapUrl }: { field: PublicCardField; mapUrl
   );
 
   const rowClassName = cn(
-    "flex gap-2 rounded-lg bg-muted/50 px-2.5 py-1.5 text-sm",
+    "flex gap-2 rounded-lg bg-muted/50 px-2.5 py-1.5 text-sm transition-colors",
+    href && "hover:bg-[var(--brand)]/10",
     shouldWrap ? "items-start" : "items-center"
   );
 

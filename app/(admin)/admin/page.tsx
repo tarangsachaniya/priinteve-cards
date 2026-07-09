@@ -50,9 +50,9 @@ export default function AdminPage() {
           <Link
             key={section.href}
             href={section.href}
-            className="flex items-start gap-3 rounded-xl border p-4 transition-colors hover:border-primary/40 hover:bg-primary/5"
+            className="group flex items-start gap-3 rounded-xl bg-card p-4 text-card-foreground ring-1 ring-foreground/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/30"
           >
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
               <section.icon className="size-4" />
             </span>
             <div>
