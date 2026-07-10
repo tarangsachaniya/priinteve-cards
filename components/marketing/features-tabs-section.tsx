@@ -66,10 +66,10 @@ export function FeaturesTabsSection() {
   if (!active) return null;
 
   return (
-    <section className="border-y border-border/80 bg-muted/30 py-24 md:py-28">
-      <div className="mx-auto max-w-6xl px-6">
-      <div className="mx-auto max-w-2xl text-center">
-        <Badge variant="secondary" className="h-auto rounded-full px-3 py-1">
+    <section className="border-y border-border/60 bg-section-alt py-24 md:py-28">
+      <div className="mx-auto max-w-[1360px] px-6">
+      <div className="reveal-on-scroll mx-auto max-w-2xl text-center">
+        <Badge variant="secondary" className="h-auto rounded-full px-3 py-1 shadow-xs-token">
           Features
         </Badge>
         <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -80,7 +80,7 @@ export function FeaturesTabsSection() {
         </p>
       </div>
 
-      <div className="mt-14 grid gap-3 lg:grid-cols-[minmax(0,17rem)_1fr] lg:items-start lg:gap-6">
+      <div className="reveal-on-scroll mt-14 grid gap-3 lg:grid-cols-[minmax(0,17rem)_1fr] lg:items-start lg:gap-6">
         <div className="flex gap-2 overflow-x-auto pb-2 lg:sticky lg:top-24 lg:flex-col lg:overflow-visible lg:pb-0">
           {FEATURES.map((feature, index) => {
             const isActive = index === activeIndex;
@@ -90,18 +90,18 @@ export function FeaturesTabsSection() {
                 type="button"
                 onClick={() => setActiveIndex(index)}
                 className={cn(
-                  "flex shrink-0 items-start gap-3.5 rounded-xl border border-transparent px-4 py-3.5 text-left transition-colors lg:shrink",
+                  "flex shrink-0 items-start gap-3.5 rounded-xl border border-transparent px-4 py-3.5 text-left transition-all duration-300 lg:shrink",
                   isActive
-                    ? "border-border/80 bg-card shadow-sm"
-                    : "hover:bg-muted/60"
+                    ? "shadow-card-sm border-border/60 bg-card ring-1 ring-foreground/5"
+                    : "hover:bg-muted/50"
                 )}
               >
                 <span
                   className={cn(
                     "flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-primary/10 text-primary"
+                      ? "shadow-sm shadow-primary/30 bg-primary text-primary-foreground"
+                      : "bg-primary/10 text-primary ring-1 ring-primary/15"
                   )}
                 >
                   <feature.icon className="size-4.5" />
@@ -117,13 +117,13 @@ export function FeaturesTabsSection() {
           })}
         </div>
 
-        <div className="min-h-[22rem] rounded-2xl border border-border/80 bg-card p-8 shadow-sm">
+        <div className="shadow-card-sm min-h-[22rem] rounded-2xl border border-border/60 bg-card p-8 ring-1 ring-foreground/5 sm:p-10">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h3 className="text-xl font-semibold tracking-tight">{active.title}</h3>
               <p className="mt-2 max-w-md text-sm text-muted-foreground">{active.description}</p>
             </div>
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
               <active.icon className="size-6" />
             </span>
           </div>
@@ -131,7 +131,7 @@ export function FeaturesTabsSection() {
           <ul className="mt-8 grid gap-3.5 sm:grid-cols-2">
             {active.bullets.map((bullet) => (
               <li key={bullet} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                <span className="mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <span className="mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/15">
                   <CheckIcon className="size-3" />
                 </span>
                 {bullet}

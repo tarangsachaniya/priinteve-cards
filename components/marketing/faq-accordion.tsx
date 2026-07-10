@@ -10,7 +10,7 @@ export function FaqAccordion({ faqs, limit }: { faqs: FaqEntry[]; limit?: number
       {visible.map((faq) => (
         <details
           key={faq.key}
-          className="group rounded-2xl border border-border/80 bg-card px-5 py-4 open:border-primary/30 open:shadow-sm"
+          className="group rounded-2xl border border-border/60 bg-card px-5 py-4 transition-shadow duration-300 open:border-primary/25 open:shadow-card-sm"
         >
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium marker:content-none">
             {faq.key}

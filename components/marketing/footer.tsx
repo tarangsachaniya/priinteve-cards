@@ -25,13 +25,13 @@ const SOCIAL_LINKS = [
 
 export function MarketingFooter() {
   return (
-    <footer className="border-t border-border/80">
+    <footer className="border-t border-border/60">
       <div className="relative overflow-hidden bg-gradient-to-br from-primary to-emerald-800">
         <div
           aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.12),_transparent_55%)]"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.15),_transparent_60%)]"
         />
-        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-6 px-6 py-14 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div className="relative mx-auto flex max-w-[1360px] flex-col items-center gap-6 px-6 py-14 text-center sm:flex-row sm:justify-between sm:text-left">
           <div>
             <p className="text-2xl font-semibold tracking-tight text-primary-foreground">
               Ready to make a great first impression?
@@ -52,10 +52,10 @@ export function MarketingFooter() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-[1360px] gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:gap-14">
         <div className="sm:col-span-2 lg:col-span-1">
           <Link href="/" className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground shadow-sm shadow-primary/30">
+            <span className="shadow-card-sm flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground">
               <Wifi className="size-4" strokeWidth={2.5} />
             </span>
             DigitalCard
@@ -110,8 +110,8 @@ export function MarketingFooter() {
         </div>
       </div>
 
-      <div className="border-t border-border/80 px-6 py-5">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 text-xs text-muted-foreground sm:flex-row">
+      <div className="border-t border-border/60 px-6 py-5">
+        <div className="mx-auto flex max-w-[1360px] flex-col items-center justify-between gap-3 text-xs text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} DigitalCard. All rights reserved.</p>
           <p>Made for professionals who network.</p>
         </div>

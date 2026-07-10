@@ -40,10 +40,10 @@ const DOCK_ICONS = [PhoneIcon, MessageCircleIcon, MailIcon, GlobeIcon, Share2Ico
 
 export function CardPreviewSection() {
   return (
-    <section className="mx-auto max-w-6xl px-6 py-24 md:py-28" id="preview">
-      <div className="grid items-center gap-14 lg:grid-cols-[1fr_1.05fr]">
+    <section className="mx-auto max-w-[1360px] px-6 py-24 md:py-28" id="preview">
+      <div className="reveal-on-scroll grid items-center gap-16 lg:grid-cols-[1fr_1.05fr]">
         <div>
-          <Badge variant="secondary" className="h-auto rounded-full px-3 py-1">
+          <Badge variant="secondary" className="h-auto rounded-full px-3 py-1 shadow-xs-token">
             Live demo
           </Badge>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
@@ -57,7 +57,7 @@ export function CardPreviewSection() {
           <ul className="mt-8 flex flex-col gap-5">
             {PREVIEW_POINTS.map((point, index) => (
               <li key={point.title} className="flex gap-3.5">
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10 font-mono text-xs font-medium text-primary">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10 font-mono text-xs font-medium text-primary ring-1 ring-primary/15">
                   {index + 1}
                 </span>
                 <div>
@@ -70,13 +70,13 @@ export function CardPreviewSection() {
         </div>
 
         <div className="mx-auto hidden w-full max-w-[300px] lg:block">
-          <div className="relative rounded-[2.75rem] border border-border/80 bg-foreground p-3 shadow-2xl">
+          <div className="shadow-card-xl relative rounded-[2.75rem] border border-border/70 bg-foreground p-3">
             <div
               aria-hidden
               className="absolute top-2.5 left-1/2 z-10 h-5 w-20 -translate-x-1/2 rounded-full bg-foreground"
             />
             <div className="flex h-[600px] flex-col overflow-hidden rounded-[2.1rem] bg-card">
-              <div className="flex-1 overflow-y-auto [scrollbar-width:thin]">
+              <div className="scrollbar-none flex-1 overflow-y-auto">
                 <div className="h-20 w-full bg-gradient-to-br from-primary to-emerald-800" />
 
                 <div className="-mt-10 flex flex-col items-center gap-1.5 px-5 text-center">
@@ -113,7 +113,7 @@ export function CardPreviewSection() {
                     {["linkedin", "instagram", "x"].map((platform) => (
                       <span
                         key={platform}
-                        className="flex size-8 items-center justify-center rounded-full bg-muted/50 text-foreground/80 ring-1 ring-foreground/10"
+                        className="flex size-8 items-center justify-center rounded-full bg-muted/50 text-foreground/80 ring-1 ring-foreground/8"
                       >
                         <SocialIcon platform={platform} className="size-3.5" />
                       </span>
@@ -139,7 +139,7 @@ export function CardPreviewSection() {
                       {SERVICES.map((service) => (
                         <div
                           key={service.title}
-                          className="flex flex-col gap-1 rounded-xl bg-card p-3 text-[11.5px] shadow-sm ring-1 ring-foreground/10"
+                          className="shadow-card-sm flex flex-col gap-1 rounded-xl bg-card p-3 text-[11.5px] ring-1 ring-foreground/8"
                         >
                           <service.icon className="size-4 shrink-0 text-primary" />
                           <span className="font-medium">{service.title}</span>
@@ -151,7 +151,7 @@ export function CardPreviewSection() {
 
                   <div className="flex flex-col gap-2">
                     <h4 className="px-1 text-xs font-semibold text-foreground/90">Testimonials</h4>
-                    <div className="flex flex-col gap-1.5 rounded-xl bg-card p-3 text-[11.5px] shadow-sm ring-1 ring-foreground/10">
+                    <div className="shadow-card-sm flex flex-col gap-1.5 rounded-xl bg-card p-3 text-[11.5px] ring-1 ring-foreground/8">
                       <div className="flex items-center gap-0.5">
                         {Array.from({ length: 5 }).map((_, star) => (
                           <Star key={star} className="size-3 fill-primary text-primary" />
@@ -171,7 +171,7 @@ export function CardPreviewSection() {
                       <div
                         key={index}
                         className={cn(
-                          "relative aspect-square overflow-hidden rounded-md ring-1 ring-foreground/10",
+                          "relative aspect-square overflow-hidden rounded-md ring-1 ring-foreground/8",
                           tone
                         )}
                       >
