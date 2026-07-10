@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export type StructuredFieldConfig = {
   name: string;
   label: string;
-  type: "text" | "textarea" | "select" | "number";
+  type: "text" | "textarea" | "select" | "number" | "image";
   options?: { value: string; label: string }[];
   placeholder?: string;
 };
@@ -131,7 +131,13 @@ export function StructuredSiteContentForm({
           {fields.map((field) => (
             <div key={field.name} className="flex flex-col gap-1.5">
               <Label htmlFor={`${section}-${index}-${field.name}`}>{field.label}</Label>
-              {field.type === "textarea" ? (
+              {field.type === "image" ? (
+                <ImageField
+                  id={`${section}-${index}-${field.name}`}
+                  value={item[field.name] ?? ""}
+                  onChange={(url) => updateField(index, field.name, url)}
+                />
+              ) : field.type === "textarea" ? (
                 <textarea
                   id={`${section}-${index}-${field.name}`}
                   className="min-h-20 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
@@ -177,5 +183,54 @@ export function StructuredSiteContentForm({
         Save section
       </Button>
     </form>
+  );
+}
+
+function ImageField({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const [isUploading, setIsUploading] = useState(false);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(data?.error ?? "Could not upload image");
+        return;
+      }
+      onChange(data.url);
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      {value ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={value} alt="" className="size-12 shrink-0 rounded-md border object-cover" />
+      ) : null}
+      <Input
+        id={id}
+        type="file"
+        accept="image/*"
+        disabled={isUploading}
+        onChange={handleFileChange}
+      />
+    </div>
   );
 }

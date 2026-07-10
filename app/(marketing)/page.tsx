@@ -70,7 +70,7 @@ const TRUST_BADGES = [
 export default async function HomePage() {
   const [hero, logos, templates, testimonials, video, faqs, plans] = await Promise.all([
     getSiteContentMap("homepage_hero"),
-    getSiteContentList<{ name: string }>("homepage_logos"),
+    getSiteContentList<{ name: string; logoUrl?: string }>("homepage_logos"),
     getSiteContentList<{ industry: string; description: string; accent: HomepageAccent }>(
       "homepage_templates"
     ),

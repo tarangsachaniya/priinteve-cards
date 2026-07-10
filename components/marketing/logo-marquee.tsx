@@ -1,4 +1,4 @@
-type LogoItem = { name: string };
+type LogoItem = { name: string; logoUrl?: string };
 
 export function LogoMarquee({ logos }: { logos: LogoItem[] }) {
   if (logos.length === 0) return null;
@@ -16,14 +16,24 @@ export function LogoMarquee({ logos }: { logos: LogoItem[] }) {
           >
             {[logos, logos].map((group, groupIndex) => (
               <div key={groupIndex} aria-hidden={groupIndex === 1} className="flex shrink-0 items-center gap-x-14">
-                {group.map((logo, index) => (
-                  <span
-                    key={`${groupIndex}-${index}`}
-                    className="text-lg font-semibold tracking-tight whitespace-nowrap text-muted-foreground/70"
-                  >
-                    {logo.name}
-                  </span>
-                ))}
+                {group.map((logo, index) =>
+                  logo.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={`${groupIndex}-${index}`}
+                      src={logo.logoUrl}
+                      alt={logo.name}
+                      className="h-8 w-auto shrink-0 object-contain opacity-70 grayscale transition group-hover:opacity-100 group-hover:grayscale-0"
+                    />
+                  ) : (
+                    <span
+                      key={`${groupIndex}-${index}`}
+                      className="text-lg font-semibold tracking-tight whitespace-nowrap text-muted-foreground/70"
+                    >
+                      {logo.name}
+                    </span>
+                  )
+                )}
               </div>
             ))}
           </div>

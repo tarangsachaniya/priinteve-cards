@@ -48,6 +48,10 @@ export const homepageAccentSchema = z.enum([
 
 export const homepageLogoSchema = z.object({
   name: z.string().min(1).max(60),
+  logoUrl: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().url().optional()
+  ),
 });
 
 export const homepageTemplateSchema = z.object({

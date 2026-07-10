@@ -39,8 +39,11 @@ const SECTIONS: SectionConfig[] = [
     key: "homepage_logos",
     label: "Trusted-By Logos",
     type: "list",
-    fields: [{ name: "name", label: "Company name", type: "text", placeholder: "e.g. Northwind" }],
-    emptyItem: { name: "" },
+    fields: [
+      { name: "name", label: "Company name", type: "text", placeholder: "e.g. Northwind" },
+      { name: "logoUrl", label: "Logo image (optional)", type: "image" },
+    ],
+    emptyItem: { name: "", logoUrl: "" },
     itemLabelField: "name",
     itemLabelFallback: "Logo",
   },

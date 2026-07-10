@@ -86,7 +86,7 @@ export function PricingCards({ plans }: { plans: Plan[] }) {
             )}
           >
             {plan.recommended && (
-              <div className="absolute -top-3.5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-gradient-to-r from-primary to-emerald-700 px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm shadow-primary/30">
+              <div className="absolute -top-3.5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-gradient-to-r from-primary to-emerald-700 px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm shadow-primary/30 ring-2 ring-background">
                 <Sparkles className="size-3" />
                 Most popular
               </div>
@@ -96,7 +96,7 @@ export function PricingCards({ plans }: { plans: Plan[] }) {
                 "relative flex h-full flex-col rounded-2xl border-border/80 transition-all hover:-translate-y-1",
                 plan.recommended
                   ? "shadow-glow border-primary/40 bg-gradient-to-b from-primary/5 to-transparent"
-                  : "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+                  : "hover:border-primary/30 hover:shadow-glow"
               )}
             >
               <CardHeader>
@@ -107,7 +107,7 @@ export function PricingCards({ plans }: { plans: Plan[] }) {
                       "flex size-9 shrink-0 items-center justify-center rounded-full",
                       plan.recommended
                         ? "bg-primary text-primary-foreground"
-                        : "bg-primary/10 text-primary"
+                        : "bg-primary/10 text-primary ring-1 ring-primary/20"
                     )}
                   >
                     <typeMeta.icon className="size-4" />
@@ -120,10 +120,17 @@ export function PricingCards({ plans }: { plans: Plan[] }) {
               <CardContent className="flex flex-1 flex-col gap-5">
                 <div className="border-b border-border/60 pb-5">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-semibold tracking-tight">₹{plan.price}</span>
+                    <span
+                      className={cn(
+                        "text-4xl font-semibold tracking-tight",
+                        plan.recommended && "text-gradient"
+                      )}
+                    >
+                      ₹{plan.price}
+                    </span>
                     <span className="text-sm text-muted-foreground">/ {plan.validityDays} days</span>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">≈ ₹{perMonth} per month</p>
+                  <p className="mt-1 text-sm font-medium text-foreground/80">≈ ₹{perMonth} per month</p>
                 </div>
                 <PlanLimits plan={plan} />
                 {features.length > 0 && (
@@ -133,7 +140,12 @@ export function PricingCards({ plans }: { plans: Plan[] }) {
                       const Icon = known?.icon ?? CheckIcon;
                       return (
                         <li key={feature} className="flex items-start gap-2.5">
-                          <span className="mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <span
+                            className={cn(
+                              "mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full text-primary",
+                              plan.recommended ? "bg-primary/15" : "bg-primary/10"
+                            )}
+                          >
                             <Icon className="size-3" />
                           </span>
                           <span className="text-muted-foreground">{known?.label ?? feature}</span>
@@ -146,7 +158,7 @@ export function PricingCards({ plans }: { plans: Plan[] }) {
               <CardFooter className="bg-transparent p-(--card-spacing) pt-0">
                 <Button
                   size="lg"
-                  className="w-full"
+                  className={cn("w-full", !plan.recommended && "hover:shadow-sm hover:shadow-primary/10")}
                   variant={plan.recommended ? "default" : "outline"}
                   render={<Link href="/signup" />}
                 >
