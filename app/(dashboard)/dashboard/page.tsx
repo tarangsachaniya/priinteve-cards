@@ -32,7 +32,7 @@ export default async function DashboardPage() {
   const showRenewCta = daysUntilExpiry !== null && daysUntilExpiry <= RENEWAL_WINDOW_DAYS;
 
   return (
-    <main className="p-6 sm:p-8">
+    <main className="p-6 sm:p-8 lg:p-10">
       <PageHeader
         icon={LayoutDashboard}
         title="Overview"

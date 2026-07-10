@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Quote, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -17,23 +17,23 @@ export function MarketingTestimonialsSection({
   if (testimonials.length === 0) return null;
 
   return (
-    <section className="border-t border-border/80 bg-muted/30 py-20">
-      <div className="mx-auto max-w-6xl px-6">
+    <section className="mx-auto max-w-6xl px-6 py-24 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
           <Badge variant="secondary" className="h-auto rounded-full px-3 py-1">
             Customers
           </Badge>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight">
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
             Loved by people who network for a living
           </h2>
         </div>
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="flex flex-col gap-4 rounded-2xl border border-border/80 bg-card p-6 shadow-sm"
+              className="relative flex flex-col gap-4 rounded-2xl border border-border/80 bg-card p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
             >
+              <Quote className="size-7 text-primary/20" fill="currentColor" />
               <div className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, star) => (
                   <Star
@@ -43,7 +43,7 @@ export function MarketingTestimonialsSection({
                   />
                 ))}
               </div>
-              <p className="text-sm text-foreground/90">&ldquo;{testimonial.quote}&rdquo;</p>
+              <p className="text-base leading-relaxed text-foreground/90">&ldquo;{testimonial.quote}&rdquo;</p>
               <div className="mt-auto flex items-center gap-3">
                 <div className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                   {testimonial.name
@@ -61,7 +61,6 @@ export function MarketingTestimonialsSection({
             </div>
           ))}
         </div>
-      </div>
     </section>
   );
 }

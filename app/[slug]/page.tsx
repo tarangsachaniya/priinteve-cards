@@ -55,17 +55,21 @@ export default async function CardPage({
           photoUrl: photoField?.value ?? null,
           fields: user.cardFields
             .filter((f) => f.fieldType !== "photo")
-            .map((f) => ({ fieldType: f.fieldType, label: f.label, value: f.value })),
+            .map((f) => ({ id: f.id, fieldType: f.fieldType, label: f.label, value: f.value, order: f.order })),
           galleryItems: user.galleryItems.map((item) => ({
+            id: item.id,
             type: item.type,
             url: item.url,
             order: item.order,
+            caption: item.caption,
+            altText: item.altText,
           })),
           settings: {
             themeId: user.cardSettings?.themeId ?? "default",
             brandColor: user.cardSettings?.brandColor ?? "#059669",
             galleryLayout: user.cardSettings?.galleryLayout ?? "grid",
           },
+          gallerySectionOrder: user.cardSettings?.gallerySectionOrder ?? 9999,
         }}
       />
     </>

@@ -51,7 +51,7 @@ export default async function ReferralsPage() {
   const walletInr = Math.round(user.walletPoints / conversionRate);
 
   return (
-    <main className="mx-auto max-w-5xl p-6 sm:p-8">
+    <main className="mx-auto max-w-6xl p-6 sm:p-8 lg:p-10">
       <PageHeader
         icon={Users}
         title="Referrals"

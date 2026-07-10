@@ -21,6 +21,8 @@ function fieldHref(field: PublicCardField): string | null {
       return field.value;
     case "file":
       return field.value;
+    case "google_maps_url":
+      return field.value;
     default:
       if (field.fieldType.startsWith("social_")) return field.value;
       return null;
@@ -30,8 +32,11 @@ function fieldHref(field: PublicCardField): string | null {
 export function CardFieldRow({ field, mapUrl }: { field: PublicCardField; mapUrl?: string }) {
   const { icon: Icon } = getFieldTypeMeta(field.fieldType);
   const href = fieldHref(field);
-  const isExternal = field.fieldType === "website" || field.fieldType.startsWith("social_");
-  const shouldWrap = field.fieldType === "address" || field.fieldType === "business_hours";
+  const isExternal =
+    field.fieldType === "website" ||
+    field.fieldType === "google_maps_url" ||
+    field.fieldType.startsWith("social_");
+  const shouldWrap = field.fieldType === "address";
 
   const content = (
     <>

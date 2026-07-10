@@ -38,7 +38,7 @@ const SECTIONS: { href: string; label: string; description: string; icon: Lucide
 
 export default function AdminPage() {
   return (
-    <main className="mx-auto max-w-5xl p-6 sm:p-8">
+    <main className="mx-auto max-w-6xl p-6 sm:p-8 lg:p-10">
       <PageHeader
         icon={ShieldCheck}
         title="Admin Panel"

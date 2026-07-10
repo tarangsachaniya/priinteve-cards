@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { revalidateUserCard } from "@/lib/revalidate-card";
 import { sanitizeRichTextServer } from "@/lib/sanitize-html";
 import { cardFieldInputSchema } from "@/lib/validations/onboarding";
+import { STRUCTURED_FIELD_TYPES, parseAndValidateStructuredValue } from "@/lib/validations/card-field";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -20,7 +21,21 @@ export async function POST(req: Request) {
 
   const userId = session.user.id;
   const { fieldType, label } = parsed.data;
-  const value = fieldType === "bio" ? sanitizeRichTextServer(parsed.data.value) : parsed.data.value;
+
+  let value: string;
+  try {
+    if (fieldType === "bio") {
+      value = sanitizeRichTextServer(parsed.data.value);
+    } else if (fieldType === "custom_html") {
+      value = sanitizeRichTextServer(parsed.data.value, { allowCustomHtmlTags: true });
+    } else if (STRUCTURED_FIELD_TYPES.has(fieldType)) {
+      value = parseAndValidateStructuredValue(fieldType, parsed.data.value);
+    } else {
+      value = parsed.data.value;
+    }
+  } catch {
+    return NextResponse.json({ error: "Invalid value for field type" }, { status: 400 });
+  }
 
   const last = await db.cardField.findFirst({
     where: { userId },

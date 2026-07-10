@@ -148,6 +148,8 @@ model GalleryItem {
   type        GalleryType
   url         String
   cloudinaryId String?
+  caption     String?
+  altText     String?
   order       Int         @default(0)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -156,15 +158,16 @@ model GalleryItem {
 }
 
 model CardSettings {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  themeId         String   @default("default")
-  brandColor      String   @default("#000000")
-  galleryLayout   String   @default("grid")
-  vcfIncludePhoto Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  themeId             String   @default("default")
+  brandColor          String   @default("#000000")
+  galleryLayout       String   @default("grid")
+  vcfIncludePhoto     Boolean  @default(true)
+  gallerySectionOrder Int      @default(9999)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Purchase {

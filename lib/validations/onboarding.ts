@@ -17,12 +17,24 @@ export const cardFieldTypeEnum = z.enum([
   "social_twitter",
   "social_facebook",
   "social_youtube",
+  "designation",
+  "company_name",
+  "company_tagline",
+  "company_description",
+  "google_maps_url",
+  "service",
+  "testimonial",
+  "product",
+  "faq",
+  "button",
+  "business_hours",
+  "custom_html",
 ]);
 
 export const cardFieldInputSchema = z.object({
   fieldType: cardFieldTypeEnum,
   label: z.string().min(1).max(80),
-  value: z.string().min(1).max(4000),
+  value: z.string().max(20000),
 });
 
 export const saveProfileFieldsSchema = z.object({
@@ -32,7 +44,7 @@ export const saveProfileFieldsSchema = z.object({
 
 export const cardFieldUpdateSchema = z.object({
   label: z.string().min(1).max(80),
-  value: z.string().min(1).max(4000),
+  value: z.string().max(20000),
 });
 
 export const cardFieldVisibilitySchema = z.object({
@@ -76,6 +88,27 @@ export const saveYoutubeItemSchema = z.object({
   url: z.string().url(),
 });
 
+export const galleryItemUpdateSchema = z.object({
+  caption: z.string().max(200).optional(),
+  altText: z.string().max(200).optional(),
+});
+
+export const gallerySectionOrderSchema = z.object({
+  gallerySectionOrder: z.number().int().min(0),
+});
+
+export const cardBuilderReorderSchema = z.object({
+  fieldOrder: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        order: z.number().int().min(0),
+      })
+    )
+    .min(0),
+  gallerySectionOrder: z.number().int().min(0),
+});
+
 export const saveVcfSettingsSchema = z.object({
   vcfIncludePhoto: z.boolean(),
 });
@@ -89,4 +122,7 @@ export type SaveThemeInput = z.infer<typeof saveThemeSchema>;
 export type SaveGalleryLayoutInput = z.infer<typeof saveGalleryLayoutSchema>;
 export type GalleryReorderInput = z.infer<typeof galleryReorderSchema>;
 export type SaveYoutubeItemInput = z.infer<typeof saveYoutubeItemSchema>;
+export type GalleryItemUpdateInput = z.infer<typeof galleryItemUpdateSchema>;
+export type GallerySectionOrderInput = z.infer<typeof gallerySectionOrderSchema>;
+export type CardBuilderReorderInput = z.infer<typeof cardBuilderReorderSchema>;
 export type SaveVcfSettingsInput = z.infer<typeof saveVcfSettingsSchema>;

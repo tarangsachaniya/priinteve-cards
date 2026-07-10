@@ -37,19 +37,21 @@ export function VideoDemoSection({
   const embedUrl = getEmbedUrl(videoUrl);
 
   return (
-    <section className="border-t border-border/80 bg-muted/30 py-20">
+    <section className="border-t border-border/80 bg-muted/30 py-24 md:py-28">
       <div className="mx-auto max-w-4xl px-6">
         <div className="mx-auto max-w-2xl text-center">
           <Badge variant="secondary" className="h-auto rounded-full px-3 py-1">
             Watch
           </Badge>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight">
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
             See a card built, tapped, and updated
           </h2>
-          {caption && <p className="mt-3 text-muted-foreground">{caption}</p>}
+          {caption && (
+            <p className="mx-auto mt-4 max-w-lg text-base text-muted-foreground sm:text-lg">{caption}</p>
+          )}
         </div>
 
-        <div className="mt-12 aspect-video overflow-hidden rounded-2xl border border-border/80 bg-black shadow-lg">
+        <div className="mt-14 aspect-video overflow-hidden rounded-2xl border border-border/80 bg-black shadow-lg">
           {playing ? (
             embedUrl ? (
               <iframe

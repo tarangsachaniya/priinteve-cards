@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { revalidateUserCard } from "@/lib/revalidate-card";
 import { sanitizeRichTextServer } from "@/lib/sanitize-html";
 import { cardFieldUpdateSchema } from "@/lib/validations/onboarding";
+import { STRUCTURED_FIELD_TYPES, parseAndValidateStructuredValue } from "@/lib/validations/card-field";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -23,14 +24,24 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const data =
-    field.fieldType === "bio"
-      ? { ...parsed.data, value: sanitizeRichTextServer(parsed.data.value) }
-      : parsed.data;
+  let value: string;
+  try {
+    if (field.fieldType === "bio") {
+      value = sanitizeRichTextServer(parsed.data.value);
+    } else if (field.fieldType === "custom_html") {
+      value = sanitizeRichTextServer(parsed.data.value, { allowCustomHtmlTags: true });
+    } else if (STRUCTURED_FIELD_TYPES.has(field.fieldType)) {
+      value = parseAndValidateStructuredValue(field.fieldType, parsed.data.value);
+    } else {
+      value = parsed.data.value;
+    }
+  } catch {
+    return NextResponse.json({ error: "Invalid value for field type" }, { status: 400 });
+  }
 
   const updated = await db.cardField.update({
     where: { id: params.id },
-    data,
+    data: { label: parsed.data.label, value },
   });
 
   await revalidateUserCard(session.user.id);

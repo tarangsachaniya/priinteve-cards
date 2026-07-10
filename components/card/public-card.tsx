@@ -1,12 +1,30 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { getThemePreset } from "@/lib/theme-presets";
-import { groupCardFields } from "@/lib/card-sections";
+import {
+  buildSectionBlocks,
+  parseButtonItems,
+  parseCompanyGroup,
+  parseFaqItems,
+  parseProductItems,
+  parseServiceItems,
+  parseSocialGroup,
+  parseTestimonialItems,
+  type CardSectionField,
+} from "@/lib/card-sections";
+import { businessHoursValueSchema } from "@/lib/validations/card-field";
 import { waHref } from "@/lib/contact-links";
 import { CardFieldRow, type PublicCardField } from "@/components/card/card-field-row";
 import { CardGallery, type PublicGalleryItem } from "@/components/card/card-gallery";
 import { CompanySection } from "@/components/card/company-section";
 import { ServicesSection } from "@/components/card/services-section";
 import { TestimonialsSection } from "@/components/card/testimonials-section";
+import { ProductsSection } from "@/components/card/products-section";
+import { FaqSection } from "@/components/card/faq-section";
+import { ButtonsSection } from "@/components/card/buttons-section";
+import { BusinessHoursCard } from "@/components/card/business-hours-card";
+import { CustomHtmlBlock } from "@/components/card/custom-html-block";
 import { SocialLinksRow } from "@/components/card/social-links-row";
 import { SafeImage } from "@/components/card/safe-image";
 import { QuickActionDock } from "@/components/card/quick-action-dock";
@@ -22,32 +40,99 @@ export type PublicCardData = {
   name: string;
   slug: string;
   photoUrl: string | null;
-  fields: PublicCardField[];
+  fields: CardSectionField[];
   galleryItems: PublicGalleryItem[];
   settings: PublicCardSettings;
+  gallerySectionOrder?: number;
 };
+
+const WIDE_GROUP_TYPES = new Set(["service", "testimonial", "product", "faq"]);
 
 export function PublicCard({ data }: { data: PublicCardData }) {
   const theme = getThemePreset(data.settings.themeId);
-  const grouped = groupCardFields(data.fields);
-  const website = grouped.rows.find((f) => f.fieldType === "website")?.value;
-  const phone = grouped.rows.find((f) => f.fieldType === "phone")?.value;
-  const email = grouped.rows.find((f) => f.fieldType === "email")?.value;
-  const whatsappLink = grouped.socialLinks.find((l) => l.platform === "whatsapp");
-  const whatsappUrl = whatsappLink ? waHref(whatsappLink.url) : undefined;
+  const blocks = buildSectionBlocks(data.fields, data.gallerySectionOrder ?? 9999);
 
-  const showCompanySection = Boolean(
-    grouped.company?.name || grouped.company?.tagline || grouped.company?.description
+  const website = data.fields.find((f) => f.fieldType === "website")?.value;
+  const phone = data.fields.find((f) => f.fieldType === "phone")?.value;
+  const email = data.fields.find((f) => f.fieldType === "email")?.value;
+  const whatsappValue = data.fields.find((f) => f.fieldType === "whatsapp")?.value;
+  const whatsappUrl = whatsappValue ? waHref(whatsappValue) : undefined;
+  const mapUrl = data.fields.find((f) => f.fieldType === "google_maps_url")?.value;
+
+  const hasCompanySection = blocks.some((b) => b.kind === "group" && b.type === "company");
+  const hasWideContent = blocks.some(
+    (b) => b.kind === "gallery" || (b.kind === "group" && WIDE_GROUP_TYPES.has(b.type))
   );
-  const rows = showCompanySection
-    ? grouped.rows.filter((f) => f.fieldType !== "website")
-    : grouped.rows;
 
   const isMinimal = theme.layout === "minimal";
   const isBanner = theme.layout === "banner";
-  const hasWideContent =
-    grouped.services.length > 0 || grouped.testimonials.length > 0 || data.galleryItems.length > 0;
   const useSplitLayout = hasWideContent || theme.layout === "split";
+
+  function renderBlock(block: ReturnType<typeof buildSectionBlocks>[number], key: string) {
+    if (block.kind === "field") {
+      const field = block.field;
+      if (field.fieldType === "website" && hasCompanySection) return null;
+      if (field.fieldType === "google_maps_url") return null;
+      if (field.fieldType === "business_hours") {
+        const parsed = businessHoursValueSchema.safeParse(JSON.parse(field.value || "{}"));
+        if (!parsed.success) return null;
+        return <BusinessHoursCard key={key} hours={parsed.data} label={field.label} flat={isMinimal} />;
+      }
+      if (field.fieldType === "custom_html") {
+        return <CustomHtmlBlock key={key} html={field.value} flat={isMinimal} />;
+      }
+      return (
+        <CardFieldRow
+          key={key}
+          field={field as PublicCardField}
+          mapUrl={field.fieldType === "address" ? mapUrl : undefined}
+        />
+      );
+    }
+
+    if (block.kind === "group") {
+      switch (block.type) {
+        case "company":
+          return (
+            <CompanySection
+              key={key}
+              company={parseCompanyGroup(block.items)}
+              website={website}
+              flat={isMinimal}
+            />
+          );
+        case "social":
+          return <SocialLinksRow key={key} links={parseSocialGroup(block.items)} />;
+        case "service":
+          return <ServicesSection key={key} services={parseServiceItems(block.items)} flat={isMinimal} />;
+        case "testimonial":
+          return (
+            <TestimonialsSection key={key} testimonials={parseTestimonialItems(block.items)} flat={isMinimal} />
+          );
+        case "product":
+          return <ProductsSection key={key} products={parseProductItems(block.items)} flat={isMinimal} />;
+        case "faq":
+          return <FaqSection key={key} items={parseFaqItems(block.items)} flat={isMinimal} />;
+        case "button":
+          return <ButtonsSection key={key} items={parseButtonItems(block.items)} />;
+        default:
+          return null;
+      }
+    }
+
+    if (block.kind === "gallery") {
+      return <CardGallery key={key} items={data.galleryItems} layout={data.settings.galleryLayout} />;
+    }
+
+    return null;
+  }
+
+  const mainBlocks = blocks.filter(
+    (b) => !(b.kind === "gallery" || (b.kind === "group" && WIDE_GROUP_TYPES.has(b.type)))
+  );
+  const wideBlocks = blocks.filter(
+    (b) => b.kind === "gallery" || (b.kind === "group" && WIDE_GROUP_TYPES.has(b.type))
+  );
 
   const identityBlock = (
     <>
@@ -66,28 +151,13 @@ export function PublicCard({ data }: { data: PublicCardData }) {
           }
         />
         <h1 className="mt-2 text-lg font-semibold">{data.name}</h1>
-        {grouped.designation && (
-          <p className="text-sm text-muted-foreground">{grouped.designation}</p>
-        )}
       </MotionSection>
 
-      {grouped.company && (
-        <CompanySection company={grouped.company} website={website} flat={isMinimal} />
-      )}
-
-      {rows.length > 0 && (
+      {mainBlocks.length > 0 && (
         <div className="flex w-full flex-col gap-2">
-          {rows.map((field, i) => (
-            <CardFieldRow
-              key={i}
-              field={field}
-              mapUrl={field.fieldType === "address" ? (grouped.mapUrl ?? undefined) : undefined}
-            />
-          ))}
+          {mainBlocks.map((block, i) => renderBlock(block, `main-${i}`))}
         </div>
       )}
-
-      <SocialLinksRow links={grouped.socialLinks} />
 
       <QuickActionDock
         phone={phone}
@@ -99,13 +169,7 @@ export function PublicCard({ data }: { data: PublicCardData }) {
     </>
   );
 
-  const contentBlock = (
-    <>
-      <ServicesSection services={grouped.services} flat={isMinimal} />
-      <TestimonialsSection testimonials={grouped.testimonials} flat={isMinimal} />
-      <CardGallery items={data.galleryItems} layout={data.settings.galleryLayout} />
-    </>
-  );
+  const contentBlock = <>{wideBlocks.map((block, i) => renderBlock(block, `wide-${i}`))}</>;
 
   return (
     <main

@@ -39,6 +39,32 @@
   .mask-fade-b {
     mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
   }
+
+  .mask-fade-x {
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+
+  .animate-marquee {
+    animation: marquee var(--marquee-duration, 32s) linear infinite;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @layer base {
