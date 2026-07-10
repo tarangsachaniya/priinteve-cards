@@ -101,7 +101,7 @@ export function FeaturesTabsSection() {
                     "flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors",
                     isActive
                       ? "shadow-sm shadow-primary/30 bg-primary text-primary-foreground"
-                      : "bg-primary/10 text-primary ring-1 ring-primary/15"
+                      : "text-primary"
                   )}
                 >
                   <feature.icon className="size-4.5" />
@@ -123,7 +123,7 @@ export function FeaturesTabsSection() {
               <h3 className="text-xl font-semibold tracking-tight">{active.title}</h3>
               <p className="mt-2 max-w-md text-sm text-muted-foreground">{active.description}</p>
             </div>
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-xl text-primary">
               <active.icon className="size-6" />
             </span>
           </div>
@@ -131,7 +131,7 @@ export function FeaturesTabsSection() {
           <ul className="mt-8 grid gap-3.5 sm:grid-cols-2">
             {active.bullets.map((bullet) => (
               <li key={bullet} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                <span className="mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/15">
+                <span className="mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full text-primary">
                   <CheckIcon className="size-3" />
                 </span>
                 {bullet}

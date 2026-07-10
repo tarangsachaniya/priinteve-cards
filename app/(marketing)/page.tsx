@@ -193,7 +193,7 @@ export default async function HomePage() {
                   <p className="font-semibold">Jordan Smith</p>
                   <p className="text-sm text-muted-foreground">Product Designer, Nimbus</p>
                 </div>
-                <span className="ml-auto flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <span className="ml-auto flex size-8 shrink-0 items-center justify-center rounded-full text-primary">
                   <Wifi className="size-4 text-primary" />
                 </span>
               </div>

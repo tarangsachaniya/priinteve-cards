@@ -54,7 +54,7 @@ export function EmailConfigForm({ initialRules }: { initialRules: Rule[] }) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {rules.map((rule, index) => (
             <div key={index} className="flex items-end gap-2 rounded-lg border bg-muted/30 p-2.5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-primary">
                 {index + 1}
               </span>
               <div className="flex flex-1 flex-col gap-1.5">

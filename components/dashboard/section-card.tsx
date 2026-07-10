@@ -53,7 +53,7 @@ export function SectionCard({
         <span {...dragHandleProps} className="cursor-grab p-1 text-muted-foreground" aria-label="Drag to reorder">
           <GripVertical className="size-4" />
         </span>
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-md text-primary">
           <Icon className="size-4" />
         </span>
         <button

@@ -32,7 +32,7 @@ function Cell({ value }: { value: boolean | string }) {
     return <span className="text-sm font-medium text-foreground/80">{value}</span>;
   }
   return value ? (
-    <span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/15">
+    <span className="flex size-6 items-center justify-center rounded-full text-primary">
       <CheckIcon className="size-3.5" />
     </span>
   ) : (

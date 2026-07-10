@@ -44,7 +44,7 @@ export default function ContactPage() {
           <div className="mt-10 flex flex-col gap-6">
             {CONTACT_POINTS.map((point) => (
               <div key={point.title} className="flex items-start gap-4">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl text-primary">
                   <point.icon className="size-4.5" />
                 </span>
                 <div>

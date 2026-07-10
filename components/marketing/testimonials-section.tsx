@@ -45,7 +45,7 @@ export function MarketingTestimonialsSection({
               </div>
               <p className="text-base leading-relaxed text-foreground/90">&ldquo;{testimonial.quote}&rdquo;</p>
               <div className="mt-auto flex items-center gap-3">
-                <div className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-primary/15">
+                <div className="flex size-9 items-center justify-center rounded-full text-sm font-semibold text-primary">
                   {testimonial.name
                     .split(" ")
                     .map((part) => part[0])

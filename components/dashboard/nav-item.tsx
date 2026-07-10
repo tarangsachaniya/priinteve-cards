@@ -31,7 +31,7 @@ export function NavItemLink({
       {isActive && (
         <motion.span
           layoutId="nav-active-pill"
-          className="absolute inset-0 rounded-lg bg-primary/10"
+          className="absolute inset-0 rounded-lg bg-primary/5"
           transition={{ type: "spring", stiffness: 500, damping: 40 }}
         />
       )}

@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
       <Card className="shadow-elevated w-full max-w-sm border-border/80">
         <CardHeader className="gap-1.5 px-7 pt-7">
           {sent ? (
-            <span className="mb-1 flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <span className="mb-1 flex size-11 items-center justify-center rounded-full text-primary">
               <MailCheck className="size-5" />
             </span>
           ) : null}

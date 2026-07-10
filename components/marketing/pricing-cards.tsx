@@ -10,7 +10,6 @@ import {
   VideoIcon,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -64,9 +63,16 @@ export function PricingCards({ plans }: { plans: Plan[] }) {
     );
   }
 
+  // Sort plans to put recommended one in the middle on desktop
+  const sortedPlans = [...plans].sort((a, b) => {
+    if (a.recommended) return 1;
+    if (b.recommended) return -1;
+    return 0;
+  });
+
   return (
-    <div className="isolate grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:items-start lg:gap-8">
-      {plans.map((plan) => {
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:items-center lg:gap-8">
+      {sortedPlans.map((plan) => {
         const features = Array.isArray(plan.featuresJson)
           ? (plan.featuresJson as unknown[]).filter((f): f is string => typeof f === "string")
           : [];
@@ -74,80 +80,95 @@ export function PricingCards({ plans }: { plans: Plan[] }) {
         const perMonth = Math.round((plan.price / plan.validityDays) * 30);
 
         return (
-          <div key={plan.id} className={cn("relative", plan.recommended ? "z-10 lg:-translate-y-3" : "")}>
+          <Card
+            key={plan.id}
+            className={cn(
+              "flex h-full flex-col rounded-2xl transition-all duration-300 border-2",
+              plan.recommended
+                ? "border-primary bg-primary/[0.02] shadow-md lg:scale-105 lg:shadow-lg"
+                : "border-border/40 hover:border-primary/40 hover:shadow-sm"
+            )}
+          >
             {plan.recommended && (
-              <div className="absolute -top-3.5 left-1/2 z-20 -translate-x-1/2">
-                <span className="flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-emerald-700 px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm shadow-primary/30">
-                  <Sparkles className="size-3" />
-                  Most popular
-                </span>
+              <div className="rounded-t-xl border-b border-primary/20 bg-primary/8 px-6 py-2.5">
+                <div className="flex items-center justify-center gap-1.5">
+                  <Sparkles className="size-3.5 text-primary" />
+                  <span className="text-xs font-semibold text-primary">Most Popular</span>
+                </div>
               </div>
             )}
 
-            <Card
-              className={cn(
-                "flex h-full flex-col rounded-2xl transition-all duration-300",
-                plan.recommended
-                  ? "shadow-glow border-primary/50"
-                  : "border-border/60 hover:-translate-y-1 hover:border-primary/25 hover:shadow-card-lg"
+            <CardHeader className={cn(plan.recommended && "pt-6")}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <CardTitle className="text-xl font-bold tracking-tight">{plan.name}</CardTitle>
+                  <CardDescription className="mt-1 text-sm">{typeMeta.label} card plan</CardDescription>
+                </div>
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <typeMeta.icon className="size-5" />
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="flex flex-1 flex-col gap-7 px-6 pb-6">
+              {/* Pricing Section */}
+              <div className="space-y-2">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-medium text-muted-foreground">₹</span>
+                  <span className="text-5xl font-bold text-foreground">{plan.price}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  for {plan.validityDays} days (≈₹{perMonth}/month)
+                </p>
+              </div>
+
+              {/* CTA Button */}
+              <Button
+                size="lg"
+                className={cn(
+                  "w-full font-semibold transition-all duration-200",
+                  plan.recommended
+                    ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                    : "border border-primary/40 hover:border-primary/60 hover:bg-primary/5"
+                )}
+                variant={plan.recommended ? "default" : "outline"}
+                render={<Link href="/signup" />}
+              >
+                {plan.recommended ? "Get Started" : "Choose Plan"}
+              </Button>
+
+              {/* Limits Section */}
+              <div className="space-y-3 border-t border-border/40 pt-6">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  What&apos;s Included
+                </h4>
+                <PlanLimits plan={plan} />
+              </div>
+
+              {/* Features Section */}
+              {features.length > 0 && (
+                <div className="space-y-3 border-t border-border/40 pt-6">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Features
+                  </h4>
+                  <ul className="space-y-2.5">
+                    {features.map((feature) => {
+                      const known = FEATURE_BY_KEY.get(feature);
+                      const Icon = known?.icon ?? CheckIcon;
+                      return (
+                        <li key={feature} className="flex items-center gap-3 text-sm">
+                          <span className="flex size-5 items-center justify-center text-primary">
+                            <Icon className="size-4" />
+                          </span>
+                          <span className="text-foreground/85">{known?.label ?? feature}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               )}
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-lg">{plan.name}</CardTitle>
-                  <Badge variant="outline" className="gap-1 shadow-xs-token">
-                    <typeMeta.icon className="size-3" />
-                    {typeMeta.label}
-                  </Badge>
-                </div>
-                <CardDescription className="sr-only">{typeMeta.label} plan</CardDescription>
-              </CardHeader>
-
-              <CardContent className="flex flex-1 flex-col gap-6">
-                <div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-sm font-medium text-muted-foreground">₹</span>
-                    <span className="text-4xl font-semibold tracking-tight text-foreground">
-                      {plan.price}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Valid {plan.validityDays} days · ≈ ₹{perMonth}/mo
-                  </p>
-                </div>
-
-                <Button
-                  size="lg"
-                  className="w-full"
-                  variant={plan.recommended ? "default" : "outline"}
-                  render={<Link href="/signup" />}
-                >
-                  {plan.recommended ? "Get started" : `Choose ${plan.name}`}
-                </Button>
-
-                <div className="flex flex-col gap-5 border-t border-border/60 pt-5">
-                  <PlanLimits plan={plan} />
-
-                  {features.length > 0 && (
-                    <ul className="flex flex-col gap-3 text-sm">
-                      {features.map((feature) => {
-                        const known = FEATURE_BY_KEY.get(feature);
-                        const Icon = known?.icon ?? CheckIcon;
-                        return (
-                          <li key={feature} className="flex items-start gap-2.5">
-                            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                              <Icon className="size-3" />
-                            </span>
-                            <span className="text-muted-foreground">{known?.label ?? feature}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            </CardContent>
+          </Card>
         );
       })}
     </div>
