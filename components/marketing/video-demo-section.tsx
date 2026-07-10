@@ -37,10 +37,10 @@ export function VideoDemoSection({
   const embedUrl = getEmbedUrl(videoUrl);
 
   return (
-    <section className="border-t border-border/80 bg-muted/30 py-24 md:py-28">
+    <section className="border-t border-border/60 py-24 md:py-28">
       <div className="mx-auto max-w-4xl px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <Badge variant="secondary" className="h-auto rounded-full px-3 py-1">
+        <div className="reveal-on-scroll mx-auto max-w-2xl text-center">
+          <Badge variant="secondary" className="h-auto rounded-full px-3 py-1 shadow-xs-token">
             Watch
           </Badge>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -51,7 +51,7 @@ export function VideoDemoSection({
           )}
         </div>
 
-        <div className="mt-14 aspect-video overflow-hidden rounded-2xl border border-border/80 bg-black shadow-lg">
+        <div className="reveal-on-scroll shadow-card-lg mt-14 aspect-video overflow-hidden rounded-2xl border border-border/60 bg-black ring-1 ring-foreground/5">
           {playing ? (
             embedUrl ? (
               <iframe
@@ -69,10 +69,10 @@ export function VideoDemoSection({
             <button
               type="button"
               onClick={() => setPlaying(true)}
-              className="group relative flex size-full items-center justify-center bg-gradient-to-br from-neutral-900 to-neutral-700"
+              className="group relative flex size-full items-center justify-center bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800"
               aria-label="Play product demo video"
             >
-              <span className="flex size-16 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm transition-colors group-hover:bg-white">
+              <span className="flex size-16 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25 backdrop-blur-md transition-transform duration-300 group-hover:scale-105 group-hover:bg-white">
                 <PlayIcon className="ml-1 size-6 fill-white text-white group-hover:fill-neutral-900 group-hover:text-neutral-900" />
               </span>
               {durationLabel && (

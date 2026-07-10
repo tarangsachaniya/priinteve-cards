@@ -32,11 +32,11 @@ function Cell({ value }: { value: boolean | string }) {
     return <span className="text-sm font-medium text-foreground/80">{value}</span>;
   }
   return value ? (
-    <span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary">
+    <span className="flex size-6 items-center justify-center rounded-full text-primary">
       <CheckIcon className="size-3.5" />
     </span>
   ) : (
-    <span className="flex size-6 items-center justify-center rounded-full bg-muted text-muted-foreground/60">
+    <span className="flex size-6 items-center justify-center rounded-full bg-muted/70 text-muted-foreground/50">
       <XIcon className="size-3.5" />
     </span>
   );
@@ -44,10 +44,10 @@ function Cell({ value }: { value: boolean | string }) {
 
 export function ComparisonSection() {
   return (
-    <section className="border-y border-border/80 bg-muted/30 py-24 md:py-28">
+    <section className="border-y border-border/60 bg-section-alt py-24 md:py-28">
       <div className="mx-auto max-w-4xl px-6">
-      <div className="mx-auto max-w-2xl text-center">
-        <Badge variant="secondary" className="h-auto rounded-full px-3 py-1">
+      <div className="reveal-on-scroll mx-auto max-w-2xl text-center">
+        <Badge variant="secondary" className="h-auto rounded-full px-3 py-1 shadow-xs-token">
           Why switch
         </Badge>
         <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -58,17 +58,17 @@ export function ComparisonSection() {
         </p>
       </div>
 
-      <div className="mt-14 overflow-hidden rounded-2xl border border-border/80 bg-card ring-1 ring-primary/10">
+      <div className="shadow-card-sm reveal-on-scroll mt-14 overflow-hidden rounded-2xl border border-border/60 bg-card ring-1 ring-primary/8">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="h-12 bg-muted/40 text-sm font-semibold text-foreground">
+              <TableHead className="h-12 bg-muted/30 text-sm font-semibold text-foreground">
                 &nbsp;
               </TableHead>
-              <TableHead className="h-12 bg-muted/40 text-center text-sm font-semibold text-muted-foreground">
+              <TableHead className="h-12 bg-muted/30 text-center text-sm font-semibold text-muted-foreground">
                 Paper card
               </TableHead>
-              <TableHead className="h-12 bg-primary/5 text-center text-sm font-semibold text-primary">
+              <TableHead className="h-12 bg-primary/6 text-center text-sm font-semibold text-primary">
                 Digital card
               </TableHead>
             </TableRow>
@@ -84,7 +84,7 @@ export function ComparisonSection() {
                     <Cell value={row.paper} />
                   </div>
                 </TableCell>
-                <TableCell className={cn("bg-primary/5 py-4 text-center", typeof row.digital === "string" && "whitespace-normal")}>
+                <TableCell className={cn("bg-primary/6 py-4 text-center", typeof row.digital === "string" && "whitespace-normal")}>
                   <div className="flex justify-center">
                     <Cell value={row.digital} />
                   </div>

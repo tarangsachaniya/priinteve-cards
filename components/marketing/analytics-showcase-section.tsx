@@ -22,12 +22,12 @@ const LEADS = [
 
 export function AnalyticsShowcaseSection() {
   return (
-    <section className="border-y border-border/80 bg-muted/30 py-24 md:py-28">
-      <div className="mx-auto max-w-6xl px-6">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-emerald-950 px-6 py-12 text-white sm:px-10 sm:py-14">
+    <section className="border-y border-border/60 bg-section-alt py-24 md:py-28">
+      <div className="mx-auto max-w-[1360px] px-6">
+      <div className="reveal-on-scroll bg-analytics-panel shadow-card-xl relative overflow-hidden rounded-3xl px-6 py-12 text-white sm:px-10 sm:py-14">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-24 h-96 bg-[radial-gradient(600px_300px_at_85%_0%,_rgba(16,185,129,0.35),_transparent_70%)]"
+          className="pointer-events-none absolute inset-x-0 -top-24 h-[28rem] bg-[radial-gradient(600px_300px_at_85%_0%,_rgba(16,185,129,0.4),_transparent_70%)]"
         />
 
         <div className="relative flex flex-wrap items-end justify-between gap-6">
@@ -56,7 +56,7 @@ export function AnalyticsShowcaseSection() {
           {STATS.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-2xl border border-white/10 bg-white/5 p-4.5"
+              className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 shadow-[0_1px_0_0_rgba(255,255,255,0.08)_inset]"
             >
               <p className="font-mono text-[11px] text-white/55">{stat.label}</p>
               <p className="mt-1.5 text-2xl font-semibold tracking-tight">{stat.value}</p>
@@ -66,26 +66,26 @@ export function AnalyticsShowcaseSection() {
         </div>
 
         <div className="relative mt-4 grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 sm:p-6">
             <p className="font-mono text-xs text-white/70">Scans &amp; taps — last 14 days</p>
             <div className="mt-5 flex h-28 items-end gap-1.5 sm:gap-2">
               {BARS.map((height, index) => (
                 <div
                   key={index}
                   style={{ height: `${height}%` }}
-                  className="flex-1 rounded-t-[4px] bg-gradient-to-t from-emerald-600 to-emerald-400"
+                  className="flex-1 rounded-t-[3px] bg-gradient-to-t from-emerald-600 to-emerald-400 transition-[height] duration-500"
                 />
               ))}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 sm:p-6">
             <p className="font-mono text-xs text-white/70">Recent leads</p>
             <div className="mt-3.5 flex flex-col">
               {LEADS.map((lead) => (
                 <div
                   key={lead.name}
-                  className="flex items-center justify-between border-b border-white/10 py-2.5 text-sm last:border-b-0"
+                  className="flex items-center justify-between border-b border-white/8 py-2.5 text-sm last:border-b-0"
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="flex size-6.5 shrink-0 items-center justify-center rounded-lg bg-white/10 text-[10.5px] font-semibold">

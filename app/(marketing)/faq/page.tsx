@@ -37,7 +37,7 @@ export default async function FaqPage() {
       </div>
 
       <div className="mt-16 flex flex-col items-center gap-3 rounded-2xl border border-border/80 bg-muted/30 px-6 py-10 text-center">
-        <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <span className="flex size-10 items-center justify-center rounded-full text-primary">
           <MessageCircleQuestion className="size-5" />
         </span>
         <h2 className="text-lg font-semibold">Still have questions?</h2>

@@ -47,9 +47,9 @@ export function TemplatesSection({ templates }: { templates: TemplateItem[] }) {
   if (templates.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-6xl px-6 py-24 md:py-28">
-      <div className="mx-auto max-w-2xl text-center">
-        <Badge variant="secondary" className="h-auto rounded-full px-3 py-1">
+    <section className="mx-auto max-w-[1360px] px-6 py-24 md:py-28">
+      <div className="reveal-on-scroll mx-auto max-w-2xl text-center">
+        <Badge variant="secondary" className="h-auto rounded-full px-3 py-1 shadow-xs-token">
           Templates
         </Badge>
         <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -60,7 +60,7 @@ export function TemplatesSection({ templates }: { templates: TemplateItem[] }) {
         </p>
       </div>
 
-      <div className="group relative mt-14 overflow-hidden mask-fade-x">
+      <div className="reveal-on-scroll group relative mt-14 overflow-hidden mask-fade-x">
         <div
           className="animate-marquee flex w-max gap-5 group-hover:[animation-play-state:paused] motion-reduce:animate-none"
           style={{ "--marquee-duration": "36s" } as React.CSSProperties}
@@ -73,10 +73,10 @@ export function TemplatesSection({ templates }: { templates: TemplateItem[] }) {
                 return (
                   <div
                     key={`${groupIndex}-${template.industry}-${index}`}
-                    className="w-64 shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                    className="shadow-card-sm hover:shadow-card-lg w-[17rem] shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-card ring-1 ring-foreground/5 transition-all duration-300 hover:-translate-y-1.5"
                   >
                     <div className={`flex items-center gap-3 p-4 ${accent}`}>
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/70 dark:bg-white/10">
+                      <span className="shadow-xs-token flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/80 dark:bg-white/12">
                         <Icon className="size-4.5" />
                       </span>
                       <span className="text-base font-semibold">{template.industry}</span>
