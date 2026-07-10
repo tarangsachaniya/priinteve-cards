@@ -36,7 +36,13 @@ function BusinessHoursEditor({
   value: string;
   onChange: (value: string) => void;
 }) {
-  const parsed = businessHoursValueSchema.safeParse(JSON.parse(value || "{}"));
+  let raw: unknown = {};
+  try {
+    raw = JSON.parse(value || "{}");
+  } catch {
+    raw = {}; // legacy free-text value; fall back to defaults below
+  }
+  const parsed = businessHoursValueSchema.safeParse(raw);
   const hours = parsed.success ? parsed.data : DEFAULT_BUSINESS_HOURS;
 
   function update(day: keyof BusinessHoursValue, patch: Partial<BusinessHoursValue[typeof day]>) {

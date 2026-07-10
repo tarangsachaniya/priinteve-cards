@@ -74,7 +74,13 @@ export function PublicCard({ data }: { data: PublicCardData }) {
       if (field.fieldType === "website" && hasCompanySection) return null;
       if (field.fieldType === "google_maps_url") return null;
       if (field.fieldType === "business_hours") {
-        const parsed = businessHoursValueSchema.safeParse(JSON.parse(field.value || "{}"));
+        let raw: unknown;
+        try {
+          raw = JSON.parse(field.value || "{}");
+        } catch {
+          return null; // legacy free-text value that was never valid JSON
+        }
+        const parsed = businessHoursValueSchema.safeParse(raw);
         if (!parsed.success) return null;
         return <BusinessHoursCard key={key} hours={parsed.data} label={field.label} flat={isMinimal} />;
       }
