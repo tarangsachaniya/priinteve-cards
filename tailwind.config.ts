@@ -55,6 +55,10 @@ const config: Config = {
           DEFAULT: "oklch(var(--card) / <alpha-value>)",
           foreground: "oklch(var(--card-foreground) / <alpha-value>)",
         },
+        ink: {
+          DEFAULT: "oklch(var(--ink) / <alpha-value>)",
+          muted: "oklch(var(--ink-muted) / <alpha-value>)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
