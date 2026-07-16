@@ -62,13 +62,13 @@ export function ProductHero({
         </div>
 
         <div className="relative mx-auto flex aspect-square w-full max-w-sm items-center justify-center">
-          <div className="absolute inset-6 rounded-full bg-gradient-to-br from-primary to-emerald-700 opacity-20 blur-3xl" />
+          <div className="absolute inset-6 rounded-full bg-gradient-to-br from-primary to-navy opacity-20 blur-3xl" />
           <div className="shadow-glow relative flex size-full items-center justify-center rounded-3xl border border-border/60 bg-card">
             <div
               aria-hidden
               className="bg-dot absolute inset-0 rounded-3xl opacity-40"
             />
-            <span className="relative flex size-28 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground shadow-lg shadow-primary/30">
+            <span className="relative flex size-28 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-navy text-primary-foreground shadow-lg shadow-primary/30">
               <Icon className="size-14" strokeWidth={1.25} />
             </span>
           </div>

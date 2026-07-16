@@ -55,6 +55,11 @@ const config: Config = {
           DEFAULT: "oklch(var(--card) / <alpha-value>)",
           foreground: "oklch(var(--card-foreground) / <alpha-value>)",
         },
+        success: {
+          DEFAULT: "oklch(var(--success) / <alpha-value>)",
+          foreground: "oklch(var(--success-foreground) / <alpha-value>)",
+        },
+        navy: "oklch(var(--navy) / <alpha-value>)",
       },
       borderRadius: {
         lg: "var(--radius)",

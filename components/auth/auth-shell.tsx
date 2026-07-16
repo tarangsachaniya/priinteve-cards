@@ -16,7 +16,7 @@ export function AuthShell({
 }) {
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-primary to-emerald-800 p-10 text-primary-foreground lg:flex">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-primary to-navy p-10 text-primary-foreground lg:flex">
         <div aria-hidden className="bg-dot absolute inset-0 opacity-[0.15]" />
         <div aria-hidden className="absolute -top-16 -right-16 size-64 rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="absolute -bottom-20 -left-10 size-72 rounded-full bg-black/10 blur-3xl" />
@@ -50,7 +50,7 @@ export function AuthShell({
       <div className="flex flex-col">
         <div className="flex items-center justify-center border-b border-border/80 px-6 py-4 lg:hidden">
           <Link href="/" className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground shadow-sm shadow-primary/30">
+            <span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-navy text-primary-foreground shadow-sm shadow-primary/30">
               <Wifi className="size-4" strokeWidth={2.5} />
             </span>
             DigitalCard

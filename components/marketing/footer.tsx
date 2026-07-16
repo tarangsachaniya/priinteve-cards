@@ -26,7 +26,7 @@ const SOCIAL_LINKS = [
 export function MarketingFooter() {
   return (
     <footer className="border-t border-border/60">
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary to-emerald-800">
+      <div className="chamfer-br relative overflow-hidden bg-gradient-to-br from-primary to-navy">
         <div
           aria-hidden
           className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.15),_transparent_60%)]"
@@ -55,7 +55,7 @@ export function MarketingFooter() {
       <div className="mx-auto grid max-w-[1360px] gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:gap-14">
         <div className="sm:col-span-2 lg:col-span-1">
           <Link href="/" className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
-            <span className="shadow-card-sm flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground">
+            <span className="shadow-card-sm flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-navy text-primary-foreground">
               <Wifi className="size-4" strokeWidth={2.5} />
             </span>
             DigitalCard

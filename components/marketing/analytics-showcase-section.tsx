@@ -27,7 +27,7 @@ export function AnalyticsShowcaseSection() {
       <div className="reveal-on-scroll bg-analytics-panel shadow-card-xl relative overflow-hidden rounded-3xl px-6 py-12 text-white sm:px-10 sm:py-14">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-24 h-[28rem] bg-[radial-gradient(600px_300px_at_85%_0%,_rgba(16,185,129,0.4),_transparent_70%)]"
+          className="pointer-events-none absolute inset-x-0 -top-24 h-[28rem] bg-[radial-gradient(600px_300px_at_85%_0%,_rgba(91,79,229,0.4),_transparent_70%)]"
         />
 
         <div className="relative flex flex-wrap items-end justify-between gap-6">
@@ -60,7 +60,7 @@ export function AnalyticsShowcaseSection() {
             >
               <p className="font-mono text-[11px] text-white/55">{stat.label}</p>
               <p className="mt-1.5 text-2xl font-semibold tracking-tight">{stat.value}</p>
-              <p className="mt-1 text-xs text-emerald-400">{stat.delta}</p>
+              <p className="mt-1 text-xs text-success">{stat.delta}</p>
             </div>
           ))}
         </div>
@@ -73,7 +73,7 @@ export function AnalyticsShowcaseSection() {
                 <div
                   key={index}
                   style={{ height: `${height}%` }}
-                  className="flex-1 rounded-t-[3px] bg-gradient-to-t from-emerald-600 to-emerald-400 transition-[height] duration-500"
+                  className="flex-1 rounded-t-[3px] bg-gradient-to-t from-success/80 to-success transition-[height] duration-500"
                 />
               ))}
             </div>
@@ -93,7 +93,7 @@ export function AnalyticsShowcaseSection() {
                     </span>
                     {lead.name}
                   </div>
-                  <span className="font-mono text-[11px] text-emerald-400">{lead.tag}</span>
+                  <span className="font-mono text-[11px] text-success">{lead.tag}</span>
                 </div>
               ))}
             </div>

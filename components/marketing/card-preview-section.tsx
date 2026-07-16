@@ -41,10 +41,10 @@ const DOCK_ICONS = [PhoneIcon, MessageCircleIcon, MailIcon, GlobeIcon, Share2Ico
 function CardPreviewContent() {
   return (
     <>
-      <div className="h-20 w-full bg-gradient-to-br from-primary to-emerald-800" />
+      <div className="h-20 w-full bg-gradient-to-br from-primary to-navy" />
 
       <div className="-mt-10 flex flex-col items-center gap-1.5 px-5 text-center">
-        <div className="flex size-16 items-center justify-center rounded-full text-base font-semibold text-white ring-4 ring-card bg-gradient-to-br from-primary to-emerald-700">
+        <div className="flex size-16 items-center justify-center rounded-full text-base font-semibold text-white ring-4 ring-card bg-gradient-to-br from-primary to-navy">
           JS
         </div>
         <h3 className="mt-1 text-base font-semibold">Jordan Smith</h3>
@@ -131,7 +131,7 @@ function CardPreviewContent() {
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          {["bg-primary/15", "bg-emerald-500/15", "bg-muted", "bg-primary/10"].map((tone, index) => (
+          {["bg-primary/15", "bg-secondary", "bg-muted", "bg-primary/10"].map((tone, index) => (
             <div
               key={index}
               className={cn(
@@ -191,10 +191,10 @@ export function CardPreviewSection() {
             />
             <div className="flex h-[600px] flex-col overflow-hidden rounded-[2.1rem] bg-card">
               <div className="scrollbar-none flex-1 overflow-y-auto">
-                <div className="h-20 w-full bg-gradient-to-br from-primary to-emerald-800" />
+                <div className="h-20 w-full bg-gradient-to-br from-primary to-navy" />
 
                 <div className="-mt-10 flex flex-col items-center gap-1.5 px-5 text-center">
-                  <div className="flex size-16 items-center justify-center rounded-full text-base font-semibold text-white ring-4 ring-card bg-gradient-to-br from-primary to-emerald-700">
+                  <div className="flex size-16 items-center justify-center rounded-full text-base font-semibold text-white ring-4 ring-card bg-gradient-to-br from-primary to-navy">
                     JS
                   </div>
                   <h3 className="mt-1 text-base font-semibold">Jordan Smith</h3>
@@ -281,7 +281,7 @@ export function CardPreviewSection() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    {["bg-primary/15", "bg-emerald-500/15", "bg-muted", "bg-primary/10"].map((tone, index) => (
+                    {["bg-primary/15", "bg-secondary", "bg-muted", "bg-primary/10"].map((tone, index) => (
                       <div
                         key={index}
                         className={cn(

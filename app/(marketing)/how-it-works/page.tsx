@@ -42,7 +42,7 @@ export default async function HowItWorksPage() {
           />
           {steps.map((step, index) => (
             <li key={step.key} className="relative flex gap-5">
-              <div className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-emerald-700 text-sm font-semibold text-primary-foreground shadow-sm shadow-primary/30">
+              <div className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-navy text-sm font-semibold text-primary-foreground shadow-sm shadow-primary/30">
                 {index + 1}
               </div>
               <div className="rounded-2xl border border-border/80 bg-card px-5 py-4 shadow-sm">
