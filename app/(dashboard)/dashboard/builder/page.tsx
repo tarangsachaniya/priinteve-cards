@@ -17,7 +17,7 @@ export default async function BuilderPage() {
   const [user, fields, galleryItems, cardSettings, usage] = await Promise.all([
     db.user.findUnique({
       where: { id: userId },
-      select: { name: true, slug: true, cardPublished: true },
+      select: { slug: true, cardPublished: true },
     }),
     db.cardField.findMany({ where: { userId }, orderBy: { order: "asc" } }),
     db.galleryItem.findMany({ where: { userId }, orderBy: { order: "asc" } }),
@@ -29,13 +29,9 @@ export default async function BuilderPage() {
     redirect("/login");
   }
 
-  const photoField = fields.find((f) => f.fieldType === "photo");
-
   return (
     <main className="p-6 sm:p-8 lg:p-10">
       <SectionBuilder
-        userName={user.name ?? user.slug}
-        userPhotoUrl={photoField?.value ?? null}
         userSlug={user.slug}
         initialCardPublished={user.cardPublished}
         initialFields={fields
@@ -59,8 +55,6 @@ export default async function BuilderPage() {
         initialGalleryLayout={cardSettings?.galleryLayout ?? "grid"}
         initialGallerySectionOrder={cardSettings?.gallerySectionOrder ?? 9999}
         galleryUsage={usage}
-        brandColor={cardSettings?.brandColor ?? "#059669"}
-        themeId={cardSettings?.themeId ?? "default"}
       />
     </main>
   );

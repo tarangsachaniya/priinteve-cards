@@ -15,7 +15,6 @@ import { GroupEditor } from "@/components/dashboard/section-editors/group-editor
 import { CompanyEditor } from "@/components/dashboard/section-editors/company-editor";
 import { SocialEditor } from "@/components/dashboard/section-editors/social-editor";
 import { GalleryEditor, type ManagedGalleryItem } from "@/components/dashboard/section-editors/gallery-editor";
-import { LivePreviewPane } from "@/components/card/live-preview-pane";
 import { getFieldTypeMeta } from "@/lib/field-types";
 import { GROUP_TYPE_CONFIG } from "@/lib/section-item-config";
 import { DEFAULT_BUSINESS_HOURS, isGroupFieldType } from "@/lib/validations/card-field";
@@ -25,7 +24,6 @@ import {
   type CardSectionField,
   type SectionBlock,
 } from "@/lib/card-sections";
-import type { PublicCardData } from "@/components/card/public-card";
 
 export type BuilderField = CardSectionField & { isVisible: boolean };
 
@@ -46,8 +44,6 @@ function defaultValueForType(fieldType: string): string {
 }
 
 export function SectionBuilder({
-  userName,
-  userPhotoUrl,
   userSlug,
   initialCardPublished,
   initialFields,
@@ -55,11 +51,7 @@ export function SectionBuilder({
   initialGalleryLayout,
   initialGallerySectionOrder,
   galleryUsage,
-  brandColor,
-  themeId,
 }: {
-  userName: string;
-  userPhotoUrl: string | null;
   userSlug: string;
   initialCardPublished: boolean;
   initialFields: BuilderField[];
@@ -67,8 +59,6 @@ export function SectionBuilder({
   initialGalleryLayout: string;
   initialGallerySectionOrder: number;
   galleryUsage: { count: number; max: number };
-  brandColor: string;
-  themeId: string;
 }) {
   const [fields, setFields] = useState<BuilderField[]>(initialFields);
   const [galleryItems, setGalleryItems] = useState<ManagedGalleryItem[]>(initialGalleryItems);
@@ -82,19 +72,6 @@ export function SectionBuilder({
   const blocks = useMemo<SectionBlock<BuilderField>[]>(
     () => buildSectionBlocks<BuilderField>(fields, gallerySectionOrder),
     [fields, gallerySectionOrder]
-  );
-
-  const previewData: PublicCardData = useMemo(
-    () => ({
-      name: userName,
-      slug: userSlug,
-      photoUrl: userPhotoUrl,
-      fields: fields.filter((f) => f.isVisible),
-      galleryItems,
-      settings: { themeId, brandColor, galleryLayout },
-      gallerySectionOrder,
-    }),
-    [userName, userSlug, userPhotoUrl, fields, galleryItems, themeId, brandColor, galleryLayout, gallerySectionOrder]
   );
 
   function markSaving() {
@@ -429,7 +406,7 @@ export function SectionBuilder({
         }
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="mx-auto w-full max-w-2xl">
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="sections" type="section">
             {(provided) => (
@@ -512,10 +489,6 @@ export function SectionBuilder({
             )}
           </Droppable>
         </DragDropContext>
-
-        <div className="lg:sticky lg:top-24 lg:h-fit">
-          <LivePreviewPane data={previewData} />
-        </div>
       </div>
     </div>
   );
