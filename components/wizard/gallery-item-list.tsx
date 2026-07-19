@@ -45,7 +45,7 @@ export function GalleryItemList({
                   <div
                     ref={dragProvided.innerRef}
                     {...dragProvided.draggableProps}
-                    className="flex items-center gap-2 rounded-2xl border border-border p-2"
+                    className="flex items-center gap-2 rounded-2xl border border-border/70 bg-muted/10 p-2"
                   >
                     <span {...dragProvided.dragHandleProps} className="cursor-grab text-muted-foreground">
                       <GripVertical className="size-4" />

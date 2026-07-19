@@ -51,41 +51,50 @@ export function EmailConfigForm({ initialRules }: { initialRules: Rule[] }) {
   return (
     <Card className="max-w-lg border-border/80">
       <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          {rules.map((rule, index) => (
-            <div key={index} className="flex items-end gap-2 rounded-2xl border border-border bg-muted/30 p-2.5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-ink">
-                {index + 1}
-              </span>
-              <div className="flex flex-1 flex-col gap-1.5">
-                <Label htmlFor={`rule-${index}`}>Days before expiry</Label>
-                <Input
-                  id={`rule-${index}`}
-                  type="number"
-                  min={1}
-                  value={rule.daysBeforeExpiry}
-                  onChange={(e) => updateRule(index, Number(e.target.value))}
-                />
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Label className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            Reminder schedule
+          </Label>
+
+          <div className="flex flex-col gap-2.5">
+            {rules.map((rule, index) => (
+              <div key={index} className="flex items-center gap-3 rounded-xl border border-border/70 bg-muted/20 py-2 pr-2 pl-3.5">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-ink">
+                  {index + 1}
+                </span>
+                <div className="flex flex-1 items-center gap-2">
+                  <Input
+                    id={`rule-${index}`}
+                    type="number"
+                    min={1}
+                    value={rule.daysBeforeExpiry}
+                    onChange={(e) => updateRule(index, Number(e.target.value))}
+                    className="h-9 max-w-24 bg-card"
+                  />
+                  <span className="text-sm text-muted-foreground">days before expiry</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => removeRule(index)}
+                  aria-label="Remove rule"
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <XIcon />
+                </Button>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => removeRule(index)}
-                aria-label="Remove rule"
-              >
-                <XIcon />
-              </Button>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <Button type="button" variant="outline" size="sm" onClick={addRule} className="w-fit">
-            Add reminder
-          </Button>
-
-          <Button type="submit" disabled={isSubmitting} className="mt-2 w-fit">
-            {isSubmitting ? "Saving…" : "Save reminders"}
-          </Button>
+          <div className="flex items-center gap-3 border-t border-border/70 pt-4">
+            <Button type="button" variant="outline" size="sm" onClick={addRule} className="w-fit">
+              Add reminder
+            </Button>
+            <Button type="submit" disabled={isSubmitting} size="sm" className="w-fit">
+              {isSubmitting ? "Saving…" : "Save reminders"}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

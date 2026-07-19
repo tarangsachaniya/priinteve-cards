@@ -56,37 +56,43 @@ export function SiteContentForm({ section, initialEntries }: SiteContentFormProp
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-3">
-      {entries.map((entry, index) => (
-        <div key={entry.key} className="flex items-end gap-2">
-          <div className="flex flex-1 flex-col gap-1.5">
-            <Label htmlFor={`${section}-${entry.key}`}>{entry.key}</Label>
-            <Input
-              id={`${section}-${entry.key}`}
-              value={entry.value}
-              onChange={(e) => updateValue(index, e.target.value)}
-            />
+    <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-4">
+      <div className="flex flex-col gap-3">
+        {entries.map((entry, index) => (
+          <div key={entry.key} className="flex items-end gap-2">
+            <div className="flex flex-1 flex-col gap-1.5">
+              <Label htmlFor={`${section}-${entry.key}`} className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {entry.key}
+              </Label>
+              <Input
+                id={`${section}-${entry.key}`}
+                value={entry.value}
+                onChange={(e) => updateValue(index, e.target.value)}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => removeEntry(index)}
+              aria-label="Remove entry"
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <XIcon />
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => removeEntry(index)}
-            aria-label="Remove entry"
-          >
-            <XIcon />
-          </Button>
-        </div>
-      ))}
+        ))}
+      </div>
 
-      <div className="flex items-end gap-2 border-t border-border pt-3">
+      <div className="flex items-end gap-2 rounded-xl border border-dashed border-border bg-muted/20 p-3">
         <div className="flex flex-1 flex-col gap-1.5">
-          <Label htmlFor={`${section}-new-key`}>New key</Label>
+          <Label htmlFor={`${section}-new-key`}>Add a new field</Label>
           <Input
             id={`${section}-new-key`}
             value={newKey}
             onChange={(e) => setNewKey(e.target.value)}
             placeholder="e.g. heading"
+            className="bg-card"
           />
         </div>
         <Button type="button" variant="outline" size="sm" onClick={addEntry}>
@@ -94,7 +100,7 @@ export function SiteContentForm({ section, initialEntries }: SiteContentFormProp
         </Button>
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2 w-fit">
+      <Button type="submit" disabled={isSubmitting} className="mt-1 w-fit">
         {isSubmitting ? "Saving…" : "Save section"}
       </Button>
     </form>

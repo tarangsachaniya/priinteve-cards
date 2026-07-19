@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { KeyRound } from "lucide-react";
 
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
@@ -43,9 +44,19 @@ export function UpdatePasswordForm() {
   }
 
   return (
-    <Card className="max-w-sm border-border/80">
-      <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <Card className="max-w-md border-border/80">
+      <CardContent className="flex flex-col gap-5">
+        <div className="flex items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-ink">
+            <KeyRound className="size-4.5" />
+          </span>
+          <div>
+            <p className="font-semibold">Change password</p>
+            <p className="text-xs text-muted-foreground">Use at least 8 characters.</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 border-t border-border/70 pt-5">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="currentPassword">Current password</Label>
             <PasswordInput
@@ -67,7 +78,7 @@ export function UpdatePasswordForm() {
               required
             />
           </div>
-          <Button type="submit" disabled={isSubmitting} className="w-fit">
+          <Button type="submit" disabled={isSubmitting} size="lg" className="mt-1 w-fit">
             {isSubmitting ? "Updating…" : "Update password"}
           </Button>
         </form>

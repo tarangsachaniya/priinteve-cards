@@ -78,7 +78,6 @@ export function AdminSidebar({ userEmail }: { userEmail: string }) {
     <>
       <nav className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-1 border-r border-border bg-card p-4 md:flex">
         <Logo />
-        <p className="px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Admin</p>
         <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
           <NavLinks pathname={pathname} />
         </div>
@@ -98,7 +97,7 @@ export function AdminSidebar({ userEmail }: { userEmail: string }) {
           >
             <Menu className="size-5" />
           </SheetTrigger>
-          <SheetContent className="left-0 right-auto flex-col slide-in-from-left data-closed:slide-out-to-left">
+          <SheetContent className="left-0 right-auto flex-col slide-in-from-left data-[closed]:slide-out-to-left">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
               <NavLinks pathname={pathname} onNavigate={() => setMobileOpen(false)} />

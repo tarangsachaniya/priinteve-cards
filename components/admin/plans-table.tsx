@@ -60,7 +60,7 @@ export function PlansTable({ initialPlans }: { initialPlans: AdminPlan[] }) {
         }
       />
 
-      <div className="overflow-hidden rounded-2xl border border-border">
+      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_1px_2px_rgba(24,24,20,0.04),0_8px_20px_-12px_rgba(24,24,20,0.10)]">
         <Table>
           <TableHeader>
             <TableRow>

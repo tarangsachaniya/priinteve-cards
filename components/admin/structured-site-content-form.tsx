@@ -89,13 +89,16 @@ export function StructuredSiteContentForm({
   return (
     <form onSubmit={handleSubmit} className="flex max-w-2xl flex-col gap-4">
       {items.map((item, index) => (
-        <div key={index} className="flex flex-col gap-3 rounded-2xl border border-border p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
+        <div key={index} className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-muted/10 p-4">
+          <div className="flex items-center justify-between border-b border-border/70 pb-3">
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <span className="flex size-5 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-ink">
+                {index + 1}
+              </span>
               {(itemLabelField && item[itemLabelField]) ||
                 `${itemLabelFallback ?? "Item"} ${index + 1}`}
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <Button
                 type="button"
                 variant="ghost"
@@ -140,7 +143,7 @@ export function StructuredSiteContentForm({
               ) : field.type === "textarea" ? (
                 <textarea
                   id={`${section}-${index}-${field.name}`}
-                  className="min-h-20 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                  className="min-h-20 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm outline-none transition-all focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                   value={item[field.name] ?? ""}
                   placeholder={field.placeholder}
                   onChange={(e) => updateField(index, field.name, e.target.value)}
@@ -150,7 +153,7 @@ export function StructuredSiteContentForm({
                   value={item[field.name] ?? ""}
                   onValueChange={(value) => value && updateField(index, field.name, value)}
                 >
-                  <SelectTrigger id={`${section}-${index}-${field.name}`}>
+                  <SelectTrigger id={`${section}-${index}-${field.name}`} className="bg-card">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -168,6 +171,7 @@ export function StructuredSiteContentForm({
                   value={item[field.name] ?? ""}
                   placeholder={field.placeholder}
                   onChange={(e) => updateField(index, field.name, e.target.value)}
+                  className="bg-card"
                 />
               )}
             </div>

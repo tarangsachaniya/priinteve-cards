@@ -3,16 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "@/components/ui/table";
+import { formatCurrency } from "@/lib/format";
 import type { PricingResult } from "@/lib/wallet";
 
 type CheckoutSummaryProps = {
@@ -61,40 +58,52 @@ export function CheckoutSummary({ plan, pricingNoWallet, pricingWithWallet }: Ch
   }
 
   return (
-    <div className="mt-6 flex flex-col gap-4">
-      {pricingWithWallet.walletEligible && (
-        <label className="flex items-center gap-2 text-sm">
-          <Checkbox checked={useWallet} onCheckedChange={(checked) => setUseWallet(checked)} />
-          <Label className="cursor-pointer font-normal">
-            Use wallet credit (₹{pricingWithWallet.walletInr} available)
-          </Label>
-        </label>
-      )}
+    <Card className="mt-6 border-border/80">
+      <CardContent className="flex flex-col gap-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">Plan</p>
+            <p className="font-semibold">{plan.name}</p>
+          </div>
+          <p className="text-sm text-muted-foreground">{plan.validityDays} days</p>
+        </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border">
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell>Plan price</TableCell>
-              <TableCell className="text-right">₹{plan.price}</TableCell>
-            </TableRow>
-            {useWallet && pricing.walletInr > 0 && (
-              <TableRow>
-                <TableCell>Wallet discount</TableCell>
-                <TableCell className="text-right">-₹{pricing.walletInr}</TableCell>
-              </TableRow>
-            )}
-            <TableRow>
-              <TableCell className="font-medium">Total due</TableCell>
-              <TableCell className="text-right font-medium">₹{pricing.amountDue}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
+        {pricingWithWallet.walletEligible && (
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border/70 bg-muted/20 px-3.5 py-3">
+            <Checkbox checked={useWallet} onCheckedChange={(checked) => setUseWallet(checked)} />
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-ink">
+              <Wallet className="size-4" />
+            </span>
+            <Label className="flex-1 cursor-pointer font-normal">
+              Use wallet credit
+              <span className="block text-xs text-muted-foreground">
+                {formatCurrency(pricingWithWallet.walletInr)} available
+              </span>
+            </Label>
+          </label>
+        )}
 
-      <Button onClick={handlePay} disabled={isProcessing}>
-        {isProcessing ? "Processing…" : "Proceed to pay"}
-      </Button>
-    </div>
+        <div className="flex flex-col gap-2.5 border-t border-border/70 pt-4 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Plan price</span>
+            <span>{formatCurrency(plan.price)}</span>
+          </div>
+          {useWallet && pricing.walletInr > 0 && (
+            <div className="flex items-center justify-between text-ink">
+              <span>Wallet discount</span>
+              <span>-{formatCurrency(pricing.walletInr)}</span>
+            </div>
+          )}
+          <div className="mt-1 flex items-center justify-between rounded-xl bg-primary/10 px-3.5 py-3">
+            <span className="font-semibold">Total due</span>
+            <span className="text-xl font-bold">{formatCurrency(pricing.amountDue)}</span>
+          </div>
+        </div>
+
+        <Button size="lg" onClick={handlePay} disabled={isProcessing} className="w-full">
+          {isProcessing ? "Processing…" : "Proceed to pay"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

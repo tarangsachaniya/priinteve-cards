@@ -85,7 +85,7 @@ export function UsersTable({ refreshKey = 0 }: { refreshKey?: number }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search by name or email"
           value={search}
@@ -93,11 +93,11 @@ export function UsersTable({ refreshKey = 0 }: { refreshKey?: number }) {
             setSearch(e.target.value);
             setPage(1);
           }}
-          className="pl-8"
+          className="bg-card pl-9"
         />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border">
+      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_1px_2px_rgba(24,24,20,0.04),0_8px_20px_-12px_rgba(24,24,20,0.10)]">
         <Table>
           <TableHeader>
             <TableRow>

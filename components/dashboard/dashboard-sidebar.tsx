@@ -110,7 +110,7 @@ export function DashboardSidebar({ isAdmin, slug }: { isAdmin?: boolean; slug?: 
           >
             <Menu className="size-5" />
           </SheetTrigger>
-          <SheetContent className="left-0 right-auto flex-col slide-in-from-left data-closed:slide-out-to-left">
+          <SheetContent className="left-0 right-auto flex-col slide-in-from-left data-[closed]:slide-out-to-left">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <Logo />
             <div className="flex flex-1 flex-col gap-1 overflow-y-auto">

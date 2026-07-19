@@ -1,4 +1,14 @@
-import { FileText } from "lucide-react";
+import {
+  Building2,
+  FileText,
+  HelpCircle,
+  LayoutPanelTop,
+  LayoutTemplate,
+  ListOrdered,
+  Quote,
+  Video,
+  type LucideIcon,
+} from "lucide-react";
 
 import { SiteContentForm } from "@/components/admin/site-content-form";
 import {
@@ -20,10 +30,11 @@ const ACCENT_OPTIONS = [
 ];
 
 type SectionConfig =
-  | { key: string; label: string; type: "flat" }
+  | { key: string; label: string; icon: LucideIcon; type: "flat" }
   | {
       key: string;
       label: string;
+      icon: LucideIcon;
       type: "list";
       fields: StructuredFieldConfig[];
       emptyItem: Record<string, string>;
@@ -32,12 +43,13 @@ type SectionConfig =
     };
 
 const SECTIONS: SectionConfig[] = [
-  { key: "homepage_hero", label: "Homepage Hero", type: "flat" },
-  { key: "how_it_works", label: "How It Works", type: "flat" },
-  { key: "faq", label: "FAQ", type: "flat" },
+  { key: "homepage_hero", label: "Homepage Hero", icon: LayoutPanelTop, type: "flat" },
+  { key: "how_it_works", label: "How It Works", icon: ListOrdered, type: "flat" },
+  { key: "faq", label: "FAQ", icon: HelpCircle, type: "flat" },
   {
     key: "homepage_logos",
     label: "Trusted-By Logos",
+    icon: Building2,
     type: "list",
     fields: [
       { name: "name", label: "Company name", type: "text", placeholder: "e.g. Northwind" },
@@ -50,6 +62,7 @@ const SECTIONS: SectionConfig[] = [
   {
     key: "homepage_templates",
     label: "Templates",
+    icon: LayoutTemplate,
     type: "list",
     fields: [
       { name: "industry", label: "Industry", type: "text", placeholder: "e.g. Real Estate" },
@@ -63,6 +76,7 @@ const SECTIONS: SectionConfig[] = [
   {
     key: "homepage_testimonials",
     label: "Testimonials",
+    icon: Quote,
     type: "list",
     fields: [
       { name: "name", label: "Name", type: "text" },
@@ -74,7 +88,7 @@ const SECTIONS: SectionConfig[] = [
     itemLabelField: "name",
     itemLabelFallback: "Testimonial",
   },
-  { key: "homepage_video", label: "Video Demo", type: "flat" },
+  { key: "homepage_video", label: "Video Demo", icon: Video, type: "flat" },
 ];
 
 export default async function AdminContentPage() {
@@ -84,27 +98,36 @@ export default async function AdminContentPage() {
   });
 
   return (
-    <main className="mx-auto max-w-5xl p-6 sm:p-8">
+    <main className="mx-auto max-w-6xl p-6 sm:p-8">
       <PageHeader
         icon={FileText}
         title="Site content"
         description="Edit homepage hero text, how-it-works steps, FAQ entries, trusted-by logos, templates, testimonials, and the video demo."
       />
 
-      <div>
-        <Tabs defaultValue={SECTIONS[0].key}>
-          <TabsList>
-            {SECTIONS.map((section) => (
-              <TabsTrigger key={section.key} value={section.key}>
-                {section.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      <Tabs defaultValue={SECTIONS[0].key} orientation="vertical" className="flex-col items-start gap-6 md:flex-row">
+        <TabsList
+          variant="line"
+          className="h-fit w-full shrink-0 flex-col items-stretch gap-1 rounded-2xl border border-border/70 bg-card p-2 shadow-[0_1px_2px_rgba(24,24,20,0.04),0_8px_20px_-12px_rgba(24,24,20,0.10)] md:w-1/4"
+        >
+          {SECTIONS.map((section) => (
+            <TabsTrigger
+              key={section.key}
+              value={section.key}
+              className="h-auto w-full justify-start gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-muted-foreground after:hidden data-[active]:bg-primary/15 data-[active]:text-ink data-[active]:shadow-none"
+            >
+              <section.icon className="size-4 shrink-0" />
+              <span className="truncate">{section.label}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <div className="min-w-0 flex-1 md:w-3/4">
           {SECTIONS.map((section) => {
             const sectionRows = rows.filter((row) => row.section === section.key);
             return (
-              <TabsContent key={section.key} value={section.key} className="pt-4">
-                <Card className="w-fit max-w-full border-border/80">
+              <TabsContent key={section.key} value={section.key} className="mt-0">
+                <Card className="border-border/80">
                   <CardContent>
                     {section.type === "flat" ? (
                       <SiteContentForm
@@ -132,8 +155,8 @@ export default async function AdminContentPage() {
               </TabsContent>
             );
           })}
-        </Tabs>
-      </div>
+        </div>
+      </Tabs>
     </main>
   );
 }
