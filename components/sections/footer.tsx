@@ -41,7 +41,7 @@ const COLUMNS = [
       { label: "About", href: "#" },
       { label: "Careers", href: "#" },
       { label: "Blog", href: "#" },
-      { label: "Contact", href: "mailto:hello@tapcard.co" },
+      { label: "Contact", href: "#contact" },
     ],
   },
   {

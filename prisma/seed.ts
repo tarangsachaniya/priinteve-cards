@@ -334,6 +334,12 @@ async function main() {
     },
   ]);
 
+  await seedSiteContentFlat("homepage_video", {
+    heading: "See a card built, tapped, and updated.",
+    caption: "A two-minute walkthrough of building a profile, ordering a card, and sharing it live.",
+    duration_label: "1:24",
+  });
+
   await seedSiteContentList("homepage_testimonials", [
     {
       name: "Ananya Rao",

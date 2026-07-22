@@ -1,47 +1,28 @@
 import Link from "next/link";
+import type { Plan } from "@prisma/client";
 import { CheckIcon, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Reveal, RevealItem } from "@/components/ui/reveal";
+import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const PLANS = [
-  {
-    name: "Basic",
-    price: 9,
-    description: "For individuals just getting started.",
-    features: ["1 digital card", "Unlimited profile views", "Basic customization", "Email support"],
-    featured: false,
-  },
-  {
-    name: "Smart",
-    price: 19,
-    description: "For professionals who network often.",
-    features: [
-      "3 digital cards",
-      "Custom branding",
-      "Lead capture forms",
-      "Analytics dashboard",
-      "Priority support",
-    ],
-    featured: false,
-  },
-  {
-    name: "Premium",
-    price: 39,
-    description: "For teams that need full control.",
-    features: [
-      "Unlimited digital cards",
-      "Team management dashboard",
-      "Advanced analytics",
-      "API access",
-      "Dedicated support",
-    ],
-    featured: true,
-  },
-];
+const CARD_TYPE_LABEL: Record<Plan["cardType"], string> = {
+  NFC: "NFC card",
+  QR: "QR card",
+  BOTH: "NFC + QR card",
+};
 
-export function Pricing() {
+function planFeatures(plan: Plan): string[] {
+  const parsed = Array.isArray(plan.featuresJson)
+    ? (plan.featuresJson as unknown[]).filter((f): f is string => typeof f === "string")
+    : [];
+  return [CARD_TYPE_LABEL[plan.cardType], ...parsed];
+}
+
+export function Pricing({ plans }: { plans: Plan[] }) {
+  if (plans.length === 0) return null;
+
   return (
     <section id="pricing" className="bg-secondary py-24 lg:py-36">
       <div className="mx-auto max-w-[1200px] px-6 lg:px-20">
@@ -54,25 +35,33 @@ export function Pricing() {
           </div>
           <p className="max-w-xs text-sm text-muted-foreground">
             Need a custom team plan?{" "}
-            <Link href="#faq" className="font-semibold text-foreground hover:underline">
+            <Link href="#contact" className="font-semibold text-foreground hover:underline">
               Get in touch
             </Link>
             .
           </p>
         </Reveal>
 
-        <Reveal stagger className="mt-14 grid gap-6 lg:grid-cols-3">
-          {PLANS.map((plan) => (
+        <Reveal
+          stagger
+          className={cn(
+            "mt-14 grid gap-6",
+            plans.length === 1 && "mx-auto max-w-sm",
+            plans.length === 2 && "sm:mx-auto sm:max-w-3xl sm:grid-cols-2",
+            plans.length >= 3 && "lg:grid-cols-3"
+          )}
+        >
+          {plans.map((plan) => (
             <RevealItem
-              key={plan.name}
+              key={plan.id}
               className={cn(
                 "relative flex flex-col rounded-2xl border p-8",
-                plan.featured
+                plan.recommended
                   ? "border-transparent bg-ink text-white shadow-2xl lg:-translate-y-3"
                   : "border-border bg-white"
               )}
             >
-              {plan.featured && (
+              {plan.recommended && (
                 <span className="absolute top-6 right-6 flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-ink">
                   <Sparkles className="size-3" />
                   Most popular
@@ -80,33 +69,33 @@ export function Pricing() {
               )}
 
               <h3 className="text-lg font-semibold tracking-tight">{plan.name}</h3>
-              <p className={cn("mt-1 text-sm", plan.featured ? "text-ink-muted" : "text-muted-foreground")}>
-                {plan.description}
+              <p className={cn("mt-1 text-sm", plan.recommended ? "text-ink-muted" : "text-muted-foreground")}>
+                Valid for {plan.validityDays} days · up to {plan.maxGalleryImages} gallery images
               </p>
 
               <div className="mt-6 flex items-baseline gap-1">
-                <span className="text-4xl font-bold tracking-tight">${plan.price}</span>
-                <span className={cn("text-sm", plan.featured ? "text-ink-muted" : "text-muted-foreground")}>
-                  /month
+                <span className="text-4xl font-bold tracking-tight">{formatCurrency(plan.price)}</span>
+                <span className={cn("text-sm", plan.recommended ? "text-ink-muted" : "text-muted-foreground")}>
+                  /{plan.validityDays} days
                 </span>
               </div>
 
               <Button
                 size="lg"
-                className={cn("mt-6 w-full", plan.featured ? "" : "")}
-                variant={plan.featured ? "default" : "outline"}
+                variant={plan.recommended ? "default" : "outline"}
+                className="mt-6 w-full"
                 render={<Link href="/signup" />}
               >
                 Get started
               </Button>
 
               <ul className="mt-8 flex flex-col gap-3 border-t border-current/10 pt-6">
-                {plan.features.map((feature) => (
+                {planFeatures(plan).map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm">
                     <span
                       className={cn(
                         "mt-0.5 flex size-4.5 shrink-0 items-center justify-center rounded-full",
-                        plan.featured ? "bg-primary text-ink" : "bg-primary/15 text-foreground"
+                        plan.recommended ? "bg-primary text-ink" : "bg-primary/15 text-foreground"
                       )}
                     >
                       <CheckIcon className="size-3" strokeWidth={3} />

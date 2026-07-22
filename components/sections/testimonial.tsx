@@ -1,52 +1,65 @@
 import { Star } from "lucide-react";
 
-import { Reveal } from "@/components/ui/reveal";
-import { cn } from "@/lib/utils";
+import { SectionHeader } from "@/components/ui/section-header";
+import { Reveal, RevealItem } from "@/components/ui/reveal";
+import type { HomepageTestimonialInput } from "@/lib/validations/admin";
 
-const DOTS = ["AM", "RK", "SN", "DP", "PL"];
+function initialsFor(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
 
-export function Testimonial() {
+export function Testimonial({ testimonials }: { testimonials: HomepageTestimonialInput[] }) {
   return (
     <section className="bg-background py-24 lg:py-36">
-      <div className="mx-auto max-w-3xl px-6 text-center lg:px-20">
+      <div className="mx-auto max-w-[1200px] px-6 lg:px-20">
         <Reveal>
-          <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            Loved by people who network for a living.
-          </h2>
+          <SectionHeader eyebrow="Testimonials" title="Loved by people who network for a living." />
+        </Reveal>
 
-          <div className="mt-10 flex items-center justify-center gap-1">
-            {Array.from({ length: 5 }).map((_, star) => (
-              <Star key={star} className="size-4 fill-primary text-primary" />
-            ))}
-          </div>
-
-          <p className="mt-6 text-xl leading-relaxed font-medium text-balance text-foreground sm:text-2xl">
-            &ldquo;I used to hand out twenty cards a week and reprint every time I changed roles.
-            Now I tap my Tapcard and people have my whole profile before I&apos;ve finished the
-            handshake.&rdquo;
-          </p>
-
-          <div className="mt-8 flex flex-col items-center gap-2">
-            <div className="flex size-12 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white">
-              TG
-            </div>
-            <p className="text-sm font-semibold">Tom Griffith</p>
-            <p className="text-xs text-muted-foreground">Founder, Growth Collective</p>
-          </div>
-
-          <div className="mt-10 flex items-center justify-center -space-x-2">
-            {DOTS.map((initials, index) => (
-              <div
-                key={initials}
-                className={cn(
-                  "flex size-9 items-center justify-center rounded-full border-2 border-background text-[10px] font-semibold text-white",
-                  index % 2 === 0 ? "bg-ink" : "bg-primary text-ink"
-                )}
-              >
-                {initials}
+        <Reveal
+          stagger
+          className={`mt-14 grid gap-6 ${
+            testimonials.length === 1
+              ? "mx-auto max-w-xl"
+              : testimonials.length === 2
+                ? "sm:grid-cols-2"
+                : "sm:grid-cols-2 lg:grid-cols-3"
+          }`}
+        >
+          {testimonials.map((testimonial, index) => (
+            <RevealItem
+              key={`${testimonial.name}-${index}`}
+              className="flex flex-col rounded-2xl border border-border bg-white p-7"
+            >
+              <div className="flex items-center gap-1">
+                {Array.from({ length: 5 }).map((_, star) => (
+                  <Star
+                    key={star}
+                    className={`size-3.5 ${
+                      star < testimonial.rating ? "fill-primary text-primary" : "text-border"
+                    }`}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+              <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground">
+                &ldquo;{testimonial.quote}&rdquo;
+              </p>
+              <div className="mt-6 flex items-center gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-white">
+                  {initialsFor(testimonial.name)}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">{testimonial.name}</p>
+                  <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                </div>
+              </div>
+            </RevealItem>
+          ))}
         </Reveal>
       </div>
     </section>
