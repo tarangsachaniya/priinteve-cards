@@ -5,7 +5,14 @@ import {
   LayoutPanelTop,
   LayoutTemplate,
   ListOrdered,
+  Mail,
+  Megaphone,
+  Menu,
+  MonitorPlay,
+  PanelBottom,
   Quote,
+  Scale,
+  Sparkles,
   Video,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +34,14 @@ const ACCENT_OPTIONS = [
   { value: "amber", label: "Amber" },
   { value: "rose", label: "Rose" },
   { value: "slate", label: "Slate" },
+];
+
+const FEATURE_ICON_OPTIONS = [
+  { value: "zap", label: "Zap (speed)" },
+  { value: "user-circle", label: "User circle (profile)" },
+  { value: "target", label: "Target (leads)" },
+  { value: "bar-chart-3", label: "Bar chart (analytics)" },
+  { value: "users", label: "Users (team)" },
 ];
 
 type SectionConfig =
@@ -89,6 +104,37 @@ const SECTIONS: SectionConfig[] = [
     itemLabelFallback: "Testimonial",
   },
   { key: "homepage_video", label: "Video Demo", icon: Video, type: "flat" },
+  {
+    key: "homepage_features",
+    label: "Features",
+    icon: Sparkles,
+    type: "list",
+    fields: [
+      { name: "icon", label: "Icon", type: "select", options: FEATURE_ICON_OPTIONS },
+      { name: "label", label: "Tab label", type: "text", placeholder: "e.g. Instant sharing" },
+      { name: "title", label: "Title", type: "text", placeholder: "e.g. Live in under a second." },
+      { name: "description", label: "Description", type: "textarea" },
+      { name: "bullets", label: "Bullet points (one per line)", type: "textarea" },
+    ],
+    emptyItem: { icon: "zap", label: "", title: "", description: "", bullets: "" },
+    itemLabelField: "label",
+    itemLabelFallback: "Feature",
+  },
+  { key: "homepage_card_preview", label: "Live Demo Banner", icon: MonitorPlay, type: "flat" },
+  {
+    key: "homepage_comparison",
+    label: "Comparison Table",
+    icon: Scale,
+    type: "list",
+    fields: [{ name: "label", label: "Row label", type: "text", placeholder: "e.g. Analytics" }],
+    emptyItem: { label: "" },
+    itemLabelField: "label",
+    itemLabelFallback: "Row",
+  },
+  { key: "homepage_contact", label: "Contact Section", icon: Mail, type: "flat" },
+  { key: "homepage_closing_cta", label: "Closing CTA", icon: Megaphone, type: "flat" },
+  { key: "homepage_footer", label: "Footer", icon: PanelBottom, type: "flat" },
+  { key: "homepage_navbar", label: "Navbar", icon: Menu, type: "flat" },
 ];
 
 export default async function AdminContentPage() {

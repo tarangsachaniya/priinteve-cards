@@ -14,6 +14,13 @@ const REVALIDATE_PATHS: Record<string, string[]> = {
   homepage_video: ["/"],
   how_it_works: ["/how-it-works"],
   faq: ["/faq", "/"],
+  homepage_features: ["/"],
+  homepage_card_preview: ["/"],
+  homepage_comparison: ["/"],
+  homepage_contact: ["/"],
+  homepage_closing_cta: ["/"],
+  homepage_footer: ["/"],
+  homepage_navbar: ["/"],
 };
 
 export async function PATCH(req: Request, { params }: { params: { section: string } }) {

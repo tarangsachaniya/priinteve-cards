@@ -6,18 +6,19 @@ import { Menu, Nfc, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { HomepageNavbar } from "@/lib/site-content";
 
-const NAV_LINKS = [
-  { href: "#features", label: "Features" },
-  { href: "#how-it-works", label: "How it works" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#faq", label: "FAQ" },
-  { href: "#contact", label: "Contact" },
-];
-
-export function Navbar() {
+export function Navbar({ content }: { content: HomepageNavbar }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const NAV_LINKS = [
+    { href: "#features", label: content.navFeatures },
+    { href: "#how-it-works", label: content.navHowItWorks },
+    { href: "#pricing", label: content.navPricing },
+    { href: "#faq", label: content.navFaq },
+    { href: "#contact", label: content.navContact },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -46,7 +47,7 @@ export function Navbar() {
           <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Nfc className="size-4" strokeWidth={2.5} />
           </span>
-          <span className={cn(transparent ? "text-white" : "text-foreground")}>Tapcard</span>
+          <span className={cn(transparent ? "text-white" : "text-foreground")}>{content.brandName}</span>
         </Link>
 
         <nav
@@ -78,10 +79,10 @@ export function Navbar() {
               transparent ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            Log in
+            {content.loginLabel}
           </Link>
           <Button size="sm" render={<Link href="/signup" />}>
-            Get your card
+            {content.ctaLabel}
           </Button>
         </div>
 
@@ -113,10 +114,10 @@ export function Navbar() {
           ))}
           <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
             <Button variant="outline" size="sm" render={<Link href="/login" />}>
-              Log in
+              {content.loginLabel}
             </Button>
             <Button size="sm" render={<Link href="/signup" />}>
-              Get your card
+              {content.ctaLabel}
             </Button>
           </div>
         </nav>

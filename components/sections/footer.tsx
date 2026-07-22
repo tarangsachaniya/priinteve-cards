@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Nfc } from "lucide-react";
 
+import type { HomepageFooter } from "@/lib/site-content";
+
 function TwitterIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -63,13 +65,13 @@ const COLUMNS = [
   },
 ];
 
-const SOCIALS = [
-  { icon: TwitterIcon, href: "https://twitter.com", label: "Twitter" },
-  { icon: InstagramIcon, href: "https://instagram.com", label: "Instagram" },
-  { icon: LinkedinIcon, href: "https://linkedin.com", label: "LinkedIn" },
-];
+export function Footer({ content }: { content: HomepageFooter }) {
+  const SOCIALS = [
+    { icon: TwitterIcon, href: content.twitterUrl, label: "Twitter" },
+    { icon: InstagramIcon, href: content.instagramUrl, label: "Instagram" },
+    { icon: LinkedinIcon, href: content.linkedinUrl, label: "LinkedIn" },
+  ];
 
-export function Footer() {
   return (
     <footer className="bg-ink pt-20 pb-8 text-white">
       <div className="mx-auto max-w-[1200px] px-6 lg:px-20">
@@ -82,7 +84,7 @@ export function Footer() {
               Tapcard
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-muted">
-              The last business card you&apos;ll ever need — one tap, every way to connect.
+              {content.tagline}
             </p>
             <div className="mt-5 flex items-center gap-3">
               {SOCIALS.map((social) => (

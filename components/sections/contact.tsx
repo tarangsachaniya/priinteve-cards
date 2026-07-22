@@ -11,8 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Reveal } from "@/components/ui/reveal";
 import { contactSchema } from "@/lib/validations/contact";
+import type { HomepageContact } from "@/lib/site-content";
 
-export function Contact() {
+export function Contact({ content }: { content: HomepageContact }) {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -55,18 +56,18 @@ export function Contact() {
         <div className="grid gap-12 lg:grid-cols-[minmax(0,20rem)_1fr] lg:gap-20">
           <Reveal>
             <SectionHeader
-              eyebrow="Contact"
-              title="Still have questions?"
-              description="Send us a message and our team will get back to you within one business day."
+              eyebrow={content.eyebrow}
+              title={content.heading}
+              description={content.description}
               align="left"
               className="max-w-sm"
             />
             <a
-              href="mailto:hello@tapcard.co"
+              href={`mailto:${content.email}`}
               className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:underline"
             >
               <Mail className="size-4" />
-              hello@tapcard.co
+              {content.email}
             </a>
           </Reveal>
 

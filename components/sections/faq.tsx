@@ -11,7 +11,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { Reveal, RevealItem } from "@/components/ui/reveal";
 import type { FaqItem } from "@/lib/site-content";
 
-export function Faq({ items: FAQS }: { items: FaqItem[] }) {
+export function Faq({ items: FAQS, contactEmail }: { items: FaqItem[]; contactEmail: string }) {
   return (
     <section id="faq" className="bg-background py-24 lg:py-36">
       <div className="mx-auto max-w-[1200px] px-6 lg:px-20">
@@ -24,7 +24,7 @@ export function Faq({ items: FAQS }: { items: FaqItem[] }) {
               description={
                 <>
                   Can&apos;t find what you&apos;re looking for?{" "}
-                  <Link href="mailto:hello@tapcard.co" className="font-semibold text-foreground hover:underline">
+                  <Link href={`mailto:${contactEmail}`} className="font-semibold text-foreground hover:underline">
                     Reach out to our team
                   </Link>
                   .

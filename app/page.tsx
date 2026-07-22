@@ -16,8 +16,15 @@ import { Footer } from "@/components/sections/footer";
 import { getActivePlans } from "@/lib/plans";
 import {
   getFaqItems,
+  getHomepageCardPreview,
+  getHomepageClosingCta,
+  getHomepageComparisonRows,
+  getHomepageContact,
+  getHomepageFeatures,
+  getHomepageFooter,
   getHomepageHero,
   getHomepageLogos,
+  getHomepageNavbar,
   getHomepageTemplates,
   getHomepageTestimonials,
   getHomepageVideo,
@@ -27,7 +34,23 @@ import {
 export const revalidate = 300;
 
 export default async function Home() {
-  const [hero, logos, templates, steps, testimonials, video, faqs, plans] = await Promise.all([
+  const [
+    hero,
+    logos,
+    templates,
+    steps,
+    testimonials,
+    video,
+    faqs,
+    plans,
+    features,
+    cardPreview,
+    comparisonRows,
+    contact,
+    closingCta,
+    footer,
+    navbar,
+  ] = await Promise.all([
     getHomepageHero(),
     getHomepageLogos(),
     getHomepageTemplates(),
@@ -36,27 +59,34 @@ export default async function Home() {
     getHomepageVideo(),
     getFaqItems(),
     getActivePlans(),
+    getHomepageFeatures(),
+    getHomepageCardPreview(),
+    getHomepageComparisonRows(),
+    getHomepageContact(),
+    getHomepageClosingCta(),
+    getHomepageFooter(),
+    getHomepageNavbar(),
   ]);
 
   return (
     <>
-      <Navbar />
+      <Navbar content={navbar} />
       <main>
         <Hero hero={hero} />
         <LogoMarquee logos={logos} />
         <Templates templates={templates} />
-        <FeaturesTabs />
-        <CardPreview />
+        <FeaturesTabs features={features} />
+        <CardPreview content={cardPreview} />
         <HowItWorks steps={steps} />
         <Testimonial testimonials={testimonials} />
         <VideoDemo video={video} />
-        <Comparison />
+        <Comparison rows={comparisonRows} />
         <Pricing plans={plans} />
-        <Faq items={faqs} />
-        <Contact />
-        <ClosingCta />
+        <Faq items={faqs} contactEmail={contact.email} />
+        <Contact content={contact} />
+        <ClosingCta content={closingCta} />
       </main>
-      <Footer />
+      <Footer content={footer} />
     </>
   );
 }

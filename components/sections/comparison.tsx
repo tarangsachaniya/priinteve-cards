@@ -2,18 +2,10 @@ import { CheckIcon, XIcon } from "lucide-react";
 
 import { SectionHeader } from "@/components/ui/section-header";
 import { Reveal } from "@/components/ui/reveal";
+import type { HomepageComparisonRowInput } from "@/lib/validations/admin";
 
-const ROWS = [
-  "Cost per share",
-  "Updates after printing",
-  "Analytics",
-  "Eco-friendly",
-  "Works when your phone is dead",
-  "Shares full profile — links, video, PDF",
-  "Lead capture",
-];
-
-export function Comparison() {
+export function Comparison({ rows: rowItems }: { rows: HomepageComparisonRowInput[] }) {
+  const ROWS = rowItems.map((row) => row.label);
   return (
     <section className="bg-background py-24 lg:py-36">
       <div className="mx-auto max-w-3xl px-6 lg:px-20">

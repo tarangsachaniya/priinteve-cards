@@ -3,21 +3,21 @@ import { Calendar, ExternalLinkIcon, Globe, Mail, MessageCircle, Phone } from "l
 
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
+import type { HomepageCardPreview } from "@/lib/site-content";
 
 const DOCK_ICONS = [Phone, MessageCircle, Mail, Globe, Calendar];
 
-export function CardPreview() {
+export function CardPreview({ content }: { content: HomepageCardPreview }) {
   return (
     <section className="bg-ink py-24 lg:py-36">
       <div className="mx-auto grid max-w-[1200px] items-center gap-16 px-6 lg:grid-cols-2 lg:gap-20 lg:px-20">
         <Reveal>
-          <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">Live demo</p>
+          <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">{content.eyebrow}</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">
-            Your whole business, behind one profile.
+            {content.heading}
           </h2>
           <p className="mt-4 max-w-md text-base leading-relaxed text-ink-muted">
-            Photo, title, company, and every way to reach you — all live behind a single link
-            that updates the moment you do.
+            {content.description}
           </p>
           <Button
             variant="outline"
@@ -25,7 +25,7 @@ export function CardPreview() {
             className="mt-8 border-white/25 text-white hover:bg-white hover:text-ink"
             render={<Link href="/signup" />}
           >
-            Preview your card
+            {content.ctaLabel}
           </Button>
         </Reveal>
 

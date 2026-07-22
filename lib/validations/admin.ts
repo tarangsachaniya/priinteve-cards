@@ -67,16 +67,41 @@ export const homepageTestimonialSchema = z.object({
   rating: z.coerce.number().int().min(1).max(5),
 });
 
+export const homepageFeatureIconSchema = z.enum([
+  "zap",
+  "user-circle",
+  "target",
+  "bar-chart-3",
+  "users",
+]);
+
+export const homepageFeatureSchema = z.object({
+  icon: homepageFeatureIconSchema,
+  label: z.string().min(1).max(40),
+  title: z.string().min(1).max(80),
+  description: z.string().min(1).max(200),
+  bullets: z.string().min(1).max(500),
+});
+
+export const homepageComparisonRowSchema = z.object({
+  label: z.string().min(1).max(80),
+});
+
 export const LIST_SECTION_SCHEMAS = {
   homepage_logos: homepageLogoSchema,
   homepage_templates: homepageTemplateSchema,
   homepage_testimonials: homepageTestimonialSchema,
+  homepage_features: homepageFeatureSchema,
+  homepage_comparison: homepageComparisonRowSchema,
 } as const;
 
 export type HomepageAccent = z.infer<typeof homepageAccentSchema>;
 export type HomepageLogoInput = z.infer<typeof homepageLogoSchema>;
 export type HomepageTemplateInput = z.infer<typeof homepageTemplateSchema>;
 export type HomepageTestimonialInput = z.infer<typeof homepageTestimonialSchema>;
+export type HomepageFeatureIcon = z.infer<typeof homepageFeatureIconSchema>;
+export type HomepageFeatureInput = z.infer<typeof homepageFeatureSchema>;
+export type HomepageComparisonRowInput = z.infer<typeof homepageComparisonRowSchema>;
 
 export const createUserSchema = z.object({
   name: z.string().min(2).max(80),

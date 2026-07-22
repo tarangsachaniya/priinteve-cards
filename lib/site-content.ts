@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import type {
+  HomepageComparisonRowInput,
+  HomepageFeatureInput,
   HomepageLogoInput,
   HomepageTemplateInput,
   HomepageTestimonialInput,
@@ -213,5 +215,213 @@ export async function getHomepageVideo(): Promise<HomepageVideo> {
     videoUrl: map.video_url || DEFAULT_VIDEO.videoUrl,
     thumbnailUrl: map.thumbnail_url || DEFAULT_VIDEO.thumbnailUrl,
     durationLabel: map.duration_label || DEFAULT_VIDEO.durationLabel,
+  };
+}
+
+const DEFAULT_FEATURES: HomepageFeatureInput[] = [
+  {
+    icon: "zap",
+    label: "Instant sharing",
+    title: "Live in under a second.",
+    description: "Tap, scan, or send — your profile opens instantly, on any phone.",
+    bullets: [
+      "Works with any NFC-enabled phone, no app required",
+      "Every card ships with a QR code as a backup",
+      "Opens directly in the browser, no install",
+    ].join("\n"),
+  },
+  {
+    icon: "user-circle",
+    label: "Custom profile",
+    title: "Unmistakably you.",
+    description: "Brand your profile with your colors, photo, and links.",
+    bullets: [
+      "Match your brand colors, logo, and photo",
+      "Add unlimited links and social profiles",
+      "Update anytime — everyone sees the latest version",
+    ].join("\n"),
+  },
+  {
+    icon: "target",
+    label: "Lead capture",
+    title: "Every tap, a saved contact.",
+    description: "Turn a handshake into a lead, automatically.",
+    bullets: [
+      "Recipients save your info in one tap",
+      "Collect their details back with an opt-in form",
+      "Export captured leads anytime",
+    ].join("\n"),
+  },
+  {
+    icon: "bar-chart-3",
+    label: "Analytics",
+    title: "Know what's working.",
+    description: "See exactly who's engaging with your card and when.",
+    bullets: [
+      "Track taps, scans, and profile views",
+      "See which links get clicked most",
+      "Daily and weekly summaries",
+    ].join("\n"),
+  },
+  {
+    icon: "users",
+    label: "Team management",
+    title: "Every rep, on-brand.",
+    description: "Keep every teammate's card consistent and up to date.",
+    bullets: [
+      "Manage every teammate's card from one dashboard",
+      "Enforce brand colors and templates",
+      "Deactivate a card instantly when someone leaves",
+    ].join("\n"),
+  },
+];
+
+export async function getHomepageFeatures(): Promise<HomepageFeatureInput[]> {
+  const items = await getSiteContentList<HomepageFeatureInput>("homepage_features");
+  return items.length ? items : DEFAULT_FEATURES;
+}
+
+export type HomepageCardPreview = {
+  eyebrow: string;
+  heading: string;
+  description: string;
+  ctaLabel: string;
+};
+
+const DEFAULT_CARD_PREVIEW: HomepageCardPreview = {
+  eyebrow: "Live demo",
+  heading: "Your whole business, behind one profile.",
+  description:
+    "Photo, title, company, and every way to reach you — all live behind a single link that updates the moment you do.",
+  ctaLabel: "Preview your card",
+};
+
+export async function getHomepageCardPreview(): Promise<HomepageCardPreview> {
+  const map = await getSiteContentMap("homepage_card_preview");
+  return {
+    eyebrow: map.eyebrow || DEFAULT_CARD_PREVIEW.eyebrow,
+    heading: map.heading || DEFAULT_CARD_PREVIEW.heading,
+    description: map.description || DEFAULT_CARD_PREVIEW.description,
+    ctaLabel: map.cta_label || DEFAULT_CARD_PREVIEW.ctaLabel,
+  };
+}
+
+const DEFAULT_COMPARISON_ROWS: HomepageComparisonRowInput[] = [
+  { label: "Cost per share" },
+  { label: "Updates after printing" },
+  { label: "Analytics" },
+  { label: "Eco-friendly" },
+  { label: "Works when your phone is dead" },
+  { label: "Shares full profile — links, video, PDF" },
+  { label: "Lead capture" },
+];
+
+export async function getHomepageComparisonRows(): Promise<HomepageComparisonRowInput[]> {
+  const items = await getSiteContentList<HomepageComparisonRowInput>("homepage_comparison");
+  return items.length ? items : DEFAULT_COMPARISON_ROWS;
+}
+
+export type HomepageContact = {
+  eyebrow: string;
+  heading: string;
+  description: string;
+  email: string;
+};
+
+const DEFAULT_CONTACT: HomepageContact = {
+  eyebrow: "Contact",
+  heading: "Still have questions?",
+  description: "Send us a message and our team will get back to you within one business day.",
+  email: "hello@tapcard.co",
+};
+
+export async function getHomepageContact(): Promise<HomepageContact> {
+  const map = await getSiteContentMap("homepage_contact");
+  return {
+    eyebrow: map.eyebrow || DEFAULT_CONTACT.eyebrow,
+    heading: map.heading || DEFAULT_CONTACT.heading,
+    description: map.description || DEFAULT_CONTACT.description,
+    email: map.email || DEFAULT_CONTACT.email,
+  };
+}
+
+export type HomepageClosingCta = {
+  heading: string;
+  description: string;
+  ctaLabel: string;
+};
+
+const DEFAULT_CLOSING_CTA: HomepageClosingCta = {
+  heading: "Get your card and start sharing in style.",
+  description: "Free shipping on every order. Cards typically arrive within a week.",
+  ctaLabel: "Get your card",
+};
+
+export async function getHomepageClosingCta(): Promise<HomepageClosingCta> {
+  const map = await getSiteContentMap("homepage_closing_cta");
+  return {
+    heading: map.heading || DEFAULT_CLOSING_CTA.heading,
+    description: map.description || DEFAULT_CLOSING_CTA.description,
+    ctaLabel: map.cta_label || DEFAULT_CLOSING_CTA.ctaLabel,
+  };
+}
+
+export type HomepageFooter = {
+  tagline: string;
+  twitterUrl: string;
+  instagramUrl: string;
+  linkedinUrl: string;
+};
+
+const DEFAULT_FOOTER: HomepageFooter = {
+  tagline: "The last business card you'll ever need — one tap, every way to connect.",
+  twitterUrl: "https://twitter.com",
+  instagramUrl: "https://instagram.com",
+  linkedinUrl: "https://linkedin.com",
+};
+
+export async function getHomepageFooter(): Promise<HomepageFooter> {
+  const map = await getSiteContentMap("homepage_footer");
+  return {
+    tagline: map.tagline || DEFAULT_FOOTER.tagline,
+    twitterUrl: map.twitter_url || DEFAULT_FOOTER.twitterUrl,
+    instagramUrl: map.instagram_url || DEFAULT_FOOTER.instagramUrl,
+    linkedinUrl: map.linkedin_url || DEFAULT_FOOTER.linkedinUrl,
+  };
+}
+
+export type HomepageNavbar = {
+  brandName: string;
+  loginLabel: string;
+  ctaLabel: string;
+  navFeatures: string;
+  navHowItWorks: string;
+  navPricing: string;
+  navFaq: string;
+  navContact: string;
+};
+
+const DEFAULT_NAVBAR: HomepageNavbar = {
+  brandName: "Tapcard",
+  loginLabel: "Log in",
+  ctaLabel: "Get your card",
+  navFeatures: "Features",
+  navHowItWorks: "How it works",
+  navPricing: "Pricing",
+  navFaq: "FAQ",
+  navContact: "Contact",
+};
+
+export async function getHomepageNavbar(): Promise<HomepageNavbar> {
+  const map = await getSiteContentMap("homepage_navbar");
+  return {
+    brandName: map.brand_name || DEFAULT_NAVBAR.brandName,
+    loginLabel: map.login_label || DEFAULT_NAVBAR.loginLabel,
+    ctaLabel: map.cta_label || DEFAULT_NAVBAR.ctaLabel,
+    navFeatures: map.nav_features || DEFAULT_NAVBAR.navFeatures,
+    navHowItWorks: map.nav_how_it_works || DEFAULT_NAVBAR.navHowItWorks,
+    navPricing: map.nav_pricing || DEFAULT_NAVBAR.navPricing,
+    navFaq: map.nav_faq || DEFAULT_NAVBAR.navFaq,
+    navContact: map.nav_contact || DEFAULT_NAVBAR.navContact,
   };
 }
