@@ -9,16 +9,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { formatCurrency } from "@/lib/format";
+import { formatLocalPrice, type DisplayCurrency } from "@/lib/currency-format";
 import type { PricingResult } from "@/lib/wallet";
 
 type CheckoutSummaryProps = {
   plan: { id: string; name: string; price: number; validityDays: number };
   pricingNoWallet: PricingResult;
   pricingWithWallet: PricingResult;
+  currency: DisplayCurrency;
 };
 
-export function CheckoutSummary({ plan, pricingNoWallet, pricingWithWallet }: CheckoutSummaryProps) {
+export function CheckoutSummary({ plan, pricingNoWallet, pricingWithWallet, currency }: CheckoutSummaryProps) {
   const router = useRouter();
   const [useWallet, setUseWallet] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,8 +51,13 @@ export function CheckoutSummary({ plan, pricingNoWallet, pricingWithWallet }: Ch
         return;
       }
 
+      // The purchase confirm route can't safely refresh the browser's
+      // session (it's written to also accept real gateway webhooks, which
+      // aren't the customer's browser) so the client refreshes it here.
+      await fetch("/api/auth/refresh-session", { method: "POST" });
+
       toast.success("Payment successful! Your card is now live.");
-      router.push("/dashboard");
+      router.push("/?purchased=1");
     } finally {
       setIsProcessing(false);
     }
@@ -77,7 +83,7 @@ export function CheckoutSummary({ plan, pricingNoWallet, pricingWithWallet }: Ch
             <Label className="flex-1 cursor-pointer font-normal">
               Use wallet credit
               <span className="block text-xs text-muted-foreground">
-                {formatCurrency(pricingWithWallet.walletInr)} available
+                {formatLocalPrice(pricingWithWallet.walletInr, currency)} available
               </span>
             </Label>
           </label>
@@ -86,17 +92,17 @@ export function CheckoutSummary({ plan, pricingNoWallet, pricingWithWallet }: Ch
         <div className="flex flex-col gap-2.5 border-t border-border/70 pt-4 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Plan price</span>
-            <span>{formatCurrency(plan.price)}</span>
+            <span>{formatLocalPrice(plan.price, currency)}</span>
           </div>
           {useWallet && pricing.walletInr > 0 && (
             <div className="flex items-center justify-between text-ink">
               <span>Wallet discount</span>
-              <span>-{formatCurrency(pricing.walletInr)}</span>
+              <span>-{formatLocalPrice(pricing.walletInr, currency)}</span>
             </div>
           )}
           <div className="mt-1 flex items-center justify-between rounded-xl bg-primary/10 px-3.5 py-3">
             <span className="font-semibold">Total due</span>
-            <span className="text-xl font-bold">{formatCurrency(pricing.amountDue)}</span>
+            <span className="text-xl font-bold">{formatLocalPrice(pricing.amountDue, currency)}</span>
           </div>
         </div>
 

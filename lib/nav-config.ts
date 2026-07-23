@@ -1,8 +1,6 @@
 import {
   LayoutDashboard,
   LayoutTemplate,
-  Wand2,
-  CreditCard,
   Users,
   CreditCard as CreditCardIcon,
   Gift,
@@ -27,8 +25,6 @@ export type NavSection = {
 export const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/builder", label: "Card Builder", icon: LayoutTemplate },
-  { href: "/dashboard/setup", label: "Setup", icon: Wand2 },
-  { href: "/dashboard/plans", label: "Plans", icon: CreditCard },
   { href: "/dashboard/referrals", label: "Referrals", icon: Users },
 ];
 

@@ -6,6 +6,7 @@ import { AlertTriangle, LayoutDashboard } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { QrSection } from "@/components/dashboard/qr-section";
@@ -17,13 +18,19 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
   if (session?.user.role === "USER" && !session.user.cardPublished) {
-    redirect("/dashboard/setup");
+    redirect("/setup");
   }
 
   const user = session?.user?.id
     ? await db.user.findUnique({
         where: { id: session.user.id },
-        select: { name: true, slug: true, planExpiresAt: true, plan: { select: { name: true } } },
+        select: {
+          name: true,
+          slug: true,
+          planId: true,
+          planExpiresAt: true,
+          plan: { select: { name: true } },
+        },
       })
     : null;
 
@@ -31,6 +38,7 @@ export default async function DashboardPage() {
     ? Math.ceil((user.planExpiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
     : null;
   const showRenewCta = daysUntilExpiry !== null && daysUntilExpiry <= RENEWAL_WINDOW_DAYS;
+  const hasActivePlan = Boolean(user?.planId && user?.planExpiresAt && user.planExpiresAt > new Date());
 
   return (
     <main className="p-6 sm:p-8 lg:p-10">
@@ -38,6 +46,13 @@ export default async function DashboardPage() {
         icon={LayoutDashboard}
         title={`Welcome back${user?.name ? `, ${user.name.split(" ")[0]}` : ""}`}
         description="Manage your digital card and track how it's performing."
+        action={
+          hasActivePlan && (
+            <Badge variant="secondary" className="h-7 px-3 text-sm">
+              {user?.plan?.name} · Active
+            </Badge>
+          )
+        }
       />
 
       {showRenewCta && user?.planExpiresAt && (
@@ -56,7 +71,7 @@ export default async function DashboardPage() {
                 </p>
               </div>
             </div>
-            <Button render={<Link href="/dashboard/plans" />}>Renew</Button>
+            <Button render={<Link href="/plans" />}>Renew</Button>
           </CardContent>
         </Card>
       )}

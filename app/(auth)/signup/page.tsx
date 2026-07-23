@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { Briefcase, Mail, User } from "lucide-react";
 import { toast } from "sonner";
 
+import { getPostAuthRedirectPath } from "@/lib/post-auth-redirect";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { GoogleIcon } from "@/components/auth/google-icon";
 import { IconInput } from "@/components/auth/icon-input";
@@ -55,7 +56,7 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/dashboard/setup");
+      router.push(getPostAuthRedirectPath({ role: "USER" }));
       router.refresh();
     } finally {
       setIsSubmitting(false);

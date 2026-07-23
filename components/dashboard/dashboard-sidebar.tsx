@@ -76,7 +76,7 @@ function SidebarFooter({
 
 function Logo() {
   return (
-    <Link href="/dashboard" className="mb-4 flex items-center gap-2 px-2 text-lg font-bold tracking-tight">
+    <Link href="/" className="mb-4 flex items-center gap-2 px-2 text-lg font-bold tracking-tight">
       <span className="flex size-8 items-center justify-center rounded-full bg-primary text-ink">
         <Nfc className="size-4" strokeWidth={2.5} />
       </span>
@@ -98,7 +98,7 @@ export function DashboardSidebar({ isAdmin, slug }: { isAdmin?: boolean; slug?: 
       </nav>
 
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/90 p-3 backdrop-blur-md md:hidden">
-        <Link href="/dashboard" className="flex items-center gap-2 text-base font-bold tracking-tight">
+        <Link href="/" className="flex items-center gap-2 text-base font-bold tracking-tight">
           <span className="flex size-7 items-center justify-center rounded-full bg-primary text-ink">
             <Nfc className="size-3.5" strokeWidth={2.5} />
           </span>

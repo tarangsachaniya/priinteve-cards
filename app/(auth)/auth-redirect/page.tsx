@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import { getPostAuthRedirectPath } from "@/lib/post-auth-redirect";
 
 export default async function AuthRedirectPage() {
   const session = await getServerSession(authOptions);
@@ -10,13 +11,5 @@ export default async function AuthRedirectPage() {
     redirect("/login");
   }
 
-  if (session.user.role === "ADMIN") {
-    redirect("/admin");
-  }
-
-  if (!session.user.cardPublished) {
-    redirect("/dashboard/setup");
-  }
-
-  redirect("/dashboard");
+  redirect(getPostAuthRedirectPath(session.user));
 }

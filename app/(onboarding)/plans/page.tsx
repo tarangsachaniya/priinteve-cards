@@ -5,9 +5,11 @@ import { Check, CreditCard, Sparkles, Nfc, QrCode } from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getActivePlans } from "@/lib/plans";
+import { getDisplayCurrency } from "@/lib/currency";
+import { formatLocalPrice } from "@/lib/currency-format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-header";
 import { cn } from "@/lib/utils";
 
 const CARD_TYPE_META: Record<string, { label: string; icon: typeof Sparkles }> = {
@@ -22,24 +24,28 @@ export default async function PlansPage() {
     redirect("/login");
   }
 
-  const [user, plans] = await Promise.all([
+  const [user, plans, currency] = await Promise.all([
     db.user.findUnique({
       where: { id: session.user.id },
       select: { planId: true },
     }),
-    db.plan.findMany({
-      where: { isActive: true },
-      orderBy: [{ recommended: "desc" }, { price: "asc" }],
-    }),
+    getActivePlans(),
+    getDisplayCurrency(),
   ]);
 
   return (
     <main className="mx-auto max-w-6xl p-6 sm:p-8 lg:p-10">
-      <PageHeader
-        icon={CreditCard}
-        title="Plans"
-        description="Choose a plan to publish your digital business card."
-      />
+      <div className="mb-8 flex items-start gap-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-ink">
+          <CreditCard className="size-5" />
+        </span>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Plans</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Choose a plan to publish your digital business card.
+          </p>
+        </div>
+      </div>
 
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:items-start">
         {plans.map((plan) => {
@@ -78,9 +84,8 @@ export default async function PlansPage() {
                 </span>
 
                 <div className="mt-6 flex items-end gap-1">
-                  <span className="mb-1 text-lg font-semibold text-muted-foreground">₹</span>
                   <span className="text-5xl leading-none font-bold tracking-tight text-foreground">
-                    {plan.price}
+                    {formatLocalPrice(plan.price, currency)}
                   </span>
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -91,7 +96,7 @@ export default async function PlansPage() {
                   size="lg"
                   className="mt-6 w-full"
                   variant={plan.recommended ? "default" : "outline"}
-                  render={<Link href={`/dashboard/checkout/${plan.id}`} />}
+                  render={<Link href={`/checkout/${plan.id}`} />}
                 >
                   {isCurrentPlan ? "Renew plan" : "Choose plan"}
                 </Button>

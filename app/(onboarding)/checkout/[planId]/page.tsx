@@ -5,8 +5,8 @@ import { ShoppingCart } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { computePricing } from "@/lib/wallet";
+import { getDisplayCurrency } from "@/lib/currency";
 import { CheckoutSummary } from "@/components/checkout/checkout-summary";
-import { PageHeader } from "@/components/shared/page-header";
 
 export default async function CheckoutPage({
   params,
@@ -31,23 +31,31 @@ export default async function CheckoutPage({
     redirect("/login");
   }
 
-  const [pricingNoWallet, pricingWithWallet] = await Promise.all([
+  const [pricingNoWallet, pricingWithWallet, currency] = await Promise.all([
     computePricing({ planPrice: plan.price, walletPoints: user.walletPoints, useWallet: false }),
     computePricing({ planPrice: plan.price, walletPoints: user.walletPoints, useWallet: true }),
+    getDisplayCurrency(),
   ]);
 
   return (
     <main className="mx-auto max-w-lg p-6 sm:p-8">
-      <PageHeader
-        icon={ShoppingCart}
-        title="Checkout"
-        description={`${user.planId ? "Renewing" : "Purchasing"} ${plan.name}`}
-      />
+      <div className="mb-8 flex items-start gap-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-ink">
+          <ShoppingCart className="size-5" />
+        </span>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Checkout</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {user.planId ? "Renewing" : "Purchasing"} {plan.name}
+          </p>
+        </div>
+      </div>
 
       <CheckoutSummary
         plan={{ id: plan.id, name: plan.name, price: plan.price, validityDays: plan.validityDays }}
         pricingNoWallet={pricingNoWallet}
         pricingWithWallet={pricingWithWallet}
+        currency={currency}
       />
     </main>
   );

@@ -4,7 +4,7 @@ import { ArrowRightIcon, Nfc } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 
-export function ClosingCta() {
+export function ClosingCta({ ctaHref }: { ctaHref: string }) {
   return (
     <section className="px-6 py-16 lg:px-20 lg:py-24">
       <Reveal className="relative mx-auto max-w-[1200px] overflow-hidden rounded-[2rem] bg-primary px-8 py-14 sm:px-14 lg:px-20 lg:py-20">
@@ -19,7 +19,7 @@ export function ClosingCta() {
             <Button
               size="xl"
               className="mt-8 bg-ink text-white hover:bg-ink/90"
-              render={<Link href="/signup" />}
+              render={<Link href={ctaHref} />}
             >
               Get your card
               <ArrowRightIcon data-icon="inline-end" />

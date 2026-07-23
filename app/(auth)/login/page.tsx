@@ -7,6 +7,7 @@ import { getSession, signIn } from "next-auth/react";
 import { Mail } from "lucide-react";
 import { toast } from "sonner";
 
+import { getPostAuthRedirectPath } from "@/lib/post-auth-redirect";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { GoogleIcon } from "@/components/auth/google-icon";
 import { IconInput } from "@/components/auth/icon-input";
@@ -48,13 +49,7 @@ export default function LoginPage() {
       }
 
       const session = await getSession();
-      if (session?.user.role === "ADMIN") {
-        router.push("/admin");
-      } else if (!session?.user.cardPublished) {
-        router.push("/dashboard/setup");
-      } else {
-        router.push("/dashboard");
-      }
+      router.push(getPostAuthRedirectPath({ role: session?.user.role ?? "USER" }));
       router.refresh();
     } finally {
       setIsSubmitting(false);

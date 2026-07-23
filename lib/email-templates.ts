@@ -18,7 +18,7 @@ export function welcomeEmailHtml({
         </a>
       </p>`
           : `<p>
-        <a href="${process.env.NEXTAUTH_URL}/dashboard/setup" style="display: inline-block; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 6px;">
+        <a href="${process.env.NEXTAUTH_URL}/setup" style="display: inline-block; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 6px;">
           Set up your card
         </a>
       </p>`
@@ -113,7 +113,7 @@ export function expiryReminderEmailHtml({
       <p>Hi ${name ?? "there"}, your plan expires on <strong>${planExpiresAt.toDateString()}</strong>.</p>
       <p>Renew now to keep your digital business card live and accessible.</p>
       <p>
-        <a href="${process.env.NEXTAUTH_URL}/dashboard/plans" style="display: inline-block; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 6px;">
+        <a href="${process.env.NEXTAUTH_URL}/plans" style="display: inline-block; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 6px;">
           Renew your plan
         </a>
       </p>

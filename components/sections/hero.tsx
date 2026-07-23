@@ -4,7 +4,7 @@ import { ArrowRightIcon, Nfc, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 
-export function Hero() {
+export function Hero({ ctaHref }: { ctaHref: string }) {
   return (
     <section className="relative overflow-hidden bg-ink pt-40 pb-28 lg:pt-48 lg:pb-36">
       <div
@@ -25,7 +25,7 @@ export function Hero() {
             no app required for the person on the other end.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Button size="xl" render={<Link href="/signup" />}>
+            <Button size="xl" render={<Link href={ctaHref} />}>
               Get your card
               <ArrowRightIcon data-icon="inline-end" />
             </Button>

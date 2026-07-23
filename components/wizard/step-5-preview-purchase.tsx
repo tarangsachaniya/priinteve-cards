@@ -19,7 +19,7 @@ export function Step5PreviewPurchase({ data }: { data: CardPreviewData }) {
         <CardPreviewStub data={data} />
       </div>
 
-      <Button type="button" render={<Link href="/dashboard/plans" />} className="self-center">
+      <Button type="button" render={<Link href="/plans" />} className="self-center">
         Choose plan
       </Button>
     </div>
