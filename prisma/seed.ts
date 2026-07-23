@@ -334,6 +334,12 @@ async function main() {
     },
   ]);
 
+  await seedSiteContentFlat("homepage_video", {
+    heading: "See a card built, tapped, and updated.",
+    caption: "A two-minute walkthrough of building a profile, ordering a card, and sharing it live.",
+    duration_label: "1:24",
+  });
+
   await seedSiteContentList("homepage_testimonials", [
     {
       name: "Ananya Rao",
@@ -354,6 +360,113 @@ async function main() {
       rating: 4,
     },
   ]);
+
+  await seedSiteContentList("homepage_features", [
+    {
+      icon: "zap",
+      label: "Instant sharing",
+      title: "Live in under a second.",
+      description: "Tap, scan, or send — your profile opens instantly, on any phone.",
+      bullets: [
+        "Works with any NFC-enabled phone, no app required",
+        "Every card ships with a QR code as a backup",
+        "Opens directly in the browser, no install",
+      ].join("\n"),
+    },
+    {
+      icon: "user-circle",
+      label: "Custom profile",
+      title: "Unmistakably you.",
+      description: "Brand your profile with your colors, photo, and links.",
+      bullets: [
+        "Match your brand colors, logo, and photo",
+        "Add unlimited links and social profiles",
+        "Update anytime — everyone sees the latest version",
+      ].join("\n"),
+    },
+    {
+      icon: "target",
+      label: "Lead capture",
+      title: "Every tap, a saved contact.",
+      description: "Turn a handshake into a lead, automatically.",
+      bullets: [
+        "Recipients save your info in one tap",
+        "Collect their details back with an opt-in form",
+        "Export captured leads anytime",
+      ].join("\n"),
+    },
+    {
+      icon: "bar-chart-3",
+      label: "Analytics",
+      title: "Know what's working.",
+      description: "See exactly who's engaging with your card and when.",
+      bullets: [
+        "Track taps, scans, and profile views",
+        "See which links get clicked most",
+        "Daily and weekly summaries",
+      ].join("\n"),
+    },
+    {
+      icon: "users",
+      label: "Team management",
+      title: "Every rep, on-brand.",
+      description: "Keep every teammate's card consistent and up to date.",
+      bullets: [
+        "Manage every teammate's card from one dashboard",
+        "Enforce brand colors and templates",
+        "Deactivate a card instantly when someone leaves",
+      ].join("\n"),
+    },
+  ]);
+
+  await seedSiteContentFlat("homepage_card_preview", {
+    eyebrow: "Live demo",
+    heading: "Your whole business, behind one profile.",
+    description:
+      "Photo, title, company, and every way to reach you — all live behind a single link that updates the moment you do.",
+    cta_label: "Preview your card",
+  });
+
+  await seedSiteContentList("homepage_comparison", [
+    { label: "Cost per share" },
+    { label: "Updates after printing" },
+    { label: "Analytics" },
+    { label: "Eco-friendly" },
+    { label: "Works when your phone is dead" },
+    { label: "Shares full profile — links, video, PDF" },
+    { label: "Lead capture" },
+  ]);
+
+  await seedSiteContentFlat("homepage_contact", {
+    eyebrow: "Contact",
+    heading: "Still have questions?",
+    description: "Send us a message and our team will get back to you within one business day.",
+    email: "hello@tapcard.co",
+  });
+
+  await seedSiteContentFlat("homepage_closing_cta", {
+    heading: "Get your card and start sharing in style.",
+    description: "Free shipping on every order. Cards typically arrive within a week.",
+    cta_label: "Get your card",
+  });
+
+  await seedSiteContentFlat("homepage_footer", {
+    tagline: "The last business card you'll ever need — one tap, every way to connect.",
+    twitter_url: "https://twitter.com",
+    instagram_url: "https://instagram.com",
+    linkedin_url: "https://linkedin.com",
+  });
+
+  await seedSiteContentFlat("homepage_navbar", {
+    brand_name: "Tapcard",
+    login_label: "Log in",
+    cta_label: "Get your card",
+    nav_features: "Features",
+    nav_how_it_works: "How it works",
+    nav_pricing: "Pricing",
+    nav_faq: "FAQ",
+    nav_contact: "Contact",
+  });
 }
 
 main()

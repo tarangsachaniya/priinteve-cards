@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Minus, Plus } from "lucide-react";
 
 import {
   Accordion,
@@ -6,74 +7,51 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Reveal } from "@/components/ui/reveal";
+import { SectionHeader } from "@/components/ui/section-header";
+import { Reveal, RevealItem } from "@/components/ui/reveal";
+import type { FaqItem } from "@/lib/site-content";
 
-const FAQS = [
-  {
-    question: "How does the NFC tap actually work?",
-    answer:
-      "Your card has a small NFC chip embedded in it. When someone holds their phone near it, their phone reads the chip and opens your profile in their browser — no app, no Bluetooth pairing, nothing to install.",
-  },
-  {
-    question: "Will it work with my phone?",
-    answer:
-      "Any iPhone from the XS onward and virtually every Android phone from the last six years supports NFC out of the box. Every card also ships with a QR code as a backup for older devices.",
-  },
-  {
-    question: "Can I edit my card after it's printed?",
-    answer:
-      "Yes — the card itself never changes, it just points to your live profile. Edit your details, links, or photo anytime in your dashboard and everyone who's already tapped your card sees the update instantly.",
-  },
-  {
-    question: "Do you offer team or bulk orders?",
-    answer:
-      "Yes. Our Premium plan includes a team dashboard for managing every teammate's card, enforcing brand consistency, and ordering in bulk at a discount.",
-  },
-  {
-    question: "What happens to the data I collect?",
-    answer:
-      "Any contact details captured through your card belong to you. We never sell or share your data or your leads' data with third parties — see our privacy policy for the full details.",
-  },
-  {
-    question: "How long does shipping take?",
-    answer:
-      "Standard cards ship within 3–5 business days. Expedited shipping is available at checkout for most regions.",
-  },
-  {
-    question: "What's your refund policy?",
-    answer:
-      "If your card arrives damaged or defective, we'll replace it free of charge. For everything else, we offer a 30-day money-back guarantee on your first order.",
-  },
-];
-
-export function Faq() {
+export function Faq({ items: FAQS, contactEmail }: { items: FaqItem[]; contactEmail: string }) {
   return (
     <section id="faq" className="bg-background py-24 lg:py-36">
       <div className="mx-auto max-w-[1200px] px-6 lg:px-20">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,20rem)_1fr] lg:gap-20">
           <Reveal>
-            <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">FAQ</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-              Questions? We&apos;ve got answers.
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-              Can&apos;t find what you&apos;re looking for?{" "}
-              <Link href="mailto:hello@tapcard.co" className="font-semibold text-foreground hover:underline">
-                Reach out to our team
-              </Link>
-              .
-            </p>
+            <SectionHeader
+              eyebrow="FAQ"
+              title="Questions? We've got answers."
+              align="left"
+              description={
+                <>
+                  Can&apos;t find what you&apos;re looking for?{" "}
+                  <Link href={`mailto:${contactEmail}`} className="font-semibold text-foreground hover:underline">
+                    Reach out to our team
+                  </Link>
+                  .
+                </>
+              }
+            />
           </Reveal>
 
-          <Reveal delay={0.1}>
+          <Reveal stagger delay={0.1}>
             <Accordion>
               {FAQS.map((faq, index) => (
-                <AccordionItem key={faq.question} value={index}>
-                  <AccordionTrigger className="py-5 text-base">{faq.question}</AccordionTrigger>
-                  <AccordionContent>
-                    <p className="pr-8 text-sm leading-relaxed text-muted-foreground">{faq.answer}</p>
-                  </AccordionContent>
-                </AccordionItem>
+                <RevealItem key={faq.question}>
+                  <AccordionItem value={index}>
+                    <AccordionTrigger className="py-6 text-base font-semibold **:data-[slot=accordion-trigger-icon]:hidden sm:py-7">
+                      <span className="flex flex-1 items-center justify-between gap-4">
+                        <span>{faq.question}</span>
+                        <span className="relative flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-primary/40 text-primary transition-colors duration-300 group-aria-expanded/accordion-trigger:border-primary group-aria-expanded/accordion-trigger:bg-primary group-aria-expanded/accordion-trigger:text-primary-foreground">
+                          <Plus className="size-4 group-aria-expanded/accordion-trigger:hidden" />
+                          <Minus className="hidden size-4 group-aria-expanded/accordion-trigger:inline" />
+                        </span>
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <p className="text-sm leading-relaxed text-muted-foreground">{faq.answer}</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                </RevealItem>
               ))}
             </Accordion>
           </Reveal>

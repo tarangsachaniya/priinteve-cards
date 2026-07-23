@@ -15,12 +15,67 @@ import { VideoDemo } from "@/components/sections/video-demo";
 import { Comparison } from "@/components/sections/comparison";
 import { Pricing } from "@/components/sections/pricing";
 import { Faq } from "@/components/sections/faq";
+import { Contact } from "@/components/sections/contact";
 import { ClosingCta } from "@/components/sections/closing-cta";
 import { Footer } from "@/components/sections/footer";
 import { PurchaseCelebration } from "@/components/home/purchase-celebration";
+import { getActivePlans } from "@/lib/plans";
+import {
+  getFaqItems,
+  getHomepageCardPreview,
+  getHomepageClosingCta,
+  getHomepageComparisonRows,
+  getHomepageContact,
+  getHomepageFeatures,
+  getHomepageFooter,
+  getHomepageHero,
+  getHomepageLogos,
+  getHomepageNavbar,
+  getHomepageTemplates,
+  getHomepageTestimonials,
+  getHomepageVideo,
+  getHowItWorksSteps,
+} from "@/lib/site-content";
+
+export const revalidate = 300;
 
 export default async function Home() {
-  const session = await getServerSession(authOptions);
+  const [
+    session,
+    hero,
+    logos,
+    templates,
+    steps,
+    testimonials,
+    video,
+    faqs,
+    plans,
+    features,
+    cardPreview,
+    comparisonRows,
+    contact,
+    closingCta,
+    footer,
+    navbar,
+  ] = await Promise.all([
+    getServerSession(authOptions),
+    getHomepageHero(),
+    getHomepageLogos(),
+    getHomepageTemplates(),
+    getHowItWorksSteps(),
+    getHomepageTestimonials(),
+    getHomepageVideo(),
+    getFaqItems(),
+    getActivePlans(),
+    getHomepageFeatures(),
+    getHomepageCardPreview(),
+    getHomepageComparisonRows(),
+    getHomepageContact(),
+    getHomepageClosingCta(),
+    getHomepageFooter(),
+    getHomepageNavbar(),
+  ]);
+
   const user = session?.user?.id
     ? await db.user.findUnique({
         where: { id: session.user.id },
@@ -42,25 +97,26 @@ export default async function Home() {
 
   return (
     <>
-      <Navbar user={navUser} />
+      <Navbar content={navbar} user={navUser} />
       <Suspense fallback={null}>
         <PurchaseCelebration />
       </Suspense>
       <main>
-        <Hero ctaHref={primaryCtaHref} />
-        <LogoMarquee />
-        <Templates />
-        <FeaturesTabs />
-        <CardPreview />
-        <HowItWorks />
-        <Testimonial />
-        <VideoDemo />
-        <Comparison />
-        <Pricing ctaHref={primaryCtaHref} />
-        <Faq />
-        <ClosingCta ctaHref={primaryCtaHref} />
+        <Hero hero={hero} ctaHref={primaryCtaHref} />
+        <LogoMarquee logos={logos} />
+        <Templates templates={templates} />
+        <FeaturesTabs features={features} />
+        <CardPreview content={cardPreview} />
+        <HowItWorks steps={steps} />
+        <Testimonial testimonials={testimonials} />
+        <VideoDemo video={video} />
+        <Comparison rows={comparisonRows} />
+        <Pricing plans={plans} ctaHref={primaryCtaHref} />
+        <Faq items={faqs} contactEmail={contact.email} />
+        <Contact content={contact} />
+        <ClosingCta content={closingCta} ctaHref={primaryCtaHref} />
       </main>
-      <Footer />
+      <Footer content={footer} />
     </>
   );
 }

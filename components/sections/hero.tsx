@@ -3,8 +3,9 @@ import { ArrowRightIcon, Nfc, Wifi } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
+import type { HomepageHero } from "@/lib/site-content";
 
-export function Hero({ ctaHref }: { ctaHref: string }) {
+export function Hero({ hero, ctaHref }: { hero: HomepageHero; ctaHref: string }) {
   return (
     <section className="relative overflow-hidden bg-ink pt-40 pb-28 lg:pt-48 lg:pb-36">
       <div
@@ -18,15 +19,12 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
             Digital business cards
           </p>
           <h1 className="mt-5 text-[2.75rem] leading-[1.05] font-bold tracking-tight text-balance text-white sm:text-6xl">
-            The last business card you&apos;ll ever need.
+            {hero.headline}
           </h1>
-          <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted">
-            Tap your card and instantly share your contact details, socials, and portfolio —
-            no app required for the person on the other end.
-          </p>
+          <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted">{hero.subheadline}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Button size="xl" render={<Link href={ctaHref} />}>
-              Get your card
+              {hero.ctaLabel}
               <ArrowRightIcon data-icon="inline-end" />
             </Button>
             <Button
@@ -38,6 +36,7 @@ export function Hero({ ctaHref }: { ctaHref: string }) {
               See how it works
             </Button>
           </div>
+          <p className="mt-6 max-w-md text-sm text-ink-muted/80">{hero.socialProof}</p>
         </Reveal>
 
         <Reveal delay={0.15} className="relative mx-auto flex h-[22rem] w-full max-w-md items-center justify-center sm:h-[26rem]">

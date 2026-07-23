@@ -3,25 +3,26 @@ import { ArrowRightIcon, Nfc } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
+import type { HomepageClosingCta } from "@/lib/site-content";
 
-export function ClosingCta({ ctaHref }: { ctaHref: string }) {
+export function ClosingCta({ content, ctaHref }: { content: HomepageClosingCta; ctaHref: string }) {
   return (
     <section className="px-6 py-16 lg:px-20 lg:py-24">
       <Reveal className="relative mx-auto max-w-[1200px] overflow-hidden rounded-[2rem] bg-primary px-8 py-14 sm:px-14 lg:px-20 lg:py-20">
         <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
             <h2 className="max-w-md text-3xl font-bold tracking-tight text-balance text-ink sm:text-4xl">
-              Get your card and start sharing in style.
+              {content.heading}
             </h2>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink/70">
-              Free shipping on every order. Cards typically arrive within a week.
+              {content.description}
             </p>
             <Button
               size="xl"
               className="mt-8 bg-ink text-white hover:bg-ink/90"
               render={<Link href={ctaHref} />}
             >
-              Get your card
+              {content.ctaLabel}
               <ArrowRightIcon data-icon="inline-end" />
             </Button>
           </div>
