@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { THEME_PRESET_IDS } from "@/lib/theme-presets";
+import { THEME_PRESET_IDS, FONT_OPTION_IDS } from "@/lib/theme-presets";
 
 export const cardFieldTypeEnum = z.enum([
   "text",
@@ -65,6 +65,8 @@ export const cardFieldReorderSchema = z.object({
 export const saveThemeSchema = z.object({
   themeId: z.enum(THEME_PRESET_IDS),
   brandColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a hex color like #1A2B3C"),
+  headingFont: z.enum(FONT_OPTION_IDS).optional(),
+  bodyFont: z.enum(FONT_OPTION_IDS).optional(),
 });
 
 export const galleryLayoutEnum = z.enum(["carousel", "grid", "masonry", "lightbox"]);

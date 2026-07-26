@@ -98,6 +98,7 @@ model Plan {
   maxGalleryImages Int
   maxVideos        Int      @default(0)
   maxPdfs          Int      @default(0)
+  maxFields        Int      @default(20)
   storageLimitMb   Int      @default(0)
   isActive         Boolean  @default(true)
   isDraft          Boolean  @default(false)
@@ -163,6 +164,8 @@ model CardSettings {
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   themeId             String   @default("default")
   brandColor          String   @default("#000000")
+  headingFont         String   @default("font-sans")
+  bodyFont            String   @default("font-sans")
   galleryLayout       String   @default("grid")
   vcfIncludePhoto     Boolean  @default(true)
   gallerySectionOrder Int      @default(9999)

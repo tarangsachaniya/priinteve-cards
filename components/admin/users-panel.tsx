@@ -22,10 +22,10 @@ export function UsersPanel({ plans }: { plans: Plan[] }) {
               <Plus /> Add user
             </Button>
           }
-          onCreated={() => setRefreshKey((k) => k + 1)}
+          onSaved={() => setRefreshKey((k) => k + 1)}
         />
       </div>
-      <UsersTable refreshKey={refreshKey} />
+      <UsersTable plans={plans} refreshKey={refreshKey} onChanged={() => setRefreshKey((k) => k + 1)} />
     </div>
   );
 }

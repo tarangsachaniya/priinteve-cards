@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { toast } from "sonner";
 import { CheckCircle2, ExternalLink, LayoutTemplate, Loader2 } from "lucide-react";
 
@@ -20,7 +19,6 @@ import { GROUP_TYPE_CONFIG } from "@/lib/section-item-config";
 import { DEFAULT_BUSINESS_HOURS, isGroupFieldType } from "@/lib/validations/card-field";
 import {
   buildSectionBlocks,
-  flattenBlocksToOrder,
   type CardSectionField,
   type SectionBlock,
 } from "@/lib/card-sections";
@@ -188,76 +186,6 @@ export function SectionBuilder({
     addField(fieldType, meta.label, defaultValueForType(fieldType));
   }
 
-  async function persistOrder(nextBlocks: SectionBlock<BuilderField>[]) {
-    const { fieldOrder, gallerySectionOrder: nextGalleryOrder } = flattenBlocksToOrder(nextBlocks);
-    const orderById = new Map(fieldOrder.map((entry) => [entry.id, entry.order]));
-    const previousFields = fields;
-    const previousGalleryOrder = gallerySectionOrder;
-
-    setFields((prev) => prev.map((f) => (orderById.has(f.id) ? { ...f, order: orderById.get(f.id)! } : f)));
-    setGallerySectionOrder(nextGalleryOrder);
-
-    markSaving();
-    const res = await fetch("/api/card-builder/reorder", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fieldOrder, gallerySectionOrder: nextGalleryOrder }),
-    });
-    markSaved(res.ok);
-    if (!res.ok) {
-      setFields(previousFields);
-      setGallerySectionOrder(previousGalleryOrder);
-      toast.error("Could not save the new order");
-    }
-  }
-
-  function handleDragEnd(result: DropResult) {
-    if (!result.destination) return;
-    const { source, destination } = result;
-
-    if (result.type === "section") {
-      if (source.index === destination.index) return;
-      const next = Array.from(blocks);
-      const [moved] = next.splice(source.index, 1);
-      next.splice(destination.index, 0, moved);
-      persistOrder(next);
-      return;
-    }
-
-    const blockId = result.type.slice("items:".length);
-    const blockIndex = blocks.findIndex((b) => (b.kind === "group" && b.id === blockId) || (b.kind === "gallery" && blockId === "gallery"));
-    if (blockIndex === -1) return;
-    const block = blocks[blockIndex];
-
-    if (block.kind === "group") {
-      if (source.index === destination.index) return;
-      const items = Array.from(block.items);
-      const [moved] = items.splice(source.index, 1);
-      items.splice(destination.index, 0, moved);
-      const nextBlocks = blocks.map((b, i) => (i === blockIndex ? { ...b, items } : b));
-      persistOrder(nextBlocks);
-    } else if (block.kind === "gallery") {
-      const previous = galleryItems;
-      const next = Array.from(galleryItems);
-      const [moved] = next.splice(source.index, 1);
-      next.splice(destination.index, 0, moved);
-      const reordered = next.map((item, i) => ({ ...item, order: i }));
-      setGalleryItems(reordered);
-      markSaving();
-      fetch("/api/gallery/reorder", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: reordered.map((item) => ({ id: item.id, order: item.order })) }),
-      }).then((res) => {
-        markSaved(res.ok);
-        if (!res.ok) {
-          setGalleryItems(previous);
-          toast.error("Could not save the new order");
-        }
-      });
-    }
-  }
-
   async function handlePublish() {
     setIsPublishing(true);
     try {
@@ -280,7 +208,6 @@ export function SectionBuilder({
     if (block.kind === "gallery") {
       return (
         <GalleryEditor
-          blockId="gallery"
           items={galleryItems}
           galleryLayout={galleryLayout}
           usage={{ count: imageCount, max: galleryUsage.max }}
@@ -356,7 +283,6 @@ export function SectionBuilder({
     }
     return (
       <GroupEditor
-        blockId={block.id}
         type={groupType}
         items={block.items}
         onAddItem={() => {
@@ -406,89 +332,61 @@ export function SectionBuilder({
         }
       />
 
-      <div className="mx-auto w-full max-w-2xl">
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="sections" type="section">
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps} className="flex flex-col gap-3">
-                {blocks.map((block, index) => {
-                  const key = block.kind === "gallery" ? "gallery" : block.id;
-                  const draggableId = block.kind === "gallery" ? "gallery" : block.id;
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
+        {blocks.map((block) => {
+          const key = block.kind === "gallery" ? "gallery" : block.id;
 
-                  if (block.kind === "field") {
-                    const meta = getFieldTypeMeta(block.field.fieldType);
-                    return (
-                      <Draggable key={key} draggableId={draggableId} index={index}>
-                        {(dragProvided) => (
-                          <div ref={dragProvided.innerRef} {...dragProvided.draggableProps}>
-                            <SectionCard
-                              icon={meta.icon}
-                              title={block.field.label || meta.label}
-                              dragHandleProps={dragProvided.dragHandleProps}
-                              isVisible={block.field.isVisible}
-                              onToggleVisibility={() => toggleFieldVisibility(block.field.id)}
-                              onDuplicate={() => addField(block.field.fieldType, block.field.label, block.field.value)}
-                              onDelete={() => deleteField(block.field.id)}
-                              deleteConfirmText={`"${block.field.label}" will be permanently removed from your card.`}
-                            >
-                              {renderBlockEditor(block)}
-                            </SectionCard>
-                          </div>
-                        )}
-                      </Draggable>
-                    );
-                  }
+          if (block.kind === "field") {
+            const meta = getFieldTypeMeta(block.field.fieldType);
+            return (
+              <SectionCard
+                key={key}
+                icon={meta.icon}
+                title={block.field.label || meta.label}
+                isVisible={block.field.isVisible}
+                onToggleVisibility={() => toggleFieldVisibility(block.field.id)}
+                onDuplicate={() => addField(block.field.fieldType, block.field.label, block.field.value)}
+                onDelete={() => deleteField(block.field.id)}
+                deleteConfirmText={`"${block.field.label}" will be permanently removed from your card.`}
+              >
+                {renderBlockEditor(block)}
+              </SectionCard>
+            );
+          }
 
-                  if (block.kind === "gallery") {
-                    return (
-                      <Draggable key={key} draggableId={draggableId} index={index}>
-                        {(dragProvided) => (
-                          <div ref={dragProvided.innerRef} {...dragProvided.draggableProps}>
-                            <SectionCard
-                              icon={getFieldTypeMeta("gallery").icon}
-                              title="Gallery"
-                              dragHandleProps={dragProvided.dragHandleProps}
-                              onDelete={() => {
-                                const ids = galleryItems.map((i) => i.id);
-                                setGalleryItems([]);
-                                Promise.all(ids.map((id) => fetch(`/api/gallery/${id}`, { method: "DELETE" })));
-                              }}
-                              deleteConfirmText="All photos and videos in your gallery will be permanently removed."
-                            >
-                              {renderBlockEditor(block)}
-                            </SectionCard>
-                          </div>
-                        )}
-                      </Draggable>
-                    );
-                  }
+          if (block.kind === "gallery") {
+            return (
+              <SectionCard
+                key={key}
+                icon={getFieldTypeMeta("gallery").icon}
+                title="Gallery"
+                onDelete={() => {
+                  const ids = galleryItems.map((i) => i.id);
+                  setGalleryItems([]);
+                  Promise.all(ids.map((id) => fetch(`/api/gallery/${id}`, { method: "DELETE" })));
+                }}
+                deleteConfirmText="All photos and videos in your gallery will be permanently removed."
+              >
+                {renderBlockEditor(block)}
+              </SectionCard>
+            );
+          }
 
-                  const meta = getFieldTypeMeta(block.type);
-                  return (
-                    <Draggable key={key} draggableId={draggableId} index={index}>
-                      {(dragProvided) => (
-                        <div ref={dragProvided.innerRef} {...dragProvided.draggableProps}>
-                          <SectionCard
-                            icon={meta.icon}
-                            title={GROUP_TITLES[block.type] ?? meta.label}
-                            dragHandleProps={dragProvided.dragHandleProps}
-                            isVisible={block.items.some((i) => fields.find((f) => f.id === i.id)?.isVisible)}
-                            onToggleVisibility={() => toggleGroupVisibility(block.items)}
-                            onDelete={() => deleteFields(block.items.map((i) => i.id))}
-                            deleteConfirmText={`This will remove the whole ${GROUP_TITLES[block.type] ?? meta.label} section and all its items.`}
-                          >
-                            {renderBlockEditor(block)}
-                          </SectionCard>
-                        </div>
-                      )}
-                    </Draggable>
-                  );
-                })}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+          const meta = getFieldTypeMeta(block.type);
+          return (
+            <SectionCard
+              key={key}
+              icon={meta.icon}
+              title={GROUP_TITLES[block.type] ?? meta.label}
+              isVisible={block.items.some((i) => fields.find((f) => f.id === i.id)?.isVisible)}
+              onToggleVisibility={() => toggleGroupVisibility(block.items)}
+              onDelete={() => deleteFields(block.items.map((i) => i.id))}
+              deleteConfirmText={`This will remove the whole ${GROUP_TITLES[block.type] ?? meta.label} section and all its items.`}
+            >
+              {renderBlockEditor(block)}
+            </SectionCard>
+          );
+        })}
       </div>
     </div>
   );

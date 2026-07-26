@@ -34,6 +34,8 @@ export type CardPreviewSettings = {
   brandColor: string;
   galleryLayout: string;
   vcfIncludePhoto: boolean;
+  headingFont?: string;
+  bodyFont?: string;
 };
 
 export type CardPreviewData = {
@@ -152,7 +154,13 @@ export function CardPreviewStub({ data }: { data: CardPreviewData }) {
         }}
       />
 
-      <div className={cn("-mt-8 flex flex-col", theme.fontFamily, theme.previewClassName)}>
+      <div
+        className={cn(
+          "-mt-8 flex flex-col",
+          data.settings.bodyFont || theme.fontFamily,
+          theme.previewClassName
+        )}
+      >
         <div className="flex flex-col items-center gap-1">
           <div
             className="flex h-16 w-16 items-center justify-center rounded-full text-lg font-semibold text-white ring-4 ring-card"
@@ -160,7 +168,7 @@ export function CardPreviewStub({ data }: { data: CardPreviewData }) {
           >
             {data.name.slice(0, 1).toUpperCase() || "?"}
           </div>
-          <h2 className="mt-1 text-lg font-semibold">{data.name}</h2>
+          <h2 className={cn("mt-1 text-lg font-semibold", data.settings.headingFont)}>{data.name}</h2>
         </div>
 
         {visibleFields.length > 0 && (

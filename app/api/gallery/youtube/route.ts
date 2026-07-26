@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { revalidateUserCard } from "@/lib/revalidate-card";
 import { getYoutubeVideoId } from "@/lib/youtube";
+import { getVideoUsage } from "@/lib/plan-limits";
 import { saveYoutubeItemSchema } from "@/lib/validations/onboarding";
 
 export async function POST(req: Request) {
@@ -24,6 +25,12 @@ export async function POST(req: Request) {
   }
 
   const userId = session.user.id;
+
+  const { count, max } = await getVideoUsage(userId);
+  if (count >= max) {
+    return NextResponse.json({ error: "Video limit reached for your plan" }, { status: 400 });
+  }
+
   const lastItem = await db.galleryItem.findFirst({
     where: { userId },
     orderBy: { order: "desc" },

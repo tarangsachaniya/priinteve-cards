@@ -34,6 +34,10 @@ export type AdminPlan = {
   validityDays: number;
   featuresJson: unknown;
   maxGalleryImages: number;
+  maxVideos: number;
+  maxPdfs: number;
+  maxFields: number;
+  storageLimitMb: number;
   isActive: boolean;
   isDraft: boolean;
   recommended: boolean;
@@ -51,6 +55,10 @@ function toFormState(plan?: AdminPlan) {
     validityDays: String(plan?.validityDays ?? "365"),
     features: features.join(", "),
     maxGalleryImages: String(plan?.maxGalleryImages ?? "10"),
+    maxVideos: String(plan?.maxVideos ?? "0"),
+    maxPdfs: String(plan?.maxPdfs ?? "0"),
+    maxFields: String(plan?.maxFields ?? "20"),
+    storageLimitMb: String(plan?.storageLimitMb ?? "0"),
     isActive: plan?.isActive ?? true,
     recommended: plan?.recommended ?? false,
   };
@@ -87,9 +95,10 @@ export function PlanForm({
         .map((f) => f.trim())
         .filter(Boolean),
       maxGalleryImages: Number(form.maxGalleryImages),
-      maxVideos: 0,
-      maxPdfs: 0,
-      storageLimitMb: 0,
+      maxVideos: Number(form.maxVideos),
+      maxPdfs: Number(form.maxPdfs),
+      maxFields: Number(form.maxFields),
+      storageLimitMb: Number(form.storageLimitMb),
       isActive: form.isActive,
       isDraft: false,
       recommended: form.recommended,
@@ -183,14 +192,64 @@ export function PlanForm({
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="plan-gallery">Max gallery images</Label>
+              <Input
+                id="plan-gallery"
+                type="number"
+                min={0}
+                value={form.maxGalleryImages}
+                onChange={(e) => update("maxGalleryImages", e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="plan-videos">Max videos</Label>
+              <Input
+                id="plan-videos"
+                type="number"
+                min={0}
+                value={form.maxVideos}
+                onChange={(e) => update("maxVideos", e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="plan-pdfs">Max PDFs</Label>
+              <Input
+                id="plan-pdfs"
+                type="number"
+                min={0}
+                value={form.maxPdfs}
+                onChange={(e) => update("maxPdfs", e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="plan-fields">Max profile fields</Label>
+              <Input
+                id="plan-fields"
+                type="number"
+                min={0}
+                value={form.maxFields}
+                onChange={(e) => update("maxFields", e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="plan-gallery">Max gallery images</Label>
+            <Label htmlFor="plan-storage">Storage limit (MB)</Label>
             <Input
-              id="plan-gallery"
+              id="plan-storage"
               type="number"
               min={0}
-              value={form.maxGalleryImages}
-              onChange={(e) => update("maxGalleryImages", e.target.value)}
+              value={form.storageLimitMb}
+              onChange={(e) => update("storageLimitMb", e.target.value)}
               required
             />
           </div>

@@ -11,9 +11,10 @@ import { Label } from "@/components/ui/label";
 type SiteContentFormProps = {
   section: string;
   initialEntries: { key: string; value: string }[];
+  allowCustomFields?: boolean;
 };
 
-export function SiteContentForm({ section, initialEntries }: SiteContentFormProps) {
+export function SiteContentForm({ section, initialEntries, allowCustomFields = true }: SiteContentFormProps) {
   const [entries, setEntries] = useState(initialEntries);
   const [newKey, setNewKey] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,21 +85,23 @@ export function SiteContentForm({ section, initialEntries }: SiteContentFormProp
         ))}
       </div>
 
-      <div className="flex items-end gap-2 rounded-xl border border-dashed border-border bg-muted/20 p-3">
-        <div className="flex flex-1 flex-col gap-1.5">
-          <Label htmlFor={`${section}-new-key`}>Add a new field</Label>
-          <Input
-            id={`${section}-new-key`}
-            value={newKey}
-            onChange={(e) => setNewKey(e.target.value)}
-            placeholder="e.g. heading"
-            className="bg-card"
-          />
+      {allowCustomFields && (
+        <div className="flex items-end gap-2 rounded-xl border border-dashed border-border bg-muted/20 p-3">
+          <div className="flex flex-1 flex-col gap-1.5">
+            <Label htmlFor={`${section}-new-key`}>Add a new field</Label>
+            <Input
+              id={`${section}-new-key`}
+              value={newKey}
+              onChange={(e) => setNewKey(e.target.value)}
+              placeholder="e.g. heading"
+              className="bg-card"
+            />
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={addEntry}>
+            Add field
+          </Button>
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={addEntry}>
-          Add field
-        </Button>
-      </div>
+      )}
 
       <Button type="submit" disabled={isSubmitting} className="mt-1 w-fit">
         {isSubmitting ? "Saving…" : "Save section"}

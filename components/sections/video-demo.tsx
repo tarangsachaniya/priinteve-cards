@@ -7,6 +7,7 @@ import type { HomepageVideo } from "@/lib/site-content";
 export function VideoDemo({ video }: { video: HomepageVideo }) {
   const youtubeId = video.videoUrl ? getYoutubeVideoId(video.videoUrl) : null;
   const posterUrl = video.thumbnailUrl || (video.videoUrl ? getYoutubeThumbnail(video.videoUrl) : null);
+  const hasUploadedFile = Boolean(video.videoFileUrl);
 
   return (
     <section className="bg-ink py-24 lg:py-36">
@@ -18,7 +19,14 @@ export function VideoDemo({ video }: { video: HomepageVideo }) {
         </Reveal>
 
         <Reveal delay={0.1} className="relative mt-12 aspect-video overflow-hidden rounded-[1.5rem] border border-white/10">
-          {youtubeId ? (
+          {hasUploadedFile ? (
+            <video
+              src={video.videoFileUrl}
+              poster={posterUrl ?? undefined}
+              controls
+              className="absolute inset-0 size-full object-cover"
+            />
+          ) : youtubeId ? (
             <iframe
               src={`https://www.youtube.com/embed/${youtubeId}`}
               title={video.heading}

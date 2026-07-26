@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { SiteContentForm } from "@/components/admin/site-content-form";
+import { VideoSectionForm } from "@/components/admin/video-section-form";
 import {
   StructuredSiteContentForm,
   type StructuredFieldConfig,
@@ -45,7 +46,8 @@ const FEATURE_ICON_OPTIONS = [
 ];
 
 type SectionConfig =
-  | { key: string; label: string; icon: LucideIcon; type: "flat" }
+  | { key: string; label: string; icon: LucideIcon; type: "flat"; allowCustomFields?: boolean }
+  | { key: string; label: string; icon: LucideIcon; type: "video" }
   | {
       key: string;
       label: string;
@@ -58,7 +60,7 @@ type SectionConfig =
     };
 
 const SECTIONS: SectionConfig[] = [
-  { key: "homepage_hero", label: "Homepage Hero", icon: LayoutPanelTop, type: "flat" },
+  { key: "homepage_hero", label: "Homepage Hero", icon: LayoutPanelTop, type: "flat", allowCustomFields: false },
   { key: "how_it_works", label: "How It Works", icon: ListOrdered, type: "flat" },
   { key: "faq", label: "FAQ", icon: HelpCircle, type: "flat" },
   {
@@ -103,7 +105,7 @@ const SECTIONS: SectionConfig[] = [
     itemLabelField: "name",
     itemLabelFallback: "Testimonial",
   },
-  { key: "homepage_video", label: "Video Demo", icon: Video, type: "flat" },
+  { key: "homepage_video", label: "Video Demo", icon: Video, type: "video" },
   {
     key: "homepage_features",
     label: "Features",
@@ -131,10 +133,10 @@ const SECTIONS: SectionConfig[] = [
     itemLabelField: "label",
     itemLabelFallback: "Row",
   },
-  { key: "homepage_contact", label: "Contact Section", icon: Mail, type: "flat" },
-  { key: "homepage_closing_cta", label: "Closing CTA", icon: Megaphone, type: "flat" },
-  { key: "homepage_footer", label: "Footer", icon: PanelBottom, type: "flat" },
-  { key: "homepage_navbar", label: "Navbar", icon: Menu, type: "flat" },
+  { key: "homepage_contact", label: "Contact Section", icon: Mail, type: "flat", allowCustomFields: false },
+  { key: "homepage_closing_cta", label: "Closing CTA", icon: Megaphone, type: "flat", allowCustomFields: false },
+  { key: "homepage_footer", label: "Footer", icon: PanelBottom, type: "flat", allowCustomFields: false },
+  { key: "homepage_navbar", label: "Navbar", icon: Menu, type: "flat", allowCustomFields: false },
 ];
 
 export default async function AdminContentPage() {
@@ -177,6 +179,12 @@ export default async function AdminContentPage() {
                   <CardContent>
                     {section.type === "flat" ? (
                       <SiteContentForm
+                        section={section.key}
+                        initialEntries={sectionRows.map((row) => ({ key: row.key, value: row.value }))}
+                        allowCustomFields={section.allowCustomFields ?? true}
+                      />
+                    ) : section.type === "video" ? (
+                      <VideoSectionForm
                         section={section.key}
                         initialEntries={sectionRows.map((row) => ({ key: row.key, value: row.value }))}
                       />

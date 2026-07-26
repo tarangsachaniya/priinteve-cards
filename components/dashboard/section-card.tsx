@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { type DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
-import { ChevronDown, Copy, Eye, EyeOff, GripVertical, Trash2, type LucideIcon } from "lucide-react";
+import { ChevronDown, Copy, Eye, EyeOff, Trash2, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,6 @@ import {
 export function SectionCard({
   icon: Icon,
   title,
-  dragHandleProps,
   isVisible,
   onToggleVisibility,
   onDuplicate,
@@ -31,7 +29,6 @@ export function SectionCard({
 }: {
   icon: LucideIcon;
   title: string;
-  dragHandleProps: DraggableProvidedDragHandleProps | null | undefined;
   isVisible?: boolean;
   onToggleVisibility?: () => void;
   onDuplicate?: () => void;
@@ -50,13 +47,6 @@ export function SectionCard({
       )}
     >
       <div className="flex items-center gap-2 px-3 py-3">
-        <span
-          {...dragHandleProps}
-          className="flex size-7 shrink-0 cursor-grab items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-muted hover:text-foreground active:cursor-grabbing"
-          aria-label="Drag to reorder"
-        >
-          <GripVertical className="size-4" />
-        </span>
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-ink">
           <Icon className="size-4" />
         </span>

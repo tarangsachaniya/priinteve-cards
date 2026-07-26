@@ -52,6 +52,8 @@ export default async function DashboardSetupPage() {
         }))}
         initialThemeId={cardSettings?.themeId ?? "default"}
         initialBrandColor={cardSettings?.brandColor ?? "#059669"}
+        initialHeadingFont={cardSettings?.headingFont ?? "font-sans"}
+        initialBodyFont={cardSettings?.bodyFont ?? "font-sans"}
         initialGalleryLayout={cardSettings?.galleryLayout ?? "grid"}
         initialVcfIncludePhoto={cardSettings?.vcfIncludePhoto ?? true}
       />

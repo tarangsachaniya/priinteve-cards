@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Draggable, Droppable } from "@hello-pangea/dnd";
-import { GripVertical, Plus, Star, Trash2 } from "lucide-react";
+import { Plus, Star, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,14 +135,12 @@ function ItemForm({
 }
 
 export function GroupEditor({
-  blockId,
   type,
   items,
   onAddItem,
   onUpdateItem,
   onDeleteItem,
 }: {
-  blockId: string;
   type: GroupFieldType;
   items: CardSectionField[];
   onAddItem: () => void;
@@ -157,44 +154,28 @@ export function GroupEditor({
       {items.length === 0 && (
         <p className="px-3 py-4 text-center text-sm text-muted-foreground">{config.emptyLabel}</p>
       )}
-      <Droppable droppableId={`items:${blockId}`} type={`items:${blockId}`}>
-        {(provided) => (
-          <div ref={provided.innerRef} {...provided.droppableProps} className="flex flex-col gap-2">
-            {items.map((item, index) => (
-              <Draggable key={item.id} draggableId={item.id} index={index}>
-                {(dragProvided) => (
-                  <div
-                    ref={dragProvided.innerRef}
-                    {...dragProvided.draggableProps}
-                    className="flex items-start gap-1 rounded-xl border border-border bg-background/60"
-                  >
-                    <span
-                      {...dragProvided.dragHandleProps}
-                      className="mt-4 cursor-grab pl-2 text-muted-foreground"
-                    >
-                      <GripVertical className="size-4" />
-                    </span>
-                    <div className="flex-1">
-                      <ItemForm item={item} type={type} onSave={(next) => onUpdateItem(item.id, next)} />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      className="mt-2 mr-1 text-muted-foreground hover:text-destructive"
-                      onClick={() => onDeleteItem(item.id)}
-                      aria-label="Remove item"
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                )}
-              </Draggable>
-            ))}
-            {provided.placeholder}
+      <div className="flex flex-col gap-2">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="flex items-start gap-1 rounded-xl border border-border bg-background/60"
+          >
+            <div className="flex-1">
+              <ItemForm item={item} type={type} onSave={(next) => onUpdateItem(item.id, next)} />
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="mt-2 mr-1 text-muted-foreground hover:text-destructive"
+              onClick={() => onDeleteItem(item.id)}
+              aria-label="Remove item"
+            >
+              <Trash2 />
+            </Button>
           </div>
-        )}
-      </Droppable>
+        ))}
+      </div>
       <Button type="button" variant="outline" size="sm" onClick={onAddItem} className="self-start">
         <Plus /> {config.addLabel}
       </Button>

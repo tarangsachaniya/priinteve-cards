@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getFieldUsage } from "@/lib/plan-limits";
 import { generateUniqueSlug } from "@/lib/slug";
 import { saveProfileFieldsSchema } from "@/lib/validations/onboarding";
 
@@ -19,6 +20,11 @@ export async function POST(req: Request) {
 
   const userId = session.user.id;
   const { fields, company } = parsed.data;
+
+  const { max: maxFields } = await getFieldUsage(userId);
+  if (fields.length > maxFields) {
+    return NextResponse.json({ error: `You can add up to ${maxFields} fields on your plan` }, { status: 400 });
+  }
 
   const user = await db.user.findUnique({
     where: { id: userId },

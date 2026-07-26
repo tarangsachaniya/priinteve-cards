@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Draggable, Droppable } from "@hello-pangea/dnd";
-import { GripVertical, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -88,12 +87,10 @@ function GalleryItemRow({
   item,
   onUpdate,
   onRemove,
-  index,
 }: {
   item: ManagedGalleryItem;
   onUpdate: (id: string, next: { caption?: string; altText?: string }) => void;
   onRemove: (id: string) => void;
-  index: number;
 }) {
   const [caption, setCaption] = useState(item.caption ?? "");
   const [altText, setAltText] = useState(item.altText ?? "");
@@ -101,53 +98,41 @@ function GalleryItemRow({
   useDebouncedAutosave({ caption, altText }, (next) => onUpdate(item.id, next));
 
   return (
-    <Draggable draggableId={item.id} index={index}>
-      {(dragProvided) => (
-        <div
-          ref={dragProvided.innerRef}
-          {...dragProvided.draggableProps}
-          className="flex items-center gap-2 rounded-xl border border-border p-2"
-        >
-          <span {...dragProvided.dragHandleProps} className="cursor-grab text-muted-foreground">
-            <GripVertical className="size-4" />
-          </span>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={item.type === "YOUTUBE" ? item.url : item.url}
-            alt=""
-            className="size-14 shrink-0 rounded-lg object-cover"
-          />
-          <div className="grid flex-1 grid-cols-2 gap-2">
-            <Input
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Caption (optional)"
-              className="h-8"
-            />
-            <Input
-              value={altText}
-              onChange={(e) => setAltText(e.target.value)}
-              placeholder="Alt text (accessibility)"
-              className="h-8"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onRemove(item.id)}
-            aria-label="Remove"
-          >
-            <Trash2 />
-          </Button>
-        </div>
-      )}
-    </Draggable>
+    <div className="flex items-center gap-2 rounded-xl border border-border p-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={item.type === "YOUTUBE" ? item.url : item.url}
+        alt=""
+        className="size-14 shrink-0 rounded-lg object-cover"
+      />
+      <div className="grid flex-1 grid-cols-2 gap-2">
+        <Input
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          placeholder="Caption (optional)"
+          className="h-8"
+        />
+        <Input
+          value={altText}
+          onChange={(e) => setAltText(e.target.value)}
+          placeholder="Alt text (accessibility)"
+          className="h-8"
+        />
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        onClick={() => onRemove(item.id)}
+        aria-label="Remove"
+      >
+        <Trash2 />
+      </Button>
+    </div>
   );
 }
 
 export function GalleryEditor({
-  blockId,
   items,
   galleryLayout,
   usage,
@@ -157,7 +142,6 @@ export function GalleryEditor({
   onRemoveItem,
   onLayoutChange,
 }: {
-  blockId: string;
   items: ManagedGalleryItem[];
   galleryLayout: string;
   usage: { count: number; max: number };
@@ -294,16 +278,11 @@ export function GalleryEditor({
       </div>
 
       {items.length > 0 && (
-        <Droppable droppableId={`items:${blockId}`} type={`items:${blockId}`}>
-          {(provided) => (
-            <div ref={provided.innerRef} {...provided.droppableProps} className="flex flex-col gap-2">
-              {items.map((item, index) => (
-                <GalleryItemRow key={item.id} item={item} index={index} onUpdate={onUpdateItem} onRemove={onRemoveItem} />
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
+        <div className="flex flex-col gap-2">
+          {items.map((item) => (
+            <GalleryItemRow key={item.id} item={item} onUpdate={onUpdateItem} onRemove={onRemoveItem} />
+          ))}
+        </div>
       )}
 
       <div>

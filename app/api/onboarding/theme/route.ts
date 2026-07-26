@@ -17,12 +17,18 @@ export async function POST(req: Request) {
   }
 
   const userId = session.user.id;
-  const { themeId, brandColor } = parsed.data;
+  const { themeId, brandColor, headingFont, bodyFont } = parsed.data;
 
   const cardSettings = await db.cardSettings.upsert({
     where: { userId },
-    update: { themeId, brandColor },
-    create: { userId, themeId, brandColor },
+    update: { themeId, brandColor, ...(headingFont && { headingFont }), ...(bodyFont && { bodyFont }) },
+    create: {
+      userId,
+      themeId,
+      brandColor,
+      ...(headingFont && { headingFont }),
+      ...(bodyFont && { bodyFont }),
+    },
   });
 
   await db.user.updateMany({

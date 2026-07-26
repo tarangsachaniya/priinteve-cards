@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 type Plan = { id: string; name: string };
 
@@ -26,6 +27,9 @@ type UserFormValues = {
   role: "USER" | "ADMIN";
   planId: string;
   planExpiresAt: string;
+  walletPoints: string;
+  cardPublished: boolean;
+  onboardingStep: string;
 };
 
 const EMPTY_VALUES: UserFormValues = {
@@ -35,24 +39,58 @@ const EMPTY_VALUES: UserFormValues = {
   role: "USER",
   planId: "",
   planExpiresAt: "",
+  walletPoints: "0",
+  cardPublished: false,
+  onboardingStep: "1",
 };
 
 type UserFormProps = {
   plans: Plan[];
   trigger: React.ReactElement;
-  onCreated?: () => void;
+  userId?: string;
+  onSaved?: () => void;
 };
 
-export function UserForm({ plans, trigger, onCreated }: UserFormProps) {
+export function UserForm({ plans, trigger, userId, onSaved }: UserFormProps) {
   const [open, setOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [values, setValues] = useState<UserFormValues>(EMPTY_VALUES);
+  const isEdit = Boolean(userId);
+
+  async function loadUser() {
+    if (!userId) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.user) {
+        toast.error("Could not load user");
+        setOpen(false);
+        return;
+      }
+      const u = data.user;
+      setValues({
+        name: u.name ?? "",
+        email: u.email ?? "",
+        company: u.company ?? "",
+        role: u.role,
+        planId: u.planId ?? "",
+        planExpiresAt: u.planExpiresAt ? String(u.planExpiresAt).slice(0, 10) : "",
+        walletPoints: String(u.walletPoints ?? 0),
+        cardPublished: Boolean(u.cardPublished),
+        onboardingStep: String(u.onboardingStep ?? 1),
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const payload = {
+      const basePayload = {
         name: values.name,
         email: values.email,
         company: values.company || undefined,
@@ -61,45 +99,64 @@ export function UserForm({ plans, trigger, onCreated }: UserFormProps) {
         planExpiresAt: values.planId && values.planExpiresAt ? values.planExpiresAt : undefined,
       };
 
-      const res = await fetch("/api/admin/users", {
-        method: "POST",
+      const payload = isEdit
+        ? {
+            ...basePayload,
+            walletPoints: Number(values.walletPoints),
+            cardPublished: values.cardPublished,
+            onboardingStep: Number(values.onboardingStep),
+          }
+        : basePayload;
+
+      const res = await fetch(isEdit ? `/api/admin/users/${userId}` : "/api/admin/users", {
+        method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        toast.error(data?.error === "Email already in use" ? data.error : "Could not create user");
+        toast.error(data?.error === "Email already in use" ? data.error : "Could not save user");
         return;
       }
 
-      toast.success("User created");
-      setValues(EMPTY_VALUES);
+      toast.success(isEdit ? "User updated" : "User created");
+      if (!isEdit) setValues(EMPTY_VALUES);
       setOpen(false);
-      onCreated?.();
+      onSaved?.();
     } finally {
       setIsSaving(false);
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next && isEdit) loadUser();
+        else if (next) setValues(EMPTY_VALUES);
+      }}
+    >
       <DialogTrigger render={trigger} />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add user</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit user" : "Add user"}</DialogTitle>
           <DialogDescription>
-            Creates an account and emails the user a link to set their password.
+            {isEdit
+              ? "Update this user's account details and status."
+              : "Creates an account and emails the user a link to set their password."}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form onSubmit={handleSubmit} className="flex max-h-[65vh] flex-col gap-3 overflow-y-auto px-1">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="user-name">Name</Label>
             <Input
               id="user-name"
               value={values.name}
               onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))}
+              disabled={isLoading}
               required
             />
           </div>
@@ -111,6 +168,7 @@ export function UserForm({ plans, trigger, onCreated }: UserFormProps) {
               type="email"
               value={values.email}
               onChange={(e) => setValues((v) => ({ ...v, email: e.target.value }))}
+              disabled={isLoading}
               required
             />
           </div>
@@ -121,6 +179,7 @@ export function UserForm({ plans, trigger, onCreated }: UserFormProps) {
               id="user-company"
               value={values.company}
               onChange={(e) => setValues((v) => ({ ...v, company: e.target.value }))}
+              disabled={isLoading}
             />
           </div>
 
@@ -132,7 +191,7 @@ export function UserForm({ plans, trigger, onCreated }: UserFormProps) {
                 setValues((v) => ({ ...v, role: value as UserFormValues["role"] }))
               }
             >
-              <SelectTrigger id="user-role">
+              <SelectTrigger id="user-role" disabled={isLoading}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -150,7 +209,7 @@ export function UserForm({ plans, trigger, onCreated }: UserFormProps) {
                 value && setValues((v) => ({ ...v, planId: value === "none" ? "" : value }))
               }
             >
-              <SelectTrigger id="user-plan">
+              <SelectTrigger id="user-plan" disabled={isLoading}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -172,13 +231,53 @@ export function UserForm({ plans, trigger, onCreated }: UserFormProps) {
                 type="date"
                 value={values.planExpiresAt}
                 onChange={(e) => setValues((v) => ({ ...v, planExpiresAt: e.target.value }))}
+                disabled={isLoading}
               />
             </div>
           )}
 
+          {isEdit && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="user-wallet">Wallet points</Label>
+                  <Input
+                    id="user-wallet"
+                    type="number"
+                    min={0}
+                    value={values.walletPoints}
+                    onChange={(e) => setValues((v) => ({ ...v, walletPoints: e.target.value }))}
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="user-onboarding-step">Onboarding step</Label>
+                  <Input
+                    id="user-onboarding-step"
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={values.onboardingStep}
+                    onChange={(e) => setValues((v) => ({ ...v, onboardingStep: e.target.value }))}
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
+              <label className="flex items-center justify-between rounded-xl border border-border px-3 py-2.5">
+                <span className="text-sm font-medium">Card published</span>
+                <Switch
+                  checked={values.cardPublished}
+                  onCheckedChange={(v) => setValues((prev) => ({ ...prev, cardPublished: v }))}
+                  disabled={isLoading}
+                />
+              </label>
+            </>
+          )}
+
           <DialogFooter showCloseButton>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Creating…" : "Create user"}
+            <Button type="submit" disabled={isSaving || isLoading}>
+              {isSaving ? "Saving…" : isEdit ? "Save changes" : "Create user"}
             </Button>
           </DialogFooter>
         </form>

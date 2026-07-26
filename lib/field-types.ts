@@ -86,4 +86,14 @@ export function getFieldTypeMeta(fieldType: string) {
   return FIELD_TYPE_META[fieldType] ?? { icon: TypeIcon, label: fieldType };
 }
 
+/** Always present on a new card during Setup; the user cannot delete these. */
+export const MANDATORY_FIELD_TYPES = [
+  "company_name",
+  "company_description",
+  "phone",
+  "email",
+  "photo",
+  "address",
+] as const;
+
 export { Sparkles as SocialGroupIcon };

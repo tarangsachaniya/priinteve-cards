@@ -7,16 +7,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { saveProfileFieldsSchema } from "@/lib/validations/onboarding";
-import { FieldTypePicker } from "@/components/wizard/field-type-picker";
+import { InsertSectionMenu } from "@/components/dashboard/insert-section-menu";
 import { FieldInstanceRow, type WizardField } from "@/components/wizard/field-instance-row";
+import { MANDATORY_FIELD_TYPES, getFieldTypeMeta } from "@/lib/field-types";
 
-const SOCIAL_LABELS: Record<string, string> = {
-  social_instagram: "Instagram",
-  social_linkedin: "LinkedIn",
-  social_twitter: "Twitter",
-  social_facebook: "Facebook",
-  social_youtube: "YouTube",
-};
+function buildInitialFields(saved: WizardField[]): WizardField[] {
+  const byType = new Map(saved.map((f) => [f.fieldType, f]));
+  const mandatory = MANDATORY_FIELD_TYPES.map(
+    (fieldType) =>
+      byType.get(fieldType) ?? {
+        clientId: `mandatory-${fieldType}`,
+        fieldType,
+        label: getFieldTypeMeta(fieldType).label,
+        value: "",
+      }
+  );
+  const optional = saved.filter((f) => !(MANDATORY_FIELD_TYPES as readonly string[]).includes(f.fieldType));
+  return [...mandatory, ...optional];
+}
 
 export function Step1ProfileFields({
   initialFields,
@@ -27,16 +35,14 @@ export function Step1ProfileFields({
   initialCompany: string | null;
   onSaved: (fields: WizardField[], slug: string, company: string) => void;
 }) {
-  const [fields, setFields] = useState<WizardField[]>(initialFields);
+  const [fields, setFields] = useState<WizardField[]>(() => buildInitialFields(initialFields));
   const [company, setCompany] = useState(initialCompany ?? "");
-  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [uploadingClientId, setUploadingClientId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  function addField(fieldType: string, label: string) {
-    setFields((prev) => [
-      ...prev,
-      { clientId: crypto.randomUUID(), fieldType, label: SOCIAL_LABELS[fieldType] ?? label, value: "" },
-    ]);
+  function addField(fieldType: string) {
+    const meta = getFieldTypeMeta(fieldType);
+    setFields((prev) => [...prev, { clientId: crypto.randomUUID(), fieldType, label: meta.label, value: "" }]);
   }
 
   function updateField(clientId: string, next: WizardField) {
@@ -44,11 +50,13 @@ export function Step1ProfileFields({
   }
 
   function removeField(clientId: string) {
-    setFields((prev) => prev.filter((f) => f.clientId !== clientId));
+    setFields((prev) =>
+      prev.filter((f) => f.clientId !== clientId || (MANDATORY_FIELD_TYPES as readonly string[]).includes(f.fieldType))
+    );
   }
 
-  async function handleAddFile(file: File) {
-    setIsUploadingFile(true);
+  async function handleUploadPhoto(clientId: string, file: File) {
+    setUploadingClientId(clientId);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -58,17 +66,9 @@ export function Step1ProfileFields({
         toast.error(typeof data.error === "string" ? data.error : "Upload failed");
         return;
       }
-      setFields((prev) => [
-        ...prev,
-        {
-          clientId: crypto.randomUUID(),
-          fieldType: "file",
-          label: file.name.replace(/\.[^.]+$/, "") || "Attachment",
-          value: data.url,
-        },
-      ]);
+      setFields((prev) => prev.map((f) => (f.clientId === clientId ? { ...f, value: data.url } : f)));
     } finally {
-      setIsUploadingFile(false);
+      setUploadingClientId(null);
     }
   }
 
@@ -109,11 +109,14 @@ export function Step1ProfileFields({
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h2 className="text-lg font-semibold">Add your profile fields</h2>
-        <p className="text-sm text-muted-foreground">
-          Click a field type to add it to your card.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Add your profile fields</h2>
+          <p className="text-sm text-muted-foreground">
+            These essentials are ready to fill in — add more from the dropdown if you'd like.
+          </p>
+        </div>
+        <InsertSectionMenu onInsert={addField} excludeTypes={MANDATORY_FIELD_TYPES} />
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -126,20 +129,22 @@ export function Step1ProfileFields({
         />
       </div>
 
-      <FieldTypePicker onAdd={addField} onAddFile={handleAddFile} isUploadingFile={isUploadingFile} />
-
-      {fields.length > 0 && (
-        <div className="flex flex-col gap-2">
-          {fields.map((field) => (
+      <div className="flex flex-col gap-2">
+        {fields.map((field) => {
+          const isMandatory = (MANDATORY_FIELD_TYPES as readonly string[]).includes(field.fieldType);
+          return (
             <FieldInstanceRow
               key={field.clientId}
               field={field}
+              isMandatory={isMandatory}
               onChange={(next) => updateField(field.clientId, next)}
               onRemove={() => removeField(field.clientId)}
+              onUploadFile={(file) => handleUploadPhoto(field.clientId, file)}
+              isUploading={uploadingClientId === field.clientId}
             />
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
 
       <Button type="button" onClick={handleSave} disabled={isSaving} className="self-end">
         {isSaving ? "Saving…" : "Save & Continue"}

@@ -195,6 +195,7 @@ export type HomepageVideo = {
   heading: string;
   caption: string;
   videoUrl: string;
+  videoFileUrl: string;
   thumbnailUrl: string;
   durationLabel: string;
 };
@@ -203,6 +204,7 @@ const DEFAULT_VIDEO: HomepageVideo = {
   heading: "See a card built, tapped, and updated.",
   caption: "A two-minute walkthrough of building a profile, ordering a card, and sharing it live.",
   videoUrl: "",
+  videoFileUrl: "",
   thumbnailUrl: "",
   durationLabel: "1:24",
 };
@@ -213,6 +215,7 @@ export async function getHomepageVideo(): Promise<HomepageVideo> {
     heading: map.heading || DEFAULT_VIDEO.heading,
     caption: map.caption || DEFAULT_VIDEO.caption,
     videoUrl: map.video_url || DEFAULT_VIDEO.videoUrl,
+    videoFileUrl: map.video_file_url || DEFAULT_VIDEO.videoFileUrl,
     thumbnailUrl: map.thumbnail_url || DEFAULT_VIDEO.thumbnailUrl,
     durationLabel: map.duration_label || DEFAULT_VIDEO.durationLabel,
   };

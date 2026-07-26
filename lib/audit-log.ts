@@ -9,13 +9,14 @@ export type AuditAction =
   | "plan.delete"
   | "plan.enable"
   | "plan.disable"
-  | "plan.import";
+  | "plan.import"
+  | "user.update";
 
 export async function writeAuditLog(params: {
   actorId: string;
   actorEmail: string;
   action: AuditAction;
-  targetType: "plan";
+  targetType: "plan" | "user";
   targetId: string | null;
   metadata?: Record<string, unknown>;
 }) {

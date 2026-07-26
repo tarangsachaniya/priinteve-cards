@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { Pencil, Search } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import {
@@ -13,7 +14,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { UserForm } from "@/components/admin/user-form";
 import { formatDate } from "@/lib/format";
+
+type Plan = { id: string; name: string };
 
 type AdminUser = {
   id: string;
@@ -38,7 +42,15 @@ const COLUMNS: Column[] = [
 
 const LIMIT = 20;
 
-export function UsersTable({ refreshKey = 0 }: { refreshKey?: number }) {
+export function UsersTable({
+  plans,
+  refreshKey = 0,
+  onChanged,
+}: {
+  plans: Plan[];
+  refreshKey?: number;
+  onChanged?: () => void;
+}) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -111,12 +123,13 @@ export function UsersTable({ refreshKey = 0 }: { refreshKey?: number }) {
                   {col.sortable && sortBy === col.key && (sortDir === "asc" ? " ↑" : " ↓")}
                 </TableHead>
               ))}
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {!isLoading && users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={COLUMNS.length} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={COLUMNS.length + 1} className="py-8 text-center text-muted-foreground">
                   No users found.
                 </TableCell>
               </TableRow>
@@ -129,6 +142,18 @@ export function UsersTable({ refreshKey = 0 }: { refreshKey?: number }) {
                 <TableCell>{user.planExpiresAt ? formatDate(user.planExpiresAt) : "—"}</TableCell>
                 <TableCell>{user.cardViews}</TableCell>
                 <TableCell>{user.referralsMade}</TableCell>
+                <TableCell>
+                  <UserForm
+                    plans={plans}
+                    userId={user.id}
+                    onSaved={onChanged}
+                    trigger={
+                      <Button type="button" variant="ghost" size="icon-sm" aria-label="Edit user">
+                        <Pencil />
+                      </Button>
+                    }
+                  />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

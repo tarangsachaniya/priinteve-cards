@@ -21,6 +21,8 @@ export type SetupWizardProps = {
   initialGalleryItems: WizardGalleryItem[];
   initialThemeId: string;
   initialBrandColor: string;
+  initialHeadingFont: string;
+  initialBodyFont: string;
   initialGalleryLayout: string;
   initialVcfIncludePhoto: boolean;
 };
@@ -34,6 +36,8 @@ export function SetupWizard({
   initialGalleryItems,
   initialThemeId,
   initialBrandColor,
+  initialHeadingFont,
+  initialBodyFont,
   initialGalleryLayout,
   initialVcfIncludePhoto,
 }: SetupWizardProps) {
@@ -43,6 +47,8 @@ export function SetupWizard({
   const [galleryItems, setGalleryItems] = useState<WizardGalleryItem[]>(initialGalleryItems);
   const [themeId, setThemeId] = useState(initialThemeId);
   const [brandColor, setBrandColor] = useState(initialBrandColor);
+  const [headingFont, setHeadingFont] = useState(initialHeadingFont);
+  const [bodyFont, setBodyFont] = useState(initialBodyFont);
   const [galleryLayout, setGalleryLayout] = useState(initialGalleryLayout);
   const [vcfIncludePhoto, setVcfIncludePhoto] = useState(initialVcfIncludePhoto);
 
@@ -84,10 +90,14 @@ export function SetupWizard({
         <Step2ThemeBrand
           initialThemeId={themeId}
           initialBrandColor={brandColor}
+          initialHeadingFont={headingFont}
+          initialBodyFont={bodyFont}
           previewBase={previewBase}
-          onSaved={(nextThemeId, nextBrandColor) => {
+          onSaved={(nextThemeId, nextBrandColor, nextHeadingFont, nextBodyFont) => {
             setThemeId(nextThemeId);
             setBrandColor(nextBrandColor);
+            setHeadingFont(nextHeadingFont);
+            setBodyFont(nextBodyFont);
             setStep(3);
           }}
         />
@@ -121,7 +131,7 @@ export function SetupWizard({
         <Step5PreviewPurchase
           data={{
             ...previewBase,
-            settings: { themeId, brandColor, galleryLayout, vcfIncludePhoto },
+            settings: { themeId, brandColor, galleryLayout, vcfIncludePhoto, headingFont, bodyFont },
           }}
         />
       )}

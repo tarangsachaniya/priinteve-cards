@@ -9,6 +9,7 @@ export const planSchema = z.object({
   maxGalleryImages: z.coerce.number().int().nonnegative(),
   maxVideos: z.coerce.number().int().nonnegative().default(0),
   maxPdfs: z.coerce.number().int().nonnegative().default(0),
+  maxFields: z.coerce.number().int().nonnegative().default(20),
   storageLimitMb: z.coerce.number().int().nonnegative().default(0),
   isActive: z.boolean(),
   isDraft: z.boolean().default(false),
@@ -112,8 +113,21 @@ export const createUserSchema = z.object({
   planExpiresAt: z.coerce.date().optional(),
 });
 
+export const updateUserSchema = z.object({
+  name: z.string().min(2).max(80),
+  email: z.string().email(),
+  company: z.string().max(120).optional(),
+  role: z.enum(["USER", "ADMIN"]),
+  planId: z.string().optional(),
+  planExpiresAt: z.coerce.date().optional(),
+  walletPoints: z.coerce.number().int().nonnegative(),
+  cardPublished: z.boolean(),
+  onboardingStep: z.coerce.number().int().min(1).max(5),
+});
+
 export type PlanInput = z.infer<typeof planSchema>;
 export type PlanUpdateInput = z.infer<typeof planUpdateSchema>;
 export type ConfigInput = z.infer<typeof configSchema>;
 export type EmailConfigInput = z.infer<typeof emailConfigSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;

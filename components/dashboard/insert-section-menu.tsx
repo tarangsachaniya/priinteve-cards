@@ -8,8 +8,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { INSERTABLE_SECTION_TYPES, getFieldTypeMeta } from "@/lib/field-types";
 
-export function InsertSectionMenu({ onInsert }: { onInsert: (fieldType: string) => void }) {
+export function InsertSectionMenu({
+  onInsert,
+  excludeTypes,
+}: {
+  onInsert: (fieldType: string) => void;
+  excludeTypes?: readonly string[];
+}) {
   const [open, setOpen] = useState(false);
+  const types = excludeTypes
+    ? INSERTABLE_SECTION_TYPES.filter((type) => !excludeTypes.includes(type))
+    : INSERTABLE_SECTION_TYPES;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -26,7 +35,7 @@ export function InsertSectionMenu({ onInsert }: { onInsert: (fieldType: string) 
           <CommandList>
             <CommandEmpty>No matching section type.</CommandEmpty>
             <CommandGroup>
-              {INSERTABLE_SECTION_TYPES.map((type) => {
+              {types.map((type) => {
                 const meta = getFieldTypeMeta(type);
                 const Icon = meta.icon;
                 return (

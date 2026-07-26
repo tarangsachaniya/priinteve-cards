@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getFieldUsage } from "@/lib/plan-limits";
 import { revalidateUserCard } from "@/lib/revalidate-card";
 import { sanitizeRichTextServer } from "@/lib/sanitize-html";
 import { cardFieldInputSchema } from "@/lib/validations/onboarding";
@@ -21,6 +22,11 @@ export async function POST(req: Request) {
 
   const userId = session.user.id;
   const { fieldType, label } = parsed.data;
+
+  const { count, max } = await getFieldUsage(userId);
+  if (count >= max) {
+    return NextResponse.json({ error: "Field limit reached for your plan" }, { status: 400 });
+  }
 
   let value: string;
   try {
