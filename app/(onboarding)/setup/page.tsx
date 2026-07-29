@@ -50,7 +50,7 @@ export default async function DashboardSetupPage() {
           url: g.url,
           order: g.order,
         }))}
-        initialThemeId={cardSettings?.themeId ?? "default"}
+        initialThemeId={cardSettings?.themeId ?? "original"}
         initialBrandColor={cardSettings?.brandColor ?? "#059669"}
         initialHeadingFont={cardSettings?.headingFont ?? "font-sans"}
         initialBodyFont={cardSettings?.bodyFont ?? "font-sans"}

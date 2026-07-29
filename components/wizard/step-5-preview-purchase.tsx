@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Monitor, Smartphone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardPreviewStub, type CardPreviewData } from "@/components/card/card-preview-stub";
 import { useIsMobile } from "@/lib/hooks/use-is-mobile";
 import { cn } from "@/lib/utils";

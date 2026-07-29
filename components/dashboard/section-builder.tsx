@@ -7,7 +7,8 @@ import { CheckCircle2, ExternalLink, LayoutTemplate, Loader2 } from "lucide-reac
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { InsertSectionMenu } from "@/components/dashboard/insert-section-menu";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CardPreviewStub } from "@/components/card/card-preview-stub";
 import { SectionCard } from "@/components/dashboard/section-card";
 import { FieldEditor } from "@/components/dashboard/section-editors/field-editor";
 import { GroupEditor } from "@/components/dashboard/section-editors/group-editor";
@@ -16,7 +17,6 @@ import { SocialEditor } from "@/components/dashboard/section-editors/social-edit
 import { GalleryEditor, type ManagedGalleryItem } from "@/components/dashboard/section-editors/gallery-editor";
 import { getFieldTypeMeta } from "@/lib/field-types";
 import { GROUP_TYPE_CONFIG } from "@/lib/section-item-config";
-import { DEFAULT_BUSINESS_HOURS, isGroupFieldType } from "@/lib/validations/card-field";
 import {
   buildSectionBlocks,
   type CardSectionField,
@@ -35,42 +35,51 @@ const GROUP_TITLES: Record<string, string> = {
   company: "Company",
 };
 
-function defaultValueForType(fieldType: string): string {
-  if (fieldType === "business_hours") return JSON.stringify(DEFAULT_BUSINESS_HOURS);
-  if (isGroupFieldType(fieldType)) return JSON.stringify(GROUP_TYPE_CONFIG[fieldType].defaultValue);
-  return "";
-}
-
 export function SectionBuilder({
   userSlug,
+  userName,
   initialCardPublished,
   initialFields,
   initialGalleryItems,
   initialGalleryLayout,
   initialGallerySectionOrder,
+  initialThemeId,
+  initialBrandColor,
   galleryUsage,
 }: {
   userSlug: string;
+  userName: string;
   initialCardPublished: boolean;
   initialFields: BuilderField[];
   initialGalleryItems: ManagedGalleryItem[];
   initialGalleryLayout: string;
   initialGallerySectionOrder: number;
+  initialThemeId: string;
+  initialBrandColor: string;
   galleryUsage: { count: number; max: number };
 }) {
   const [fields, setFields] = useState<BuilderField[]>(initialFields);
   const [galleryItems, setGalleryItems] = useState<ManagedGalleryItem[]>(initialGalleryItems);
   const [galleryLayout, setGalleryLayout] = useState(initialGalleryLayout);
-  const [gallerySectionOrder, setGallerySectionOrder] = useState(initialGallerySectionOrder);
+  const [gallerySectionOrder] = useState(initialGallerySectionOrder);
   const [imageCount, setImageCount] = useState(galleryUsage.count);
   const [isPublished, setIsPublished] = useState(initialCardPublished);
   const [isPublishing, setIsPublishing] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [activeTab, setActiveTab] = useState("profile");
 
   const blocks = useMemo<SectionBlock<BuilderField>[]>(
     () => buildSectionBlocks<BuilderField>(fields, gallerySectionOrder),
     [fields, gallerySectionOrder]
   );
+  const visibleBlocks = blocks.filter((block) => {
+    if (activeTab === "gallery") return block.kind === "gallery";
+    if (block.kind === "gallery") return false;
+    const types = block.kind === "field" ? [block.field.fieldType] : block.items.map((item) => item.fieldType);
+    if (activeTab === "payments") return types.some((type) => type === "upi_id" || type === "upi_qr");
+    if (activeTab === "contact") return types.some((type) => ["phone", "whatsapp", "email", "address", "google_maps_url", "website"].includes(type) || type.startsWith("social_"));
+    return types.some((type) => ["photo", "designation", "company_name", "company_description", "stat"].includes(type));
+  });
 
   function markSaving() {
     setSaveState("saving");
@@ -181,11 +190,6 @@ export function SectionBuilder({
     }
   }
 
-  function handleAddSection(fieldType: string) {
-    const meta = getFieldTypeMeta(fieldType);
-    addField(fieldType, meta.label, defaultValueForType(fieldType));
-  }
-
   async function handlePublish() {
     setIsPublishing(true);
     try {
@@ -194,6 +198,8 @@ export function SectionBuilder({
         toast.error("Could not publish your card");
         return;
       }
+      const refresh = await fetch("/api/auth/refresh-session", { method: "POST" });
+      if (!refresh.ok) throw new Error("Could not refresh session");
       setIsPublished(true);
       toast.success("Your card is live!");
     } finally {
@@ -327,13 +333,18 @@ export function SectionBuilder({
                 {isPublishing ? <Loader2 className="animate-spin" /> : null} Publish
               </Button>
             )}
-            <InsertSectionMenu onInsert={handleAddSection} />
           </div>
         }
       />
 
+      <CardPreviewStub data={{ name: userName, slug: userSlug, fields, galleryItems, settings: { themeId: initialThemeId, brandColor: initialBrandColor, galleryLayout, vcfIncludePhoto: true } }} />
+
+      <Tabs value={activeTab} onValueChange={(value) => value && setActiveTab(value)}>
+        <TabsList className="h-auto w-full flex-wrap justify-start gap-1"><TabsTrigger value="profile">Profile</TabsTrigger><TabsTrigger value="contact">Contact</TabsTrigger><TabsTrigger value="payments">Payments</TabsTrigger><TabsTrigger value="gallery">Gallery</TabsTrigger></TabsList>
+      </Tabs>
+
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
-        {blocks.map((block) => {
+        {visibleBlocks.map((block) => {
           const key = block.kind === "gallery" ? "gallery" : block.id;
 
           if (block.kind === "field") {

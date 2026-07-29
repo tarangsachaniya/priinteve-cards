@@ -56,7 +56,7 @@ export type SocialLink = {
 };
 
 /** Group types the builder renders as one draggable, multi-item section. */
-export type BuilderGroupType = "service" | "testimonial" | "product" | "faq" | "button" | "social" | "company";
+export type BuilderGroupType = "service" | "testimonial" | "product" | "faq" | "button" | "stat" | "social" | "company";
 
 export type SectionBlock<F extends CardSectionField = CardSectionField> =
   | { kind: "field"; id: string; field: F }
@@ -74,7 +74,7 @@ function safeParse<T>(value: string): T | null {
 function groupTypeFor(fieldType: string): BuilderGroupType | null {
   if (fieldType.startsWith("social_") || fieldType === "whatsapp") return "social";
   if (fieldType.startsWith("company_")) return "company";
-  if (fieldType === "service" || fieldType === "testimonial" || fieldType === "product" || fieldType === "faq" || fieldType === "button") {
+  if (fieldType === "service" || fieldType === "testimonial" || fieldType === "product" || fieldType === "faq" || fieldType === "button" || fieldType === "stat") {
     return fieldType;
   }
   return null;

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Check } from "lucide-react";
 import { THEME_PRESETS } from "@/lib/theme-presets";
 import { saveThemeSchema } from "@/lib/validations/onboarding";
 import { ThemeEditModal } from "@/components/wizard/theme-edit-modal";
@@ -75,29 +75,13 @@ export function Step2ThemeBrand({
         />
       </div>
 
-      <Tabs value={themeId} onValueChange={(v) => v && setThemeId(v)}>
-        <TabsList className="!h-auto w-full flex-wrap justify-start gap-1.5">
-          {THEME_PRESETS.map((preset) => (
-            <TabsTrigger key={preset.id} value={preset.id}>
-              {preset.name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {THEME_PRESETS.map((preset) => (
-          <TabsContent key={preset.id} value={preset.id} className="mt-4">
-            <div className="grid gap-4 lg:grid-cols-[3fr_1fr]">
-              <CardPreviewStub
-                data={{
-                  ...previewBase,
-                  settings: { themeId: preset.id, brandColor, galleryLayout: "grid", vcfIncludePhoto: true, headingFont, bodyFont },
-                }}
-              />
-              <p className="text-sm text-muted-foreground">{preset.description}</p>
-            </div>
-          </TabsContent>
-        ))}
-      </Tabs>
+      <div className="flex flex-wrap gap-2">
+        {THEME_PRESETS.map((preset) => <Button key={preset.id} type="button" variant={themeId === preset.id ? "default" : "outline"} onClick={() => setThemeId(preset.id)}>{themeId === preset.id && <Check data-icon="inline-start" />} {preset.name}</Button>)}
+      </div>
+      <div className="grid gap-4 lg:grid-cols-[3fr_1fr]">
+        <CardPreviewStub data={{ ...previewBase, settings: { themeId, brandColor, galleryLayout: "grid", vcfIncludePhoto: true, headingFont, bodyFont } }} />
+        <p className="text-sm text-muted-foreground">{THEME_PRESETS.find((preset) => preset.id === themeId)?.description}</p>
+      </div>
 
       <Button type="button" onClick={handleSave} disabled={isSaving} className="self-end">
         {isSaving ? "Saving…" : "Save & Continue"}

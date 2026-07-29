@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   }
 
   const userId = session.user.id;
-  const { fields, company } = parsed.data;
+  const { fields, company, name } = parsed.data;
 
   const { max: maxFields } = await getFieldUsage(userId);
   if (fields.length > maxFields) {
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     }),
     db.user.update({
       where: { id: userId },
-      data: { company: nextCompany, slug },
+      data: { company: nextCompany, slug, ...(name ? { name: name.trim() } : {}) },
     }),
   ]);
 

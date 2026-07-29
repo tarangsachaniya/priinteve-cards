@@ -41,6 +41,7 @@ export function SetupWizard({
   initialGalleryLayout,
   initialVcfIncludePhoto,
 }: SetupWizardProps) {
+  const [profileName, setProfileName] = useState(name);
   const [step, setStep] = useState(Math.min(Math.max(initialStep, 1), 5));
   const [slug, setSlug] = useState(initialSlug);
   const [cardFields, setCardFields] = useState<WizardField[]>(initialCardFields);
@@ -53,7 +54,7 @@ export function SetupWizard({
   const [vcfIncludePhoto, setVcfIncludePhoto] = useState(initialVcfIncludePhoto);
 
   const previewBase = {
-    name,
+    name: profileName,
     slug,
     fields: cardFields.map((f) => ({ ...f, order: 0, isVisible: true })),
     galleryItems: galleryItems.map((item) => ({ type: item.type, url: item.url, order: item.order })),
@@ -78,15 +79,29 @@ export function SetupWizard({
         <Step1ProfileFields
           initialFields={cardFields}
           initialCompany={initialCompany}
-          onSaved={(fields, nextSlug) => {
+          initialName={name}
+          onSaved={(fields, nextSlug, _company, nextName) => {
             setCardFields(fields);
             if (nextSlug) setSlug(nextSlug);
+            if (nextName) setProfileName(nextName);
             setStep(2);
           }}
         />
       )}
 
       {step === 2 && (
+        <Step3Gallery
+          initialItems={galleryItems}
+          initialGalleryLayout={galleryLayout}
+          onSaved={(items, layout) => {
+            setGalleryItems(items);
+            setGalleryLayout(layout);
+            setStep(3);
+          }}
+        />
+      )}
+
+      {step === 3 && (
         <Step2ThemeBrand
           initialThemeId={themeId}
           initialBrandColor={brandColor}
@@ -94,30 +109,14 @@ export function SetupWizard({
           initialBodyFont={bodyFont}
           previewBase={previewBase}
           onSaved={(nextThemeId, nextBrandColor, nextHeadingFont, nextBodyFont) => {
-            setThemeId(nextThemeId);
-            setBrandColor(nextBrandColor);
-            setHeadingFont(nextHeadingFont);
-            setBodyFont(nextBodyFont);
-            setStep(3);
-          }}
-        />
-      )}
-
-      {step === 3 && (
-        <Step3Gallery
-          initialItems={galleryItems}
-          initialGalleryLayout={galleryLayout}
-          onSaved={(items, layout) => {
-            setGalleryItems(items);
-            setGalleryLayout(layout);
-            setStep(4);
+            setThemeId(nextThemeId); setBrandColor(nextBrandColor); setHeadingFont(nextHeadingFont); setBodyFont(nextBodyFont); setStep(4);
           }}
         />
       )}
 
       {step === 4 && (
         <Step4SaveContact
-          name={name}
+          name={profileName}
           fields={cardFields}
           initialVcfIncludePhoto={vcfIncludePhoto}
           onSaved={(includePhoto) => {

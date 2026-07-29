@@ -22,6 +22,9 @@ export const cardFieldTypeEnum = z.enum([
   "company_tagline",
   "company_description",
   "google_maps_url",
+  "upi_id",
+  "upi_qr",
+  "stat",
   "service",
   "testimonial",
   "product",
@@ -40,6 +43,7 @@ export const cardFieldInputSchema = z.object({
 export const saveProfileFieldsSchema = z.object({
   fields: z.array(cardFieldInputSchema).max(30),
   company: z.string().max(120).optional(),
+  name: z.string().min(1).max(120).optional(),
 });
 
 export const cardFieldUpdateSchema = z.object({

@@ -29,7 +29,7 @@ export default async function DashboardPage() {
           slug: true,
           planId: true,
           planExpiresAt: true,
-          plan: { select: { name: true } },
+          plan: { select: { name: true, price: true, validityDays: true, featuresJson: true, maxGalleryImages: true, maxVideos: true, maxPdfs: true, maxFields: true } },
         },
       })
     : null;
@@ -86,6 +86,14 @@ export default async function DashboardPage() {
           </Button>
         )}
       </div>
+
+      {user?.plan && (
+        <Card className="mt-6 max-w-3xl"><CardContent className="space-y-4">
+          <div><p className="text-sm text-muted-foreground">Your plan</p><h2 className="text-xl font-semibold">{user.plan.name}</h2><p className="text-sm text-muted-foreground">₹{user.plan.price} · {user.plan.validityDays} days · {user.planExpiresAt ? `Renews/expires ${formatDate(user.planExpiresAt)}` : "No expiry set"}</p></div>
+          <div className="flex flex-wrap gap-2 text-sm"><Badge variant="outline">{user.plan.maxFields} fields</Badge><Badge variant="outline">{user.plan.maxGalleryImages} images</Badge><Badge variant="outline">{user.plan.maxVideos} videos</Badge><Badge variant="outline">{user.plan.maxPdfs} PDFs</Badge></div>
+          {Array.isArray(user.plan.featuresJson) && <ul className="grid gap-1 text-sm sm:grid-cols-2">{user.plan.featuresJson.filter((feature): feature is string => typeof feature === "string").map((feature) => <li key={feature}>✓ {feature}</li>)}</ul>}
+        </CardContent></Card>
+      )}
 
       {session?.user.cardPublished && user?.slug && <QrSection slug={user.slug} />}
     </main>

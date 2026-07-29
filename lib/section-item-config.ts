@@ -86,4 +86,9 @@ export const GROUP_TYPE_CONFIG: Record<GroupFieldType, GroupTypeConfig> = {
       { key: "icon", label: "Icon (lucide name)", kind: "text", placeholder: "e.g. Phone" },
     ],
   },
+  stat: {
+    titleLabel: "Stat label", titlePlaceholder: "Years of experience", addLabel: "Add stat", emptyLabel: "No stats yet.",
+    defaultValue: { value: "" },
+    fields: [{ key: "value", label: "Value", kind: "text", placeholder: "10+" }],
+  },
 };

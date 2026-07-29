@@ -32,8 +32,8 @@ export async function POST(req: Request) {
   });
 
   await db.user.updateMany({
-    where: { id: userId, onboardingStep: { lt: 3 } },
-    data: { onboardingStep: 3 },
+    where: { id: userId, onboardingStep: { lt: 4 } },
+    data: { onboardingStep: 4 },
   });
 
   return NextResponse.json({ success: true, cardSettings });

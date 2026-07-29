@@ -37,6 +37,7 @@ export const buttonValueSchema = z.object({
   style: z.enum(["primary", "secondary", "outline"]).default("primary"),
   icon: z.string().max(80).optional().default(""),
 });
+export const statValueSchema = z.object({ value: z.string().max(80).default("") });
 
 const dayHoursSchema = z.object({
   closed: z.boolean().default(false),
@@ -74,7 +75,7 @@ export const DEFAULT_BUSINESS_HOURS: BusinessHoursValue = {
 };
 
 /** Structured (JSON-value) field types that render as repeatable "group" sections. */
-export const GROUP_FIELD_TYPES = ["service", "testimonial", "product", "faq", "button"] as const;
+export const GROUP_FIELD_TYPES = ["service", "testimonial", "product", "faq", "button", "stat"] as const;
 export type GroupFieldType = (typeof GROUP_FIELD_TYPES)[number];
 
 export function isGroupFieldType(fieldType: string): fieldType is GroupFieldType {
@@ -87,6 +88,7 @@ const VALUE_SCHEMA_BY_TYPE: Partial<Record<GroupFieldType, z.ZodTypeAny>> = {
   product: productValueSchema,
   faq: faqValueSchema,
   button: buttonValueSchema,
+  stat: statValueSchema,
 };
 
 /**

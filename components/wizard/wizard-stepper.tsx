@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Profile", "Theme", "Gallery", "Contact", "Preview"];
+const STEPS = ["Profile", "Gallery", "Theme", "Contact", "Preview"];
 
 export function WizardStepper({ currentStep }: { currentStep: number }) {
   return (
