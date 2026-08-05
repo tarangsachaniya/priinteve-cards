@@ -2,10 +2,11 @@ import { Download, QrCode } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
-export function QrSection({ slug }: { slug: string }) {
+export function QrSection({ slug, className }: { slug: string; className?: string }) {
   return (
-    <Card className="mt-6 max-w-md border-border/80">
+    <Card className={cn("mt-6 max-w-md border-border/80", className)}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <QrCode className="size-4" />

@@ -10,7 +10,8 @@ export type AuditAction =
   | "plan.enable"
   | "plan.disable"
   | "plan.import"
-  | "user.update";
+  | "user.update"
+  | "user.card.update";
 
 export async function writeAuditLog(params: {
   actorId: string;

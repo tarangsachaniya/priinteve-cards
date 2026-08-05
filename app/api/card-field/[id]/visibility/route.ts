@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { revalidateUserCard } from "@/lib/revalidate-card";
+import { setCardFieldVisibilityForUser } from "@/lib/services/card-field-service";
 import { cardFieldVisibilitySchema } from "@/lib/validations/onboarding";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
@@ -17,17 +16,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const field = await db.cardField.findUnique({ where: { id: params.id } });
-  if (!field || field.userId !== session.user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const result = await setCardFieldVisibilityForUser(session.user.id, params.id, parsed.data.isVisible);
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
-  const updated = await db.cardField.update({
-    where: { id: params.id },
-    data: { isVisible: parsed.data.isVisible },
-  });
-
-  await revalidateUserCard(session.user.id);
-
-  return NextResponse.json({ success: true, field: updated });
+  return NextResponse.json({ success: true, field: result.data });
 }

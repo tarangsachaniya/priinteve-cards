@@ -1,8 +1,25 @@
 import { z } from "zod";
 
+import { THEME_PRESET_IDS, FONT_OPTION_IDS } from "@/lib/theme-presets";
+import { galleryLayoutEnum } from "@/lib/validations/onboarding";
+
+export const CARD_MATERIALS = ["PLASTIC", "WOODEN", "METAL"] as const;
+export const PLAN_DURATION_YEARS = [1, 2, 3] as const;
+
+export const adminCardSettingsSchema = z.object({
+  themeId: z.enum(THEME_PRESET_IDS).optional(),
+  brandColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a hex color like #1A2B3C").optional(),
+  headingFont: z.enum(FONT_OPTION_IDS).optional(),
+  bodyFont: z.enum(FONT_OPTION_IDS).optional(),
+  galleryLayout: galleryLayoutEnum.optional(),
+});
+
+export type AdminCardSettingsInput = z.infer<typeof adminCardSettingsSchema>;
+
 export const planSchema = z.object({
   name: z.string().min(1).max(80),
-  cardType: z.enum(["NFC", "QR", "BOTH"]),
+  material: z.enum(CARD_MATERIALS),
+  durationYears: z.coerce.number().int().min(1).max(3),
   price: z.coerce.number().int().nonnegative(),
   validityDays: z.coerce.number().int().positive(),
   featuresJson: z.array(z.string().min(1)),

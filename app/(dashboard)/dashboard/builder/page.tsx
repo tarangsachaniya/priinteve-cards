@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getGalleryUsage } from "@/lib/plan-limits";
+import { getFieldTypeMeta, MANDATORY_FIELD_TYPES } from "@/lib/field-types";
 import { SectionBuilder } from "@/components/dashboard/section-builder";
 
 export default async function BuilderPage() {
@@ -14,7 +15,7 @@ export default async function BuilderPage() {
 
   const userId = session.user.id;
 
-  const [user, fields, galleryItems, cardSettings, usage] = await Promise.all([
+  const [user, existingFields, galleryItems, cardSettings, usage] = await Promise.all([
     db.user.findUnique({
       where: { id: userId },
       select: { slug: true, cardPublished: true, name: true },
@@ -29,14 +30,34 @@ export default async function BuilderPage() {
     redirect("/login");
   }
 
+  // Users arriving from setup already have these, but a card created another way
+  // (e.g. by an admin) can be missing them, which would leave the tabs empty.
+  const present = new Set(existingFields.map((f) => f.fieldType));
+  const missing = MANDATORY_FIELD_TYPES.filter((type) => !present.has(type));
+  if (missing.length > 0) {
+    const nextOrder = existingFields.reduce((max, f) => Math.max(max, f.order), -1) + 1;
+    await db.cardField.createMany({
+      data: missing.map((fieldType, index) => ({
+        userId,
+        fieldType,
+        label: getFieldTypeMeta(fieldType).label,
+        value: "",
+        order: nextOrder + index,
+      })),
+    });
+  }
+
+  const fields = missing.length
+    ? await db.cardField.findMany({ where: { userId }, orderBy: { order: "asc" } })
+    : existingFields;
+
   return (
     <main className="p-6 sm:p-8 lg:p-10">
       <SectionBuilder
-        userSlug={user.slug}
         userName={user.name ?? ""}
+        userSlug={user.slug}
         initialCardPublished={user.cardPublished}
         initialFields={fields
-          .filter((f) => f.fieldType !== "photo")
           .map((f) => ({
             id: f.id,
             fieldType: f.fieldType,
@@ -55,9 +76,11 @@ export default async function BuilderPage() {
         }))}
         initialGalleryLayout={cardSettings?.galleryLayout ?? "grid"}
         initialGallerySectionOrder={cardSettings?.gallerySectionOrder ?? 9999}
+        galleryUsage={usage}
         initialThemeId={cardSettings?.themeId ?? "original"}
         initialBrandColor={cardSettings?.brandColor ?? "#059669"}
-        galleryUsage={usage}
+        initialHeadingFont={cardSettings?.headingFont ?? "font-sans"}
+        initialBodyFont={cardSettings?.bodyFont ?? "font-sans"}
       />
     </main>
   );

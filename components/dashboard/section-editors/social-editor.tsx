@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Check, Plus, Save, Trash2 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,8 +36,15 @@ function SocialRow({
   onDelete: () => void;
 }) {
   const [value, setValue] = useState(item.value);
+  const [justSaved, setJustSaved] = useState(false);
   const meta = getFieldTypeMeta(item.fieldType);
   useDebouncedAutosave(value, onSave);
+
+  function handleManualSave() {
+    onSave(value);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1500);
+  }
 
   return (
     <div className="flex items-end gap-2">
@@ -49,6 +56,16 @@ function SocialRow({
           placeholder={item.fieldType === "whatsapp" ? "+91…" : "https://…"}
         />
       </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        onClick={handleManualSave}
+        aria-label="Save"
+        title="Save"
+      >
+        {justSaved ? <Check /> : <Save />}
+      </Button>
       <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete} aria-label="Remove">
         <Trash2 />
       </Button>

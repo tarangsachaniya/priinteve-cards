@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Star, Trash2 } from "lucide-react";
+import { CheckCircle2, Plus, Star, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,10 +42,19 @@ function ItemForm({
     ...config.defaultValue,
     ...safeParseValue(item.value),
   }));
+  const [justSaved, setJustSaved] = useState(false);
 
-  useDebouncedAutosave({ title, data }, ({ title: t, data: d }) => {
-    onSave({ label: t, value: JSON.stringify(d) });
-  });
+  function save(next: { title: string; data: Record<string, unknown> }) {
+    onSave({ label: next.title, value: JSON.stringify(next.data) });
+  }
+
+  useDebouncedAutosave({ title, data }, save);
+
+  function handleManualSave() {
+    save({ title, data });
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1500);
+  }
 
   return (
     <div className="flex flex-col gap-3 p-3">
@@ -130,6 +139,17 @@ function ItemForm({
           </div>
         );
       })}
+
+      <div className="flex items-center gap-2 pt-1">
+        <Button type="button" size="sm" onClick={handleManualSave}>
+          Save
+        </Button>
+        {justSaved && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <CheckCircle2 className="size-3.5 text-ink" /> Saved
+          </span>
+        )}
+      </div>
     </div>
   );
 }

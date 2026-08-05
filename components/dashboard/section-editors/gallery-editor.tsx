@@ -58,13 +58,13 @@ function cropToSquare(file: File): Promise<File> {
   });
 }
 
-function uploadWithProgress(file: File, onProgress: (pct: number) => void) {
+function uploadWithProgress(file: File, endpoint: string, onProgress: (pct: number) => void) {
   return new Promise<{ item: ManagedGalleryItem }>((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", file);
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/gallery/upload");
+    xhr.open("POST", endpoint);
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
     };
@@ -141,6 +141,8 @@ export function GalleryEditor({
   onUpdateItem,
   onRemoveItem,
   onLayoutChange,
+  uploadEndpoint = "/api/gallery/upload",
+  youtubeEndpoint = "/api/gallery/youtube",
 }: {
   items: ManagedGalleryItem[];
   galleryLayout: string;
@@ -150,6 +152,8 @@ export function GalleryEditor({
   onUpdateItem: (id: string, next: { caption?: string; altText?: string }) => void;
   onRemoveItem: (id: string) => void;
   onLayoutChange: (layout: string) => void;
+  uploadEndpoint?: string;
+  youtubeEndpoint?: string;
 }) {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [cropSquare, setCropSquare] = useState(true);
@@ -167,7 +171,7 @@ export function GalleryEditor({
     setUploadProgress(0);
     try {
       const toUpload = cropSquare ? await cropToSquare(file) : file;
-      const data = await uploadWithProgress(toUpload, setUploadProgress);
+      const data = await uploadWithProgress(toUpload, uploadEndpoint, setUploadProgress);
       onAddImage(data.item);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
@@ -207,7 +211,7 @@ export function GalleryEditor({
     }
     setIsAddingYoutube(true);
     try {
-      const res = await fetch("/api/gallery/youtube", {
+      const res = await fetch(youtubeEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed.data),

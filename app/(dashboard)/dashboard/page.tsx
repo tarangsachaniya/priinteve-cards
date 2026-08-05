@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { AlertTriangle, LayoutDashboard } from "lucide-react";
 
@@ -15,11 +14,9 @@ import { PageHeader } from "@/components/shared/page-header";
 const RENEWAL_WINDOW_DAYS = 30;
 
 export default async function DashboardPage() {
+  // The paid-access gate lives in the dashboard layout, which reads the plan
+  // fresh from the database instead of trusting the session's cached flags.
   const session = await getServerSession(authOptions);
-
-  if (session?.user.role === "USER" && !session.user.cardPublished) {
-    redirect("/setup");
-  }
 
   const user = session?.user?.id
     ? await db.user.findUnique({

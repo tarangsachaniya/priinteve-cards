@@ -18,6 +18,7 @@ export const cardFieldTypeEnum = z.enum([
   "social_facebook",
   "social_youtube",
   "designation",
+  "cover_image",
   "company_name",
   "company_tagline",
   "company_description",

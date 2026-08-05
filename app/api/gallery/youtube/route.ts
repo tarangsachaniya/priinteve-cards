@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { revalidateUserCard } from "@/lib/revalidate-card";
-import { getYoutubeVideoId } from "@/lib/youtube";
-import { getVideoUsage } from "@/lib/plan-limits";
+import { addYoutubeItemForUser } from "@/lib/services/gallery-service";
 import { saveYoutubeItemSchema } from "@/lib/validations/onboarding";
 
 export async function POST(req: Request) {
@@ -19,33 +16,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { url } = parsed.data;
-  if (!getYoutubeVideoId(url)) {
-    return NextResponse.json({ error: "Not a valid YouTube URL" }, { status: 400 });
+  const result = await addYoutubeItemForUser(session.user.id, parsed.data.url, {
+    bypassLimit: session.user.role === "ADMIN",
+  });
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
-  const userId = session.user.id;
-
-  const { count, max } = await getVideoUsage(userId);
-  if (count >= max) {
-    return NextResponse.json({ error: "Video limit reached for your plan" }, { status: 400 });
-  }
-
-  const lastItem = await db.galleryItem.findFirst({
-    where: { userId },
-    orderBy: { order: "desc" },
-  });
-
-  const item = await db.galleryItem.create({
-    data: {
-      userId,
-      type: "YOUTUBE",
-      url,
-      order: (lastItem?.order ?? -1) + 1,
-    },
-  });
-
-  await revalidateUserCard(userId);
-
-  return NextResponse.json({ success: true, item });
+  return NextResponse.json({ success: true, item: result.data });
 }

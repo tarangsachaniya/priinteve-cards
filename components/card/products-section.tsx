@@ -53,7 +53,7 @@ export function ProductsSection({ products, flat }: { products: ProductItem[]; f
                 className="mt-1 inline-flex items-center justify-center rounded-full px-2.5 py-1 text-xs font-medium text-white transition-transform hover:scale-105"
                 style={{ backgroundColor: "var(--brand)" }}
               >
-                Buy Now
+                Shop Now
               </a>
             )}
           </MotionItem>

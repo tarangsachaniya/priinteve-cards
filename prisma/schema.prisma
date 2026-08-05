@@ -12,10 +12,10 @@ enum Role {
   ADMIN
 }
 
-enum CardType {
-  NFC
-  QR
-  BOTH
+enum CardMaterial {
+  PLASTIC
+  WOODEN
+  METAL
 }
 
 enum GalleryType {
@@ -89,9 +89,10 @@ model PasswordResetToken {
 }
 
 model Plan {
-  id               String   @id @default(cuid())
+  id               String       @id @default(cuid())
   name             String
-  cardType         CardType
+  material         CardMaterial
+  durationYears    Int
   price            Int
   validityDays     Int
   featuresJson      Json
@@ -109,6 +110,7 @@ model Plan {
   users     User[]
   purchases Purchase[]
 
+  @@unique([material, durationYears])
   @@index([isActive])
   @@index([isDraft])
 }
@@ -163,6 +165,8 @@ model CardSettings {
   userId              String   @unique
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   themeId             String   @default("default")
+  // Exists in the database ahead of the light/dark theme work; not read by the app yet.
+  themeMode           String   @default("light")
   brandColor          String   @default("#000000")
   headingFont         String   @default("font-sans")
   bodyFont            String   @default("font-sans")

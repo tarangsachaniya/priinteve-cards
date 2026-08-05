@@ -29,7 +29,8 @@ import { planSchema, type PlanInput } from "@/lib/validations/admin";
 export type AdminPlan = {
   id: string;
   name: string;
-  cardType: "NFC" | "QR" | "BOTH";
+  material: "PLASTIC" | "WOODEN" | "METAL";
+  durationYears: number;
   price: number;
   validityDays: number;
   featuresJson: unknown;
@@ -50,9 +51,9 @@ function toFormState(plan?: AdminPlan) {
     : [];
   return {
     name: plan?.name ?? "",
-    cardType: plan?.cardType ?? "NFC",
+    material: plan?.material ?? "PLASTIC",
+    durationYears: String(plan?.durationYears ?? "1"),
     price: String(plan?.price ?? ""),
-    validityDays: String(plan?.validityDays ?? "365"),
     features: features.join(", "),
     maxGalleryImages: String(plan?.maxGalleryImages ?? "10"),
     maxVideos: String(plan?.maxVideos ?? "0"),
@@ -87,9 +88,11 @@ export function PlanForm({
 
     const payload: PlanInput = {
       name: form.name,
-      cardType: form.cardType as PlanInput["cardType"],
+      material: form.material as PlanInput["material"],
+      durationYears: Number(form.durationYears),
       price: Number(form.price),
-      validityDays: Number(form.validityDays),
+      // Validity always tracks the duration so the two can never drift apart.
+      validityDays: Number(form.durationYears) * 365,
       featuresJson: form.features
         .split(",")
         .map((f) => f.trim())
@@ -153,43 +156,51 @@ export function PlanForm({
             <Input id="plan-name" value={form.name} onChange={(e) => update("name", e.target.value)} required />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label>Card type</Label>
-            <Select value={form.cardType} onValueChange={(v) => update("cardType", v as typeof form.cardType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NFC">NFC</SelectItem>
-                <SelectItem value="QR">QR</SelectItem>
-                <SelectItem value="BOTH">NFC + QR</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="plan-price">Price (₹)</Label>
-              <Input
-                id="plan-price"
-                type="number"
-                min={0}
-                value={form.price}
-                onChange={(e) => update("price", e.target.value)}
-                required
-              />
+              <Label>Card material</Label>
+              <Select value={form.material} onValueChange={(v) => update("material", v as typeof form.material)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PLASTIC">Plastic</SelectItem>
+                  <SelectItem value="WOODEN">Wooden</SelectItem>
+                  <SelectItem value="METAL">Metal</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="plan-validity">Validity (days)</Label>
-              <Input
-                id="plan-validity"
-                type="number"
-                min={1}
-                value={form.validityDays}
-                onChange={(e) => update("validityDays", e.target.value)}
-                required
-              />
+              <Label>Duration</Label>
+              <Select
+                value={form.durationYears}
+                onValueChange={(v) => update("durationYears", v as typeof form.durationYears)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 Year</SelectItem>
+                  <SelectItem value="2">2 Years</SelectItem>
+                  <SelectItem value="3">3 Years</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="plan-price">Price (₹)</Label>
+            <Input
+              id="plan-price"
+              type="number"
+              min={0}
+              value={form.price}
+              onChange={(e) => update("price", e.target.value)}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              Validity is set automatically from the duration ({Number(form.durationYears) * 365} days).
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

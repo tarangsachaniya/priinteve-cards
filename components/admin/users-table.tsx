@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pencil, Search } from "lucide-react";
+import Link from "next/link";
+import { LayoutTemplate, Pencil, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -143,16 +144,27 @@ export function UsersTable({
                 <TableCell>{user.cardViews}</TableCell>
                 <TableCell>{user.referralsMade}</TableCell>
                 <TableCell>
-                  <UserForm
-                    plans={plans}
-                    userId={user.id}
-                    onSaved={onChanged}
-                    trigger={
-                      <Button type="button" variant="ghost" size="icon-sm" aria-label="Edit user">
-                        <Pencil />
-                      </Button>
-                    }
-                  />
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Manage card"
+                      render={<Link href={`/admin/users/${user.id}`} />}
+                    >
+                      <LayoutTemplate />
+                    </Button>
+                    <UserForm
+                      plans={plans}
+                      userId={user.id}
+                      onSaved={onChanged}
+                      trigger={
+                        <Button type="button" variant="ghost" size="icon-sm" aria-label="Edit user">
+                          <Pencil />
+                        </Button>
+                      }
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

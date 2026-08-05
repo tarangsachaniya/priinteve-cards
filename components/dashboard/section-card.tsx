@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Copy, Eye, EyeOff, Trash2, type LucideIcon } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Copy, Eye, EyeOff, Trash2, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,10 @@ export function SectionCard({
   onDelete,
   deleteConfirmText,
   defaultExpanded = true,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false,
   children,
 }: {
   icon: LucideIcon;
@@ -35,6 +39,10 @@ export function SectionCard({
   onDelete: () => void;
   deleteConfirmText: string;
   defaultExpanded?: boolean;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
   children: React.ReactNode;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -59,6 +67,30 @@ export function SectionCard({
         </button>
 
         <div className="flex items-center gap-0.5">
+          {onMoveUp && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={onMoveUp}
+              disabled={!canMoveUp}
+              aria-label="Move up"
+            >
+              <ArrowUp />
+            </Button>
+          )}
+          {onMoveDown && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={onMoveDown}
+              disabled={!canMoveDown}
+              aria-label="Move down"
+            >
+              <ArrowDown />
+            </Button>
+          )}
           {onToggleVisibility && (
             <Button
               type="button"

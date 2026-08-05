@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { CheckCircle2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,7 +27,7 @@ const DAY_LABELS: { key: keyof BusinessHoursValue; label: string }[] = [
 ];
 
 const TEXTAREA_TYPES = new Set(["bio", "company_description", "text"]);
-const FILE_TYPES = new Set(["file", "photo"]);
+const FILE_TYPES = new Set(["file", "photo", "cover_image"]);
 
 function BusinessHoursEditor({
   value,
@@ -91,22 +93,31 @@ function BusinessHoursEditor({
 export function FieldEditor({
   field,
   onSave,
+  uploadEndpoint = "/api/card-field/upload",
 }: {
   field: CardSectionField;
   onSave: (next: { label: string; value: string }) => void;
+  uploadEndpoint?: string;
 }) {
   const [label, setLabel] = useState(field.label);
   const [value, setValue] = useState(field.value);
   const [isUploading, setIsUploading] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   useDebouncedAutosave({ label, value }, (next) => onSave(next));
+
+  function handleManualSave() {
+    onSave({ label, value });
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1500);
+  }
 
   async function handleFileUpload(file: File) {
     setIsUploading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/card-field/upload", { method: "POST", body: formData });
+      const res = await fetch(uploadEndpoint, { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) {
         toast.error(typeof data.error === "string" ? data.error : "Upload failed");
@@ -114,6 +125,8 @@ export function FieldEditor({
       }
       setValue(data.url);
       onSave({ label, value: data.url });
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 1500);
     } finally {
       setIsUploading(false);
     }
@@ -152,7 +165,9 @@ export function FieldEditor({
         </div>
       ) : FILE_TYPES.has(field.fieldType) ? (
         <div className="flex flex-col gap-1.5">
-          <Label>{field.fieldType === "photo" ? "Photo" : "File"}</Label>
+          <Label>
+            {field.fieldType === "photo" ? "Photo" : field.fieldType === "cover_image" ? "Cover image" : "File"}
+          </Label>
           {value && (
             <a href={value} target="_blank" rel="noreferrer" className="truncate text-xs text-foreground underline">
               {value}
@@ -160,7 +175,7 @@ export function FieldEditor({
           )}
           <input
             type="file"
-            accept={field.fieldType === "photo" ? "image/*" : "application/pdf,image/*"}
+            accept={field.fieldType === "file" ? "application/pdf,image/*" : "image/*"}
             disabled={isUploading}
             onChange={(e) => {
               const file = e.target.files?.[0];
@@ -168,6 +183,7 @@ export function FieldEditor({
               e.target.value = "";
             }}
           />
+          {isUploading && <p className="text-xs text-muted-foreground">Uploading…</p>}
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
@@ -175,6 +191,17 @@ export function FieldEditor({
           <Input value={value} onChange={(e) => setValue(e.target.value)} />
         </div>
       )}
+
+      <div className="flex items-center gap-2 pt-1">
+        <Button type="button" size="sm" onClick={handleManualSave}>
+          Save
+        </Button>
+        {justSaved && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <CheckCircle2 className="size-3.5 text-ink" /> Saved
+          </span>
+        )}
+      </div>
     </div>
   );
 }

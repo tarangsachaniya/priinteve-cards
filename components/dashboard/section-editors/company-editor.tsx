@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,12 +28,21 @@ export function CompanyEditor({
     initial[sub.fieldType] = items.find((i) => i.fieldType === sub.fieldType)?.value ?? "";
   }
   const [values, setValues] = useState(initial);
+  const [justSaved, setJustSaved] = useState(false);
 
-  useDebouncedAutosave(values, (next) => {
+  function save(next: Record<string, string>) {
     for (const sub of SUBFIELDS) {
       onUpsertSubfield(sub.fieldType, sub.label, next[sub.fieldType] ?? "");
     }
-  });
+  }
+
+  useDebouncedAutosave(values, save);
+
+  function handleManualSave() {
+    save(values);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1500);
+  }
 
   return (
     <div className="flex flex-col gap-3 p-3">
@@ -52,6 +63,17 @@ export function CompanyEditor({
           )}
         </div>
       ))}
+
+      <div className="flex items-center gap-2 pt-1">
+        <Button type="button" size="sm" onClick={handleManualSave}>
+          Save
+        </Button>
+        {justSaved && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <CheckCircle2 className="size-3.5 text-ink" /> Saved
+          </span>
+        )}
+      </div>
     </div>
   );
 }

@@ -111,18 +111,77 @@ async function seedSiteContentList(section: string, items: Record<string, unknow
   });
 }
 
-async function seedPlan(data: {
-  name: string;
-  cardType: "NFC" | "QR" | "BOTH";
-  price: number;
-  validityDays: number;
-  featuresJson: string[];
-  maxGalleryImages: number;
-  recommended?: boolean;
-}) {
-  const existing = await db.plan.findFirst({ where: { name: data.name } });
-  if (existing) return;
-  await db.plan.create({ data });
+type CardMaterial = "PLASTIC" | "WOODEN" | "METAL";
+
+/** Price matrix (INR) by material and duration in years. */
+const PLAN_PRICES: Record<CardMaterial, Record<number, number>> = {
+  PLASTIC: { 1: 300, 2: 500, 3: 800 },
+  WOODEN: { 1: 500, 2: 800, 3: 1200 },
+  METAL: { 1: 750, 2: 1400, 3: 2000 },
+};
+
+/** Per-material limits and perks; longer durations inherit the material's tier. */
+const MATERIAL_TIERS: Record<
+  CardMaterial,
+  { label: string; maxGalleryImages: number; maxVideos: number; maxFields: number; perks: string[] }
+> = {
+  PLASTIC: {
+    label: "Plastic",
+    maxGalleryImages: 8,
+    maxVideos: 1,
+    maxFields: 20,
+    perks: ["Durable printed plastic card", "Full profile customization"],
+  },
+  WOODEN: {
+    label: "Wooden",
+    maxGalleryImages: 20,
+    maxVideos: 3,
+    maxFields: 40,
+    perks: ["Eco-friendly engraved wooden card", "Full profile customization", "Priority support"],
+  },
+  METAL: {
+    label: "Metal",
+    maxGalleryImages: 50,
+    maxVideos: 10,
+    maxFields: 100,
+    perks: [
+      "Premium laser-etched metal card",
+      "Full profile customization",
+      "Priority support",
+      "Dedicated onboarding help",
+    ],
+  },
+};
+
+async function seedPlan(material: CardMaterial, durationYears: number) {
+  const tier = MATERIAL_TIERS[material];
+  const price = PLAN_PRICES[material][durationYears];
+  const yearLabel = durationYears === 1 ? "1 Year" : `${durationYears} Years`;
+
+  const data = {
+    name: `${tier.label} — ${yearLabel}`,
+    material,
+    durationYears,
+    price,
+    validityDays: durationYears * 365,
+    featuresJson: [
+      "NFC tap + QR scan",
+      `Valid for ${yearLabel.toLowerCase()}`,
+      `${tier.maxGalleryImages} gallery images`,
+      ...tier.perks,
+    ],
+    maxGalleryImages: tier.maxGalleryImages,
+    maxVideos: tier.maxVideos,
+    maxFields: tier.maxFields,
+    // Best value: mid material, mid duration.
+    recommended: material === "WOODEN" && durationYears === 2,
+  };
+
+  await db.plan.upsert({
+    where: { material_durationYears: { material, durationYears } },
+    update: data,
+    create: data,
+  });
 }
 
 const PRIINTEVE_FIELD_TYPES = [
@@ -230,38 +289,11 @@ async function main() {
   await upsertSetting("wallet_min_redeem_points", "500");
   await upsertSetting("referral_points_per_referral", "100");
 
-  await seedPlan({
-    name: "Starter",
-    cardType: "QR",
-    price: 499,
-    validityDays: 365,
-    featuresJson: ["QR digital card", "Basic profile fields", "5 gallery images"],
-    maxGalleryImages: 5,
-  });
-
-  await seedPlan({
-    name: "Pro",
-    cardType: "BOTH",
-    price: 999,
-    validityDays: 365,
-    featuresJson: [
-      "NFC + QR digital card",
-      "Full profile customization",
-      "20 gallery images",
-      "Priority support",
-    ],
-    maxGalleryImages: 20,
-    recommended: true,
-  });
-
-  await seedPlan({
-    name: "NFC Only",
-    cardType: "NFC",
-    price: 799,
-    validityDays: 365,
-    featuresJson: ["NFC digital card", "Full profile customization", "10 gallery images"],
-    maxGalleryImages: 10,
-  });
+  for (const material of ["PLASTIC", "WOODEN", "METAL"] as const) {
+    for (const durationYears of [1, 2, 3]) {
+      await seedPlan(material, durationYears);
+    }
+  }
 
   await seedSiteContentFlat("homepage_hero", {
     headline: "One card. Every way to connect.",

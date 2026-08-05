@@ -37,6 +37,7 @@ export const FIELD_TYPE_META: Record<string, { icon: LucideIcon; label: string }
   social_facebook: { icon: AtSign, label: "Facebook" },
   social_youtube: { icon: AtSign, label: "YouTube" },
   designation: { icon: Briefcase, label: "Designation" },
+  cover_image: { icon: ImageIcon, label: "Cover Image" },
   company_name: { icon: Building2, label: "Company Name" },
   company_tagline: { icon: Sparkles, label: "Tagline" },
   company_description: { icon: AlignLeft, label: "About the Company" },
@@ -64,6 +65,7 @@ export const SOCIAL_PLATFORMS = [
 
 /** Section types offered in the builder's "+ Add section" menu, in menu order. */
 export const INSERTABLE_SECTION_TYPES = [
+  "cover_image",
   "company_name",
   "designation",
   "bio",

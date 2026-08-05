@@ -23,11 +23,12 @@ export async function GET(req: Request) {
   const sortBy = SORTABLE_FIELDS.has(sortByParam) ? sortByParam : "createdAt";
   const sortDir = searchParams.get("sortDir") === "asc" ? "asc" : "desc";
   const status = searchParams.get("status");
-  const cardType = searchParams.get("cardType");
+  const material = searchParams.get("material");
 
   const where = {
     ...(search && { name: { contains: search, mode: "insensitive" as const } }),
-    ...(cardType && cardType !== "all" && { cardType: cardType as "NFC" | "QR" | "BOTH" }),
+    ...(material &&
+      material !== "all" && { material: material as "PLASTIC" | "WOODEN" | "METAL" }),
     ...(status === "active" && { isDraft: false, isActive: true }),
     ...(status === "disabled" && { isDraft: false, isActive: false }),
     ...(status === "draft" && { isDraft: true }),

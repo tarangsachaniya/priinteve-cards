@@ -27,7 +27,8 @@ export default async function AdminPlansPage() {
           initialPlans={plans.map((p) => ({
             id: p.id,
             name: p.name,
-            cardType: p.cardType,
+            material: p.material,
+            durationYears: p.durationYears,
             price: p.price,
             validityDays: p.validityDays,
             featuresJson: p.featuresJson,

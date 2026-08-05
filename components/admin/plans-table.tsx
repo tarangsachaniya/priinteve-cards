@@ -18,11 +18,15 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { PlanForm, type AdminPlan } from "@/components/admin/plan-form";
 
-const CARD_TYPE_LABEL: Record<AdminPlan["cardType"], string> = {
-  NFC: "NFC",
-  QR: "QR",
-  BOTH: "NFC + QR",
+const MATERIAL_LABEL: Record<AdminPlan["material"], string> = {
+  PLASTIC: "Plastic",
+  WOODEN: "Wooden",
+  METAL: "Metal",
 };
+
+function planTypeLabel(plan: AdminPlan) {
+  return `${MATERIAL_LABEL[plan.material]} · ${plan.durationYears} ${plan.durationYears === 1 ? "yr" : "yrs"}`;
+}
 
 export function PlansTable({ initialPlans }: { initialPlans: AdminPlan[] }) {
   const [plans, setPlans] = useState<AdminPlan[]>(initialPlans);
@@ -91,7 +95,7 @@ export function PlansTable({ initialPlans }: { initialPlans: AdminPlan[] }) {
                     </Badge>
                   )}
                 </TableCell>
-                <TableCell>{CARD_TYPE_LABEL[plan.cardType]}</TableCell>
+                <TableCell>{planTypeLabel(plan)}</TableCell>
                 <TableCell>{formatCurrency(plan.price)}</TableCell>
                 <TableCell>{plan.validityDays} days</TableCell>
                 <TableCell>{plan.subscriberCount ?? 0}</TableCell>
