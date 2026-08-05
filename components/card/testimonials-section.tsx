@@ -44,9 +44,12 @@ function TestimonialCard({
 export function TestimonialsSection({
   testimonials,
   flat,
+  showTitle = true,
 }: {
   testimonials: TestimonialItem[];
   flat?: boolean;
+  /** False when a caller already renders its own heading around this section. */
+  showTitle?: boolean;
 }) {
   if (testimonials.length === 0) return null;
 
@@ -54,7 +57,7 @@ export function TestimonialsSection({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <h3 className="px-1 text-sm font-semibold text-foreground/90">Testimonials</h3>
+      {showTitle && <h3 className="px-1 text-sm font-semibold text-foreground/90">Testimonials</h3>}
       <MotionSection
         stagger
         className={

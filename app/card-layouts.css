@@ -1,0 +1,2020 @@
+/* ============================================================================
+   PUBLIC CARD — THEME LAYOUTS
+   ----------------------------------------------------------------------------
+   Ported from PrintEve/printeve-card-options-web.html. Structure, type scale,
+   spacing and shadows are the reference's; only the colour source changed
+   (reference vars -> semantic tokens from card-theme.css).
+
+   Root classes map to the reference's roots:
+     .pe-og  <- .wrap  (Original)
+     .pe-bn  <- .bn    (Bento)
+     .pe-ed  <- .ed    (Editorial)
+
+   Every inner class is prefixed `pe-`. The reference uses bare names like
+   `.grid`, `.card`, `.main` and `.file`; unprefixed, `.pe-bn .grid` would also
+   match Tailwind's own `grid` utility on any nested element and force
+   grid-template-columns onto it. The prefix removes that entire failure mode.
+
+   Repeatable content sections (services, products, testimonials, FAQ, buttons,
+   gallery, business hours, custom HTML) are NOT restyled here — they render
+   through the existing shared components, which are already token-driven and
+   inherit the active palette via the shadcn remap in card-theme.css.
+
+   Breakpoints are container queries on the `card` container declared by
+   <CardThemeScope>:
+     base            mobile (reference base)
+     >= 640px        tablet  (added; the reference has no intermediate step)
+     >= 900px        desktop (reference's @container (min-width:900px))
+   ========================================================================== */
+
+/* ============================================================================
+   SHARED PRIMITIVES
+   ========================================================================== */
+.pe-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--card-text-muted);
+}
+
+.pe-media-ph {
+  background: linear-gradient(150deg, var(--card-ph-from), var(--card-ph-to));
+}
+.pe-media-ph svg {
+  color: var(--card-ph-icon);
+}
+
+.pe-qr {
+  border-radius: var(--card-radius-md);
+  background: #fff;
+  padding: 6px;
+}
+
+/* Verified / trust pill — same treatment in all three themes. */
+.pe-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 11px 0 8px;
+  border-radius: var(--card-radius-pill);
+  background: var(--card-primary-soft);
+  color: var(--card-primary-hover);
+  font-size: 11px;
+  font-weight: 700;
+}
+.pe-verified svg {
+  width: 13px;
+  height: 13px;
+}
+/* On a photo scrim the pill sits on white for legibility over any image. */
+.pe-verified.pe-on-media {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  background: rgb(255 255 255 / 0.92);
+  backdrop-filter: blur(6px);
+}
+
+.pe-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--card-text-muted);
+  padding-top: 8px;
+}
+.pe-footer .pe-made {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--card-text);
+}
+.pe-footer .pe-made svg {
+  width: 14px;
+  height: 14px;
+  color: var(--card-primary);
+}
+.pe-footer .pe-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: var(--card-radius-pill);
+  background: var(--card-border);
+}
+
+/* Mode toggle — floats over the card in all themes. */
+.pe-mode-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--card-radius-pill);
+  border: 1px solid var(--card-border);
+  background: var(--card-surface);
+  color: var(--card-text);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  transition: var(--card-transition-hover);
+}
+.pe-mode-toggle:hover {
+  color: var(--card-primary);
+  border-color: var(--card-primary);
+}
+.pe-mode-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Video block — shared shell, gradient comes from the mode token. */
+.pe-video {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--card-radius-xl);
+  overflow: hidden;
+  background: var(--card-video-gradient);
+}
+.pe-video-tex {
+  position: absolute;
+  inset: 0;
+  opacity: 0.13;
+  background: repeating-linear-gradient(60deg, #fff 0 2px, transparent 2px 22px);
+}
+.pe-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 58px;
+  height: 58px;
+  border-radius: var(--card-radius-pill);
+  background: rgb(255 255 255 / 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.3);
+}
+.pe-play svg {
+  width: 23px;
+  height: 23px;
+  color: var(--card-primary-hover);
+  margin-left: 3px;
+}
+
+/* ============================================================================
+   1a — ORIGINAL   "photo-first list"
+   Reference: .wrap  |  desktop = one centred 840px profile column
+   ========================================================================== */
+.pe-og {
+  max-width: 422px;
+  margin: 0 auto;
+  padding: 20px 18px 40px;
+}
+.pe-og .pe-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* titled section card (LinkedIn-style) */
+.pe-og .pe-sec {
+  background: var(--card-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius-lg);
+  padding: 20px;
+}
+.pe-og .pe-sec-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.pe-og .pe-sec-h .pe-t {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--card-text);
+}
+
+/* profile header — banner, avatar on the banner, name below, CTAs beneath */
+.pe-og .pe-phead {
+  background: var(--card-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius-lg);
+  overflow: hidden;
+}
+.pe-og .pe-phead-banner {
+  position: relative;
+  height: 104px;
+  background: var(--card-banner);
+  background-size: cover;
+  background-position: center;
+}
+.pe-og .pe-phead-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(130px 130px at 14% 8%, rgb(255 255 255 / 0.4), transparent 70%),
+    radial-gradient(190px 190px at 92% 128%, var(--card-banner-blob), transparent 70%);
+}
+/* An uploaded cover image replaces the gradient; the scrim keeps text legible. */
+.pe-og .pe-phead-banner.pe-has-cover::after {
+  background: linear-gradient(180deg, rgb(15 23 42 / 0.15), rgb(15 23 42 / 0.5));
+}
+.pe-og .pe-phead-body {
+  padding: 0 18px 18px;
+}
+.pe-og .pe-avatar {
+  position: relative;
+  z-index: 1;
+  width: 92px;
+  height: 92px;
+  margin-top: -46px;
+  border-radius: var(--card-radius-pill);
+  border: 4px solid var(--card-surface);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
+}
+.pe-og .pe-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pe-og .pe-avatar .pe-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--card-ph-icon);
+}
+.pe-og .pe-phead-lower {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+.pe-og .pe-name-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.pe-og .pe-name {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--card-text);
+}
+.pe-og .pe-role {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--card-text);
+  margin-top: 5px;
+}
+.pe-og .pe-company {
+  margin-top: 7px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+}
+.pe-og .pe-company svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--card-primary);
+}
+.pe-og .pe-web {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--card-primary);
+}
+.pe-og .pe-web svg {
+  width: 21px;
+  height: 21px;
+  flex: none;
+}
+
+.pe-og .pe-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pe-og .pe-btn {
+  font-family: var(--card-font-sans);
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: var(--card-radius-sm);
+  transition: transform 0.06s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.pe-og .pe-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.pe-og .pe-btn-primary {
+  background: var(--card-primary);
+  color: var(--card-text-on-primary);
+  box-shadow: var(--card-shadow-cta);
+}
+.pe-og .pe-btn-primary:active {
+  transform: translateY(2px);
+}
+.pe-og .pe-btn-outline {
+  background: transparent;
+  color: var(--card-text);
+  border: 1.5px solid var(--card-border);
+}
+.pe-og .pe-btn-outline svg {
+  color: var(--card-primary);
+}
+.pe-og .pe-btn-outline:hover {
+  border-color: var(--card-primary);
+  color: var(--card-primary);
+}
+
+/* contact info cards — icon badge / eyebrow / title / value */
+.pe-og .pe-cinfo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.pe-og .pe-cinfo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* Grid items default to a min-width of their content's natural width, which
+     lets one long, unbroken value (an email, a URL) force the whole grid wider
+     than its container instead of wrapping/ellipsizing. min-width: 0 opts back
+     into shrinking to the track size; every ".pe-*-val"/"-card"/"-row"-style
+     grid item in this file carries the same fix for the same reason. */
+  min-width: 0;
+  background: var(--card-surface-muted);
+  border-radius: var(--card-radius-lg);
+  padding: 18px 16px;
+  color: inherit;
+  transition: var(--card-transition-hover);
+}
+.pe-og .pe-cinfo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow);
+  color: inherit;
+}
+.pe-og .pe-cinfo-ic {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: var(--card-radius-pill);
+  background: var(--card-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.pe-og .pe-cinfo-ic svg {
+  width: 20px;
+  height: 20px;
+  color: var(--card-text-on-primary);
+  stroke-width: 2;
+}
+.pe-og .pe-cinfo-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--card-primary);
+}
+.pe-og .pe-cinfo-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--card-text);
+  margin-top: 5px;
+}
+.pe-og .pe-cinfo-val {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 8px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.pe-og .pe-about-p {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--card-text);
+}
+.pe-og .pe-stats {
+  display: flex;
+  margin-top: 18px;
+  border-top: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
+}
+.pe-og .pe-stat {
+  flex: 1;
+  text-align: center;
+  padding: 20px 8px;
+  position: relative;
+}
+.pe-og .pe-stat + .pe-stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 1px;
+  background: var(--card-border);
+}
+.pe-og .pe-stat-num {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--card-text);
+}
+.pe-og .pe-stat-cap {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 5px;
+}
+.pe-og .pe-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+.pe-og .pe-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--card-primary);
+  background: var(--card-primary-soft);
+  border: 1px solid var(--card-primary-ring);
+  padding: 7px 13px;
+  border-radius: var(--card-radius-pill);
+}
+
+/* details / files rows */
+.pe-og .pe-rows {
+  display: flex;
+  flex-direction: column;
+}
+.pe-og .pe-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 2px;
+  color: inherit;
+  /* Becomes a CSS Grid item at >=900px (.pe-rows switches to a 2-col grid) —
+     see the min-width: 0 note on .pe-cinfo-card above. */
+  min-width: 0;
+}
+.pe-og .pe-row + .pe-row {
+  border-top: 1px solid var(--card-border);
+}
+.pe-og .pe-row-ic {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--card-radius-sm);
+  background: var(--card-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pe-og .pe-row-ic svg {
+  width: 20px;
+  height: 20px;
+  color: var(--card-primary);
+}
+.pe-og .pe-row-b {
+  flex: 1;
+  min-width: 0;
+}
+.pe-og .pe-row-lab {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--card-text-muted);
+}
+.pe-og .pe-row-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.pe-og .pe-row-val {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 3px;
+  word-break: break-word;
+}
+.pe-og .pe-row-go {
+  color: var(--card-text-muted);
+  flex: none;
+}
+.pe-og .pe-row-go svg {
+  width: 19px;
+  height: 19px;
+  display: block;
+}
+
+/* payments */
+.pe-og .pe-pay {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.pe-og .pe-pay-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.pe-og .pe-pay-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-surface-muted);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius-md);
+  padding: 11px 11px 11px 16px;
+}
+.pe-og .pe-pay-field > div {
+  flex: 1;
+  min-width: 0;
+}
+.pe-og .pe-upi-lab {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--card-text-muted);
+}
+.pe-og .pe-upi-id {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--card-text);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pe-og .pe-pay-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: 50px;
+  border-radius: var(--card-radius-md);
+  border: none;
+  cursor: pointer;
+  background: var(--card-primary);
+  color: var(--card-text-on-primary);
+  font-family: var(--card-font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: var(--card-shadow-cta);
+  transition: transform 0.06s ease;
+}
+.pe-og .pe-pay-btn:active {
+  transform: translateY(2px);
+}
+.pe-og .pe-pay-btn svg {
+  width: 19px;
+  height: 19px;
+}
+.pe-og .pe-pay-qr {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius-lg);
+  padding: 16px;
+}
+.pe-og .pe-pay-qr .pe-qr {
+  width: 124px;
+  height: 124px;
+}
+.pe-og .pe-pay-qr-cap {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--card-text-muted);
+}
+
+/* quote + scan */
+.pe-og .pe-quote-mark {
+  font-size: 40px;
+  line-height: 0.6;
+  font-weight: 800;
+  color: var(--card-primary);
+  font-family: var(--card-font-serif);
+}
+.pe-og .pe-quote {
+  font-size: 18px;
+  line-height: 1.45;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-top: 8px;
+  font-family: var(--card-font-serif);
+  color: var(--card-text);
+}
+.pe-og .pe-quote-attr {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 16px;
+}
+.pe-og .pe-quote-attr b {
+  color: var(--card-text);
+  font-weight: 700;
+}
+.pe-og .pe-scan {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.pe-og .pe-scan .pe-qr {
+  width: 104px;
+  height: 104px;
+}
+.pe-og .pe-scan-lab {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--card-text);
+}
+.pe-og .pe-scan-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--card-text-muted);
+  margin-top: 3px;
+}
+
+@container card (min-width: 640px) {
+  .pe-og {
+    max-width: 620px;
+  }
+  .pe-og .pe-cinfo {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* --- Original desktop: one centred 840px profile column ------------------- */
+@container card (min-width: 900px) {
+  .pe-og {
+    max-width: 840px;
+    padding: 32px 24px 64px;
+  }
+  .pe-og .pe-stack {
+    gap: 18px;
+  }
+  .pe-og .pe-phead-banner {
+    height: 132px;
+  }
+  .pe-og .pe-phead-body {
+    padding: 0 28px 24px;
+  }
+  .pe-og .pe-avatar {
+    width: 120px;
+    height: 120px;
+    margin-top: -60px;
+    border-width: 5px;
+  }
+  .pe-og .pe-phead-lower {
+    margin-top: 18px;
+    gap: 18px;
+  }
+  .pe-og .pe-name {
+    font-size: 28px;
+  }
+  .pe-og .pe-role {
+    font-size: 16px;
+  }
+  .pe-og .pe-sec {
+    padding: 24px 28px;
+  }
+  .pe-og .pe-sec-h .pe-t {
+    font-size: 18px;
+  }
+  .pe-og .pe-cinfo {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .pe-og .pe-pay {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 26px;
+  }
+  .pe-og .pe-pay-info {
+    flex: 1;
+  }
+  .pe-og .pe-pay-qr {
+    flex: none;
+    align-self: stretch;
+    justify-content: center;
+  }
+  .pe-og .pe-quote {
+    font-size: 20px;
+  }
+  .pe-og .pe-scan .pe-qr {
+    width: 120px;
+    height: 120px;
+  }
+  .pe-og .pe-rows {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .pe-og .pe-row {
+    background: var(--card-surface-muted);
+    border-radius: var(--card-radius-md);
+    padding: 14px 18px;
+    transition: var(--card-transition-hover);
+  }
+  .pe-og .pe-row:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
+  }
+  .pe-og .pe-row + .pe-row {
+    border-top: none;
+  }
+}
+
+/* ============================================================================
+   1b — BENTO   "modular tile grid"
+   Reference: .bn  |  desktop = 380px sticky rail + 4-col main, 1300px max
+   ========================================================================== */
+.pe-bn {
+  max-width: 422px;
+  margin: 0 auto;
+  padding: 16px 14px 40px;
+}
+.pe-bn .pe-bngrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.pe-bn .pe-side,
+.pe-bn .pe-main {
+  display: contents;
+}
+.pe-bn .pe-tile {
+  background: var(--card-surface);
+  border-radius: var(--card-radius-xl);
+  box-shadow: var(--card-shadow-tile);
+  padding: 16px;
+}
+.pe-bn .pe-span2 {
+  grid-column: 1 / -1;
+}
+.pe-bn .pe-ey {
+  font-family: var(--card-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--card-text-muted);
+}
+.pe-bn .pe-sec-h {
+  grid-column: 1 / -1;
+  margin: 6px 2px -2px;
+}
+
+/* hero */
+.pe-bn .pe-hero {
+  position: relative;
+  grid-column: 1 / -1;
+  border-radius: var(--card-radius-2xl);
+  overflow: hidden;
+  aspect-ratio: 16 / 13;
+  background: linear-gradient(150deg, var(--card-ph-from), var(--card-ph-to));
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--card-shadow-tile);
+}
+.pe-bn .pe-hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pe-bn .pe-hero-ph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.pe-bn .pe-hero-ph svg {
+  width: 58%;
+  height: auto;
+  color: var(--card-ph-icon);
+  opacity: 0.9;
+}
+.pe-bn .pe-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--card-scrim);
+}
+.pe-bn .pe-hero-meta {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 16px;
+  color: #fff;
+}
+.pe-bn .pe-name {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.pe-bn .pe-role {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.9);
+}
+.pe-bn .pe-company {
+  margin-top: 7px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.82);
+}
+.pe-bn .pe-bar {
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--card-primary-accent);
+  flex: none;
+}
+
+/* tagline tile */
+.pe-bn .pe-tag-tile {
+  grid-column: 1 / -1;
+  background: var(--card-surface);
+  color: var(--card-text);
+  border-radius: var(--card-radius-xl);
+  padding: 16px 18px;
+  box-shadow: var(--card-shadow-tile);
+  display: flex;
+  gap: 12px;
+}
+.pe-bn .pe-tag-tile .pe-acc {
+  width: 3px;
+  border-radius: 2px;
+  background: var(--card-primary);
+  flex: none;
+}
+.pe-bn .pe-tag-tile .pe-q {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+.pe-bn .pe-tag-tile .pe-cat {
+  font-family: var(--card-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--card-text-muted);
+  margin-bottom: 7px;
+}
+
+/* buttons */
+.pe-bn .pe-btn {
+  font-family: var(--card-font-sans);
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--card-radius-lg);
+}
+.pe-bn .pe-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.pe-bn .pe-save {
+  grid-column: 1 / span 1;
+  height: 56px;
+  background: var(--card-primary);
+  color: var(--card-text-on-primary);
+  font-size: 15px;
+  box-shadow: var(--card-shadow-cta);
+  transition: transform 0.06s ease;
+}
+.pe-bn .pe-save:active {
+  transform: translateY(2px);
+}
+.pe-bn .pe-vcard {
+  grid-column: 2 / span 1;
+  height: 56px;
+  background: var(--card-surface);
+  color: var(--card-primary);
+  box-shadow: var(--card-shadow-tile);
+  font-size: 14px;
+}
+.pe-bn .pe-exch {
+  grid-column: 1 / -1;
+  height: 50px;
+  background: transparent;
+  border: 1.5px solid var(--card-border);
+  color: var(--card-text);
+  font-size: 14px;
+}
+.pe-bn .pe-exch svg {
+  color: var(--card-primary);
+}
+
+/* contact tiles */
+.pe-bn .pe-ct {
+  background: var(--card-surface);
+  border-radius: var(--card-radius-xl);
+  box-shadow: var(--card-shadow-tile);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 104px;
+  /* A grid item of .pe-bngrid (2-col mobile, 4-col desktop) whose value text
+     is nowrap+ellipsis — without this it forces the whole grid, and the page,
+     wider than the viewport. See the note on .pe-cinfo-card above. */
+  min-width: 0;
+  color: inherit;
+  transition: var(--card-transition-press);
+}
+.pe-bn .pe-ct:active {
+  transform: scale(0.98);
+}
+.pe-bn .pe-ct:hover {
+  color: inherit;
+}
+.pe-bn .pe-ct-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.pe-bn .pe-ct-top .pe-arr {
+  color: var(--card-text-muted);
+}
+.pe-bn .pe-ct-top .pe-arr svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.pe-bn .pe-med {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--card-radius-md);
+  background: var(--card-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pe-bn .pe-med svg {
+  width: 20px;
+  height: 20px;
+  color: var(--card-text-on-primary);
+  stroke-width: 2;
+}
+.pe-bn .pe-ct-text {
+  /* Block, not inline: ellipsis only clips within a block/inline-block box
+     with a constrained width, and only a block child of a min-width:0 flex
+     item actually shrinks to that width. */
+  display: block;
+  min-width: 0;
+}
+.pe-bn .pe-ct-lab {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.pe-bn .pe-ct-val {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* stats */
+.pe-bn .pe-stats {
+  grid-column: 1 / -1;
+  display: flex;
+  padding: 16px;
+}
+.pe-bn .pe-stat {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  padding: 2px 6px;
+}
+.pe-bn .pe-stat + .pe-stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: var(--card-border);
+}
+.pe-bn .pe-stat-num {
+  font-family: var(--card-font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.pe-bn .pe-stat-cap {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 4px;
+}
+
+/* about + chips */
+.pe-bn .pe-about {
+  grid-column: 1 / -1;
+}
+.pe-bn .pe-about p {
+  font-size: 14px;
+  line-height: 1.55;
+}
+.pe-bn .pe-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+.pe-bn .pe-chip {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  background: var(--card-surface-muted);
+  padding: 6px 12px;
+  border-radius: var(--card-radius-pill);
+}
+
+/* details / files cards */
+.pe-bn .pe-rows {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.pe-bn .pe-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card-surface);
+  border-radius: var(--card-radius-xl);
+  box-shadow: var(--card-shadow-tile);
+  padding: 16px 20px;
+  min-height: 68px;
+  color: inherit;
+  transition: var(--card-transition-press);
+  /* Becomes a CSS Grid item at >=640px (.pe-rows switches to a 2-col grid) —
+     see the min-width: 0 note on .pe-cinfo-card above. */
+  min-width: 0;
+}
+.pe-bn .pe-row:active {
+  transform: scale(0.98);
+}
+.pe-bn .pe-row:hover {
+  color: inherit;
+}
+.pe-bn .pe-row-ic {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: var(--card-radius-md);
+  background: var(--card-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pe-bn .pe-row-ic svg {
+  width: 18px;
+  height: 18px;
+  color: var(--card-primary);
+}
+.pe-bn .pe-row-b {
+  flex: 1;
+  min-width: 0;
+}
+.pe-bn .pe-row-lab {
+  font-family: var(--card-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--card-text-muted);
+}
+.pe-bn .pe-row-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.pe-bn .pe-row-val {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 2px;
+  word-break: break-word;
+}
+.pe-bn .pe-row-meta {
+  font-family: var(--card-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 2px;
+}
+.pe-bn .pe-row-go svg {
+  width: 18px;
+  height: 18px;
+  color: var(--card-text-muted);
+  display: block;
+}
+
+/* payments */
+.pe-bn .pe-pay {
+  grid-column: 1 / -1;
+}
+.pe-bn .pe-upi-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--card-surface-muted);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius-md);
+  padding: 10px 14px;
+}
+.pe-bn .pe-upi-lab {
+  font-family: var(--card-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--card-text-muted);
+}
+.pe-bn .pe-upi-id {
+  font-family: var(--card-font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pe-bn .pe-payrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+.pe-bn .pe-pay-btn {
+  flex: 1;
+  height: 48px;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--card-radius-md);
+  background: var(--card-primary);
+  color: var(--card-text-on-primary);
+  font-family: var(--card-font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: var(--card-shadow-cta);
+}
+.pe-bn .pe-qr {
+  width: 88px;
+  height: 88px;
+  flex: none;
+}
+.pe-bn .pe-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-primary-hover);
+  background: var(--card-primary-soft);
+  padding: 8px 12px;
+  border-radius: var(--card-radius-sm);
+  margin-top: 12px;
+}
+.pe-bn .pe-note svg {
+  width: 13px;
+  height: 13px;
+  color: var(--card-primary-hover);
+}
+
+/* quote / scan / footer */
+.pe-bn .pe-quote {
+  grid-column: 1 / -1;
+  background: var(--card-surface);
+  border-radius: var(--card-radius-xl);
+  box-shadow: var(--card-shadow-tile);
+  padding: 20px;
+}
+.pe-bn .pe-qm {
+  font-family: var(--card-font-serif);
+  font-size: 40px;
+  line-height: 0.5;
+  color: var(--card-primary);
+  font-weight: 800;
+}
+.pe-bn .pe-qt {
+  font-family: var(--card-font-serif);
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 500;
+  margin-top: 10px;
+}
+.pe-bn .pe-qa {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 14px;
+}
+.pe-bn .pe-qa b {
+  color: var(--card-text);
+}
+.pe-bn .pe-scan {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+}
+.pe-bn .pe-scan .pe-qr {
+  width: 120px;
+  height: 120px;
+}
+.pe-bn .pe-scan-lab {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+}
+.pe-bn .pe-footer {
+  grid-column: 1 / -1;
+}
+.pe-bn .pe-video {
+  grid-column: 1 / -1;
+  border-radius: var(--card-radius-xl);
+  box-shadow: var(--card-shadow-tile);
+}
+
+@container card (min-width: 640px) {
+  .pe-bn {
+    max-width: 720px;
+  }
+  .pe-bn .pe-bngrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .pe-bn .pe-save {
+    grid-column: 1 / span 2;
+  }
+  .pe-bn .pe-vcard {
+    grid-column: 3 / span 1;
+  }
+  .pe-bn .pe-rows {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- Bento desktop: sticky 380px rail + 4-col main ------------------------ */
+@container card (min-width: 900px) {
+  .pe-bn {
+    max-width: 1300px;
+    padding: 36px 40px 72px;
+  }
+  .pe-bn .pe-bngrid {
+    grid-template-columns: 380px minmax(0, 1fr);
+    gap: 44px;
+    align-items: start;
+  }
+  /* the rail keeps its own 2-up grid so save/vCard stay paired */
+  .pe-bn .pe-side {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    position: sticky;
+    top: 36px;
+  }
+  .pe-bn .pe-main {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    align-content: start;
+    min-width: 0;
+  }
+  .pe-bn .pe-hero {
+    aspect-ratio: 4 / 5;
+  }
+  .pe-bn .pe-save {
+    grid-column: 1 / span 1;
+  }
+  .pe-bn .pe-vcard {
+    grid-column: 2 / span 1;
+  }
+  /* contact tiles sit in one horizontal row */
+  .pe-bn .pe-ct {
+    min-height: 118px;
+  }
+  .pe-bn .pe-video {
+    aspect-ratio: 21 / 9;
+  }
+  .pe-bn .pe-rows {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .pe-bn .pe-row:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-tile);
+  }
+  .pe-bn .pe-scan {
+    flex-direction: row;
+    justify-content: center;
+    gap: 28px;
+    padding: 24px;
+  }
+  .pe-bn .pe-scan .pe-qr {
+    width: 104px;
+    height: 104px;
+  }
+  .pe-bn .pe-qt {
+    font-size: 22px;
+  }
+}
+
+/* ============================================================================
+   1c — EDITORIAL   "magazine spotlight"
+   Reference: .ed  |  desktop = sticky 360px column + flow main, 1240px max
+   ========================================================================== */
+.pe-ed {
+  max-width: 422px;
+  margin: 0 auto;
+  padding: 0 0 40px;
+}
+.pe-ed .pe-side,
+.pe-ed .pe-main {
+  display: contents;
+}
+.pe-ed .pe-pad {
+  padding: 0 22px;
+}
+.pe-ed .pe-sec {
+  margin-top: 40px;
+}
+.pe-ed .pe-mark {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.pe-ed .pe-mark .pe-no {
+  font-family: var(--card-font-serif);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--card-primary);
+  font-style: italic;
+}
+.pe-ed .pe-mark .pe-lb {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--card-text);
+}
+
+/* spotlight hero */
+.pe-ed .pe-hero {
+  position: relative;
+  padding: 26px 22px 0;
+  text-align: center;
+  overflow: hidden;
+  background: transparent;
+}
+.pe-ed .pe-glow {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 340px;
+  height: 340px;
+  border-radius: var(--card-radius-pill);
+  background: radial-gradient(circle, var(--card-glow), transparent 66%);
+  pointer-events: none;
+}
+.pe-ed .pe-portrait {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+  border-radius: var(--card-radius-pill);
+  overflow: hidden;
+  background: linear-gradient(155deg, var(--card-ph-from), var(--card-ph-to));
+  box-shadow: 0 12px 40px rgb(20 83 45 / 0.18);
+}
+.pe-ed .pe-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pe-ed .pe-portrait .pe-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--card-font-serif);
+  font-size: 52px;
+  font-weight: 700;
+  color: var(--card-ph-icon);
+}
+.pe-ed .pe-vpill {
+  position: relative;
+  margin-top: 16px;
+}
+.pe-ed .pe-name {
+  font-family: var(--card-font-serif);
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  margin-top: 14px;
+}
+.pe-ed .pe-role {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--card-text-muted);
+  margin-top: 10px;
+}
+.pe-ed .pe-company {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-top: 12px;
+}
+.pe-ed .pe-bar {
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--card-primary);
+  flex: none;
+}
+.pe-ed .pe-tagline {
+  font-family: var(--card-font-serif);
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--card-text);
+  margin: 20px auto 0;
+  max-width: 320px;
+}
+.pe-ed .pe-cat {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  background: var(--card-surface-muted);
+  padding: 6px 13px;
+  border-radius: var(--card-radius-pill);
+}
+
+/* floating action dock */
+.pe-ed .pe-dock {
+  margin: 26px 22px 0;
+  background: var(--card-surface);
+  border-radius: var(--card-radius-xl);
+  box-shadow: var(--card-shadow);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pe-ed .pe-drow {
+  display: flex;
+  gap: 10px;
+}
+.pe-ed .pe-btn {
+  font-family: var(--card-font-sans);
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--card-radius-md);
+}
+.pe-ed .pe-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.pe-ed .pe-save {
+  flex: 1;
+  height: 52px;
+  background: var(--card-primary);
+  color: var(--card-text-on-primary);
+  font-size: 15px;
+  box-shadow: var(--card-shadow-cta);
+  transition: transform 0.06s ease;
+}
+.pe-ed .pe-save:active {
+  transform: translateY(2px);
+}
+.pe-ed .pe-vcard {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  background: var(--card-surface-muted);
+  color: var(--card-primary);
+}
+.pe-ed .pe-exch {
+  height: 48px;
+  background: transparent;
+  border: 1.5px solid var(--card-border);
+  color: var(--card-text);
+  font-size: 14px;
+}
+.pe-ed .pe-exch svg {
+  color: var(--card-primary);
+}
+
+/* contact rows */
+.pe-ed .pe-clist {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.pe-ed .pe-crow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-surface-muted);
+  border-radius: var(--card-radius-md);
+  padding: 12px 14px;
+  min-height: 56px;
+  color: inherit;
+  transition: var(--card-transition-press);
+  /* A grid item of .pe-clist (always 2 columns, even on mobile) whose value
+     text is nowrap+ellipsis — see the min-width: 0 note on .pe-cinfo-card
+     above. */
+  min-width: 0;
+}
+.pe-ed .pe-crow:active {
+  transform: scale(0.98);
+}
+.pe-ed .pe-crow:hover {
+  color: inherit;
+}
+.pe-ed .pe-cicon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: var(--card-radius-pill);
+  border: 1.5px solid var(--card-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--card-primary);
+}
+.pe-ed .pe-cicon svg {
+  width: 16px;
+  height: 16px;
+}
+.pe-ed .pe-cbody {
+  flex: 1;
+  min-width: 0;
+}
+.pe-ed .pe-clab {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.pe-ed .pe-cval {
+  /* Must be block: an inline element ignores overflow/text-overflow for width
+     containment, so a plain <span> here would just paint past its box instead
+     of being clipped — the same failure mode fixed on .pe-ct-val in Bento. */
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--card-text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pe-ed .pe-carr {
+  color: var(--card-text-muted);
+  flex: none;
+}
+.pe-ed .pe-carr svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* about / stats / chips */
+.pe-ed .pe-about p {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.pe-ed .pe-stats {
+  display: flex;
+  margin-top: 8px;
+  padding: 20px 0;
+  border-top: 1px solid var(--card-divider);
+  border-bottom: 1px solid var(--card-divider);
+}
+.pe-ed .pe-stat {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+.pe-ed .pe-stat + .pe-stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: var(--card-divider);
+}
+.pe-ed .pe-stat-num {
+  font-family: var(--card-font-serif);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.pe-ed .pe-stat-cap {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 5px;
+  letter-spacing: 0.02em;
+}
+.pe-ed .pe-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.pe-ed .pe-chip {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  background: var(--card-surface-muted);
+  padding: 7px 13px;
+  border-radius: var(--card-radius-pill);
+}
+
+/* details / files */
+.pe-ed .pe-rows {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.pe-ed .pe-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-surface-muted);
+  border-radius: var(--card-radius-md);
+  padding: 12px 16px;
+  min-height: 56px;
+  color: inherit;
+  transition: var(--card-transition-press);
+  /* Becomes a CSS Grid item at >=640px (.pe-rows switches to a 2-col grid) —
+     see the min-width: 0 note on .pe-cinfo-card above. */
+  min-width: 0;
+}
+.pe-ed .pe-row:active {
+  transform: scale(0.98);
+}
+.pe-ed .pe-row:hover {
+  color: inherit;
+}
+.pe-ed .pe-row.pe-row-file {
+  background: transparent;
+  border: 1.5px solid var(--card-border);
+  padding: 14px 18px;
+  transition: border-color 0.15s ease, transform 0.08s ease;
+}
+.pe-ed .pe-row.pe-row-file:hover {
+  border-color: var(--card-primary);
+}
+.pe-ed .pe-row-ic {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: var(--card-radius-md);
+  background: var(--card-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pe-ed .pe-row-ic svg {
+  width: 18px;
+  height: 18px;
+  color: var(--card-primary);
+}
+.pe-ed .pe-row-b {
+  flex: 1;
+  min-width: 0;
+}
+.pe-ed .pe-row-lab {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--card-text-muted);
+}
+.pe-ed .pe-row-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.pe-ed .pe-row-val {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 2px;
+  word-break: break-word;
+}
+.pe-ed .pe-row-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 2px;
+}
+.pe-ed .pe-row-go svg {
+  width: 18px;
+  height: 18px;
+  color: var(--card-text-muted);
+  display: block;
+}
+
+/* payments */
+.pe-ed .pe-pay {
+  background: var(--card-surface);
+  border-radius: var(--card-radius-xl);
+  box-shadow: var(--card-shadow);
+  padding: 20px;
+}
+.pe-ed .pe-upi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pe-ed .pe-upi-b {
+  flex: 1;
+  min-width: 0;
+}
+.pe-ed .pe-upi-lab {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--card-text-muted);
+}
+.pe-ed .pe-upi-id {
+  font-family: var(--card-font-serif);
+  font-size: 17px;
+  font-weight: 700;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pe-ed .pe-qr {
+  width: 92px;
+  height: 92px;
+  flex: none;
+}
+.pe-ed .pe-payrow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+.pe-ed .pe-pay-btn {
+  flex: 1;
+  height: 48px;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--card-radius-md);
+  background: var(--card-primary);
+  color: var(--card-text-on-primary);
+  font-family: var(--card-font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: var(--card-shadow-cta);
+}
+.pe-ed .pe-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 14px;
+}
+.pe-ed .pe-note svg {
+  width: 13px;
+  height: 13px;
+  color: var(--card-primary);
+}
+
+/* quote / scan / footer */
+.pe-ed .pe-quote {
+  text-align: center;
+  padding: 8px 6px;
+}
+.pe-ed .pe-qt {
+  font-family: var(--card-font-serif);
+  font-size: 18px;
+  line-height: 1.45;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.pe-ed .pe-qt .pe-hl {
+  color: var(--card-primary);
+}
+.pe-ed .pe-qa {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+  margin-top: 14px;
+  letter-spacing: 0.02em;
+}
+.pe-ed .pe-qa b {
+  color: var(--card-text);
+}
+.pe-ed .pe-scan {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 6px;
+}
+.pe-ed .pe-scan .pe-qr {
+  width: 124px;
+  height: 124px;
+}
+.pe-ed .pe-scan-lab {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-muted);
+}
+.pe-ed .pe-footer {
+  margin-top: 36px;
+}
+.pe-ed .pe-video {
+  border-radius: 18px;
+}
+
+@container card (min-width: 640px) {
+  .pe-ed {
+    max-width: 660px;
+  }
+  .pe-ed .pe-rows {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- Editorial desktop: sticky 360px column + flow main ------------------- */
+@container card (min-width: 900px) {
+  .pe-ed {
+    max-width: 1240px;
+    padding: 52px 44px 72px;
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 60px;
+    align-items: start;
+  }
+  .pe-ed .pe-side {
+    display: block;
+    position: sticky;
+    top: 52px;
+  }
+  .pe-ed .pe-main {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    min-width: 0;
+  }
+  /* the spotlight portrait stops being centred — profile goes left */
+  .pe-ed .pe-hero {
+    padding: 0;
+    text-align: left;
+  }
+  .pe-ed .pe-portrait {
+    margin: 0;
+    width: 136px;
+    height: 136px;
+  }
+  .pe-ed .pe-name {
+    font-size: 42px;
+    margin-top: 18px;
+  }
+  .pe-ed .pe-tagline {
+    margin: 20px 0 0;
+    max-width: none;
+  }
+  .pe-ed .pe-dock {
+    margin: 28px 0 0;
+  }
+  .pe-ed .pe-sec {
+    margin-top: 0;
+  }
+  .pe-ed .pe-pad {
+    padding: 0;
+  }
+  .pe-ed .pe-footer {
+    margin-top: 0;
+  }
+  .pe-ed .pe-rows {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .pe-ed .pe-row:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
+  }
+  .pe-ed .pe-video {
+    aspect-ratio: 21 / 9;
+  }
+  .pe-ed .pe-qt {
+    font-size: 22px;
+  }
+  .pe-ed .pe-scan {
+    flex-direction: row;
+    justify-content: center;
+    gap: 28px;
+  }
+  .pe-ed .pe-scan .pe-qr {
+    width: 108px;
+    height: 108px;
+  }
+}

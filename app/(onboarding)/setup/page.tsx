@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { DEFAULT_BRAND_COLOR, DEFAULT_CARD_MODE } from "@/lib/card-theme";
 import { SetupWizard } from "@/components/wizard/setup-wizard";
 
 export default async function DashboardSetupPage() {
@@ -51,7 +52,8 @@ export default async function DashboardSetupPage() {
           order: g.order,
         }))}
         initialThemeId={cardSettings?.themeId ?? "original"}
-        initialBrandColor={cardSettings?.brandColor ?? "#059669"}
+        initialThemeMode={cardSettings?.themeMode ?? DEFAULT_CARD_MODE}
+        initialBrandColor={cardSettings?.brandColor || DEFAULT_BRAND_COLOR}
         initialHeadingFont={cardSettings?.headingFont ?? "font-sans"}
         initialBodyFont={cardSettings?.bodyFont ?? "font-sans"}
         initialGalleryLayout={cardSettings?.galleryLayout ?? "grid"}

@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+// Imported after globals.css, not via @import inside it: webpack's css-loader
+// hoists @import to the top of the bundle, which would put these before the
+// Tailwind output and let :root win over the card-scope token overrides.
+import "./card-theme.css";
+import "./card-layouts.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";

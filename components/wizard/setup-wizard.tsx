@@ -12,6 +12,7 @@ import { Step5PreviewPurchase } from "@/components/wizard/step-5-preview-purchas
 import { CardPreviewPanel } from "@/components/card/card-preview-panel";
 import type { WizardField } from "@/components/wizard/field-instance-row";
 import type { WizardGalleryItem } from "@/components/wizard/gallery-item-list";
+import { normalizeCardMode, type CardMode } from "@/lib/card-theme";
 
 export type SetupWizardProps = {
   name: string;
@@ -21,6 +22,7 @@ export type SetupWizardProps = {
   initialCardFields: WizardField[];
   initialGalleryItems: WizardGalleryItem[];
   initialThemeId: string;
+  initialThemeMode: string;
   initialBrandColor: string;
   initialHeadingFont: string;
   initialBodyFont: string;
@@ -36,6 +38,7 @@ export function SetupWizard({
   initialCardFields,
   initialGalleryItems,
   initialThemeId,
+  initialThemeMode,
   initialBrandColor,
   initialHeadingFont,
   initialBodyFont,
@@ -48,6 +51,7 @@ export function SetupWizard({
   const [cardFields, setCardFields] = useState<WizardField[]>(initialCardFields);
   const [galleryItems, setGalleryItems] = useState<WizardGalleryItem[]>(initialGalleryItems);
   const [themeId, setThemeId] = useState(initialThemeId);
+  const [themeMode, setThemeMode] = useState<CardMode>(normalizeCardMode(initialThemeMode));
   const [brandColor, setBrandColor] = useState(initialBrandColor);
   const [headingFont, setHeadingFont] = useState(initialHeadingFont);
   const [bodyFont, setBodyFont] = useState(initialBodyFont);
@@ -59,7 +63,7 @@ export function SetupWizard({
     slug,
     fields: cardFields.map((f) => ({ ...f, order: 0, isVisible: true })),
     galleryItems: galleryItems.map((item) => ({ type: item.type, url: item.url, order: item.order })),
-    settings: { themeId, brandColor, galleryLayout, vcfIncludePhoto, headingFont, bodyFont },
+    settings: { themeId, themeMode, brandColor, galleryLayout, vcfIncludePhoto, headingFont, bodyFont },
   };
 
   return (
@@ -107,6 +111,8 @@ export function SetupWizard({
         {step === 3 && (
           <Step2ThemeBrand
             themeId={themeId}
+            themeMode={themeMode}
+            onThemeModeChange={setThemeMode}
             onThemeIdChange={setThemeId}
             brandColor={brandColor}
             onBrandColorChange={setBrandColor}

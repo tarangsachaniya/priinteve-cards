@@ -4,12 +4,21 @@ import { SafeImage } from "@/components/card/safe-image";
 import { MotionItem, MotionSection } from "@/components/card/motion-section";
 import type { ServiceItem } from "@/lib/card-sections";
 
-export function ServicesSection({ services, flat }: { services: ServiceItem[]; flat?: boolean }) {
+export function ServicesSection({
+  services,
+  flat,
+  showTitle = true,
+}: {
+  services: ServiceItem[];
+  flat?: boolean;
+  /** False when a caller already renders its own heading around this section. */
+  showTitle?: boolean;
+}) {
   if (services.length === 0) return null;
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <h3 className="px-1 text-sm font-semibold text-foreground/90">Services</h3>
+      {showTitle && <h3 className="px-1 text-sm font-semibold text-foreground/90">Services</h3>}
       <MotionSection stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service, i) => {
           const Icon = resolveLucideIcon(service.icon);

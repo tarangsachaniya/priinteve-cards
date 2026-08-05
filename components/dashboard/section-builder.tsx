@@ -21,6 +21,7 @@ import { CardPreviewPanel } from "@/components/card/card-preview-panel";
 import { INSERTABLE_SECTION_TYPES, getFieldTypeMeta } from "@/lib/field-types";
 import { GROUP_TYPE_CONFIG } from "@/lib/section-item-config";
 import { saveThemeSchema } from "@/lib/validations/onboarding";
+import { normalizeCardMode, type CardMode } from "@/lib/card-theme";
 import type { GroupFieldType } from "@/lib/validations/card-field";
 import {
   buildSectionBlocks,
@@ -96,6 +97,7 @@ export function SectionBuilder({
   initialGallerySectionOrder,
   galleryUsage,
   initialThemeId,
+  initialThemeMode,
   initialBrandColor,
   initialHeadingFont,
   initialBodyFont,
@@ -111,6 +113,7 @@ export function SectionBuilder({
   initialGallerySectionOrder: number;
   galleryUsage: { count: number; max: number };
   initialThemeId: string;
+  initialThemeMode: string;
   initialBrandColor: string;
   initialHeadingFont: string;
   initialBodyFont: string;
@@ -128,6 +131,7 @@ export function SectionBuilder({
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [activeTab, setActiveTab] = useState<TabId>("profile");
   const [themeId, setThemeId] = useState(initialThemeId);
+  const [themeMode, setThemeMode] = useState<CardMode>(normalizeCardMode(initialThemeMode));
   const [brandColor, setBrandColor] = useState(initialBrandColor);
   const [headingFont, setHeadingFont] = useState(initialHeadingFont);
   const [bodyFont, setBodyFont] = useState(initialBodyFont);
@@ -162,9 +166,9 @@ export function SectionBuilder({
         caption: item.caption,
         altText: item.altText,
       })),
-      settings: { themeId, brandColor, headingFont, bodyFont, galleryLayout },
+      settings: { themeId, themeMode, brandColor, headingFont, bodyFont, galleryLayout },
     }),
-    [userName, userSlug, fields, galleryItems, themeId, brandColor, headingFont, bodyFont, galleryLayout]
+    [userName, userSlug, fields, galleryItems, themeId, themeMode, brandColor, headingFont, bodyFont, galleryLayout]
   );
 
   function markSaving() {
@@ -357,7 +361,7 @@ export function SectionBuilder({
   const themeMethod = mode === "admin" ? "PATCH" : "POST";
 
   async function saveTheme() {
-    const parsed = saveThemeSchema.safeParse({ themeId, brandColor, headingFont, bodyFont });
+    const parsed = saveThemeSchema.safeParse({ themeId, themeMode, brandColor, headingFont, bodyFont });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Check your theme and color");
       return;
@@ -535,6 +539,8 @@ export function SectionBuilder({
             <ThemeSettingsEditor
               themeId={themeId}
               onThemeIdChange={setThemeId}
+              themeMode={themeMode}
+              onThemeModeChange={setThemeMode}
               brandColor={brandColor}
               onBrandColorChange={setBrandColor}
               headingFont={headingFont}

@@ -7,12 +7,21 @@ import {
 } from "@/components/ui/accordion";
 import type { FaqItem } from "@/lib/card-sections";
 
-export function FaqSection({ items, flat }: { items: FaqItem[]; flat?: boolean }) {
+export function FaqSection({
+  items,
+  flat,
+  showTitle = true,
+}: {
+  items: FaqItem[];
+  flat?: boolean;
+  /** False when a caller already renders its own heading around this section. */
+  showTitle?: boolean;
+}) {
   if (items.length === 0) return null;
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <h3 className="px-1 text-sm font-semibold text-foreground/90">FAQ</h3>
+      {showTitle && <h3 className="px-1 text-sm font-semibold text-foreground/90">FAQ</h3>}
       <Accordion
         className={cn(
           "flex flex-col gap-2 rounded-xl p-1",

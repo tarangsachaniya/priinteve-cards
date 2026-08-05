@@ -4,14 +4,18 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
 import { THEME_PRESETS } from "@/lib/theme-presets";
+import { normalizeCardMode, resolveCardModeForRender, type CardMode } from "@/lib/card-theme";
 import { saveThemeSchema } from "@/lib/validations/onboarding";
 import { ThemeEditModal } from "@/components/wizard/theme-edit-modal";
+import { ThemePresetCard } from "@/components/wizard/theme-preset-card";
+import { CardModePicker } from "@/components/wizard/card-mode-picker";
 
 export function Step2ThemeBrand({
   themeId,
   onThemeIdChange,
+  themeMode,
+  onThemeModeChange,
   brandColor,
   onBrandColorChange,
   headingFont,
@@ -22,6 +26,8 @@ export function Step2ThemeBrand({
 }: {
   themeId: string;
   onThemeIdChange: (value: string) => void;
+  themeMode: string;
+  onThemeModeChange: (value: CardMode) => void;
   brandColor: string;
   onBrandColorChange: (value: string) => void;
   headingFont: string;
@@ -31,9 +37,10 @@ export function Step2ThemeBrand({
   onSaved: () => void;
 }) {
   const [isSaving, setIsSaving] = useState(false);
+  const swatchMode = resolveCardModeForRender(normalizeCardMode(themeMode));
 
   async function handleSave() {
-    const parsed = saveThemeSchema.safeParse({ themeId, brandColor, headingFont, bodyFont });
+    const parsed = saveThemeSchema.safeParse({ themeId, themeMode, brandColor, headingFont, bodyFont });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Check your theme and color");
       return;
@@ -58,7 +65,7 @@ export function Step2ThemeBrand({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Choose Brand Theme</h2>
@@ -76,21 +83,26 @@ export function Step2ThemeBrand({
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {THEME_PRESETS.map((preset) => (
-          <Button
+          <ThemePresetCard
             key={preset.id}
-            type="button"
-            variant={themeId === preset.id ? "default" : "outline"}
-            onClick={() => onThemeIdChange(preset.id)}
-          >
-            {themeId === preset.id && <Check data-icon="inline-start" />} {preset.name}
-          </Button>
+            preset={preset}
+            mode={swatchMode}
+            brandColor={brandColor}
+            isSelected={themeId === preset.id}
+            onSelect={() => onThemeIdChange(preset.id)}
+          />
         ))}
       </div>
       <p className="text-sm text-muted-foreground">
         {THEME_PRESETS.find((preset) => preset.id === themeId)?.description}
       </p>
+
+      <div className="flex flex-col gap-2 border-t border-border pt-4">
+        <h3 className="text-sm font-semibold">Default appearance</h3>
+        <CardModePicker value={themeMode} onChange={onThemeModeChange} />
+      </div>
 
       <Button type="button" onClick={handleSave} disabled={isSaving} className="self-end">
         {isSaving ? "Saving…" : "Save & Continue"}

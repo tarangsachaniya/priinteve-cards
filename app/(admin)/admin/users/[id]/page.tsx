@@ -5,6 +5,7 @@ import { ArrowLeft, Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { getGalleryUsage } from "@/lib/plan-limits";
 import { getFieldTypeMeta, MANDATORY_FIELD_TYPES } from "@/lib/field-types";
+import { DEFAULT_BRAND_COLOR, DEFAULT_CARD_MODE } from "@/lib/card-theme";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { UserForm } from "@/components/admin/user-form";
@@ -97,7 +98,8 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
         initialGallerySectionOrder={cardSettings?.gallerySectionOrder ?? 9999}
         galleryUsage={usage}
         initialThemeId={cardSettings?.themeId ?? "original"}
-        initialBrandColor={cardSettings?.brandColor ?? "#059669"}
+        initialThemeMode={cardSettings?.themeMode ?? DEFAULT_CARD_MODE}
+        initialBrandColor={cardSettings?.brandColor || DEFAULT_BRAND_COLOR}
         initialHeadingFont={cardSettings?.headingFont ?? "font-sans"}
         initialBodyFont={cardSettings?.bodyFont ?? "font-sans"}
         apiBase={`/api/admin/users/${user.id}`}
