@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getGalleryUsage } from "@/lib/plan-limits";
 import { getFieldTypeMeta, MANDATORY_FIELD_TYPES } from "@/lib/field-types";
+import { DEFAULT_BRAND_COLOR, DEFAULT_CARD_MODE } from "@/lib/card-theme";
 import { SectionBuilder } from "@/components/dashboard/section-builder";
 
 export default async function BuilderPage() {
@@ -78,7 +79,8 @@ export default async function BuilderPage() {
         initialGallerySectionOrder={cardSettings?.gallerySectionOrder ?? 9999}
         galleryUsage={usage}
         initialThemeId={cardSettings?.themeId ?? "original"}
-        initialBrandColor={cardSettings?.brandColor ?? "#059669"}
+        initialThemeMode={cardSettings?.themeMode ?? DEFAULT_CARD_MODE}
+        initialBrandColor={cardSettings?.brandColor || DEFAULT_BRAND_COLOR}
         initialHeadingFont={cardSettings?.headingFont ?? "font-sans"}
         initialBodyFont={cardSettings?.bodyFont ?? "font-sans"}
       />

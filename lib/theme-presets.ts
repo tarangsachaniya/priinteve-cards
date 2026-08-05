@@ -8,11 +8,17 @@ export type ThemePreset = {
   previewClassName: string;
 };
 
-/** The only supported card designs. Theme components own their visual layout. */
+/**
+ * The only supported card designs. Theme components own their visual layout;
+ * every colour comes from the tokens in app/card-theme.css.
+ *
+ * Names and descriptions follow the design source of truth in `PrintEve/`
+ * (options 1a, 1b and 1c in printeve-card-options-web.html).
+ */
 export const THEME_PRESETS: ThemePreset[] = [
-  { id: "original", name: "Original", description: "Photo-first profile with clear contact cards.", fontFamily: "font-sans", layout: "banner", spacing: "cozy", previewClassName: "" },
-  { id: "bento", name: "Bento", description: "A modular grid for quick scanning.", fontFamily: "font-sans", layout: "centered", spacing: "cozy", previewClassName: "" },
-  { id: "editorial", name: "Editorial", description: "A magazine-inspired spotlight layout.", fontFamily: "font-serif", layout: "minimal", spacing: "spacious", previewClassName: "" },
+  { id: "original", name: "Original", description: "Photo-first list. A banner with your photo on it, then titled cards for contacts, about and services.", fontFamily: "font-sans", layout: "banner", spacing: "cozy", previewClassName: "" },
+  { id: "bento", name: "Bento", description: "Modular tile grid. Contact actions become tappable tiles on soft floating cards — dashboard-like and quick to scan.", fontFamily: "font-sans", layout: "centered", spacing: "cozy", previewClassName: "" },
+  { id: "editorial", name: "Editorial", description: "Magazine spotlight. A circular portrait under a soft glow, a large serif name and numbered section markers.", fontFamily: "font-serif", layout: "minimal", spacing: "spacious", previewClassName: "" },
 ];
 
 export function getThemePreset(id: string): ThemePreset {

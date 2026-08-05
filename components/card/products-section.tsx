@@ -14,12 +14,21 @@ function formatPrice(price: number | undefined, currency: string) {
   }
 }
 
-export function ProductsSection({ products, flat }: { products: ProductItem[]; flat?: boolean }) {
+export function ProductsSection({
+  products,
+  flat,
+  showTitle = true,
+}: {
+  products: ProductItem[];
+  flat?: boolean;
+  /** False when a caller already renders its own heading around this section. */
+  showTitle?: boolean;
+}) {
   if (products.length === 0) return null;
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <h3 className="px-1 text-sm font-semibold text-foreground/90">Products</h3>
+      {showTitle && <h3 className="px-1 text-sm font-semibold text-foreground/90">Products</h3>}
       <MotionSection stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {products.map((product, i) => (
           <MotionItem

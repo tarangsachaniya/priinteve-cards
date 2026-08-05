@@ -4,7 +4,15 @@ import { ThemeCard } from "@/components/card/theme-card";
 import type { CardSectionField } from "@/lib/card-sections";
 import type { PublicGalleryItem } from "@/components/card/card-gallery";
 
-export type PublicCardSettings = { themeId: string; brandColor: string; galleryLayout: string };
+export type PublicCardSettings = {
+  themeId: string;
+  brandColor: string;
+  galleryLayout: string;
+  /** Owner's light/dark default: "light" | "dark" | "system". */
+  themeMode?: string;
+  headingFont?: string;
+  bodyFont?: string;
+};
 export type PublicCardData = {
   name: string; slug: string; photoUrl: string | null; fields: CardSectionField[];
   galleryItems: PublicGalleryItem[]; settings: PublicCardSettings; gallerySectionOrder?: number;
@@ -12,7 +20,7 @@ export type PublicCardData = {
 
 /** Shared with setup and builder previews to guarantee the live card matches its editor. */
 export function PublicCard({ data }: { data: PublicCardData }) {
-  return <ThemeCard data={{
+  return <ThemeCard asPage data={{
     name: data.name, slug: data.slug,
     fields: data.photoUrl ? [{ fieldType: "photo", label: "Photo", value: data.photoUrl, order: -1 }, ...data.fields] : data.fields,
     galleryItems: data.galleryItems,

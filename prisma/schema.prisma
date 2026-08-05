@@ -165,9 +165,11 @@ model CardSettings {
   userId              String   @unique
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   themeId             String   @default("default")
-  // Exists in the database ahead of the light/dark theme work; not read by the app yet.
+  // The owner's light/dark default for their public card: "light" | "dark" |
+  // "system". Visitors may override it per card; see lib/card-theme.ts.
   themeMode           String   @default("light")
-  brandColor          String   @default("#000000")
+  // The PrintEve reference green — see DEFAULT_BRAND_COLOR in lib/card-theme.ts.
+  brandColor          String   @default("#16A34A")
   headingFont         String   @default("font-sans")
   bodyFont            String   @default("font-sans")
   galleryLayout       String   @default("grid")

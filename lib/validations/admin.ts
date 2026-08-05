@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { THEME_PRESET_IDS, FONT_OPTION_IDS } from "@/lib/theme-presets";
+import { CARD_MODE_IDS } from "@/lib/card-theme";
 import { galleryLayoutEnum } from "@/lib/validations/onboarding";
 
 export const CARD_MATERIALS = ["PLASTIC", "WOODEN", "METAL"] as const;
@@ -8,6 +9,7 @@ export const PLAN_DURATION_YEARS = [1, 2, 3] as const;
 
 export const adminCardSettingsSchema = z.object({
   themeId: z.enum(THEME_PRESET_IDS).optional(),
+  themeMode: z.enum(CARD_MODE_IDS).optional(),
   brandColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a hex color like #1A2B3C").optional(),
   headingFont: z.enum(FONT_OPTION_IDS).optional(),
   bodyFont: z.enum(FONT_OPTION_IDS).optional(),

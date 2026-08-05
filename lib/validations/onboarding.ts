@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { THEME_PRESET_IDS, FONT_OPTION_IDS } from "@/lib/theme-presets";
+import { CARD_MODE_IDS } from "@/lib/card-theme";
 
 export const cardFieldTypeEnum = z.enum([
   "text",
@@ -69,6 +70,7 @@ export const cardFieldReorderSchema = z.object({
 
 export const saveThemeSchema = z.object({
   themeId: z.enum(THEME_PRESET_IDS),
+  themeMode: z.enum(CARD_MODE_IDS).optional(),
   brandColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a hex color like #1A2B3C"),
   headingFont: z.enum(FONT_OPTION_IDS).optional(),
   bodyFont: z.enum(FONT_OPTION_IDS).optional(),

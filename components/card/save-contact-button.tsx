@@ -9,9 +9,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 export function SaveContactButton({
   slug,
   variant = "default",
+  className,
+  label = "Save to Contact",
 }: {
   slug: string;
-  variant?: "default" | "dock";
+  /** `unstyled` renders a bare button so a card theme can supply its own class. */
+  variant?: "default" | "dock" | "unstyled";
+  className?: string;
+  label?: string;
 }) {
   async function handleClick() {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -37,6 +42,15 @@ export function SaveContactButton({
     } catch {
       toast.error("Couldn't save contact. Please try again.");
     }
+  }
+
+  if (variant === "unstyled") {
+    return (
+      <button type="button" onClick={handleClick} className={className}>
+        <Download aria-hidden />
+        {label}
+      </button>
+    );
   }
 
   if (variant === "dock") {

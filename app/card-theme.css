@@ -1,0 +1,307 @@
+/* ============================================================================
+   PUBLIC CARD THEME SYSTEM
+   ----------------------------------------------------------------------------
+   Ported from the design source of truth in `PrintEve/`:
+     - printeve-card-options.html      (mobile, 6 mockups)
+     - printeve-card-options-web.html  (web/responsive, same 6 mockups)
+
+   Three themes x two modes. Every colour a card renders lives in this file;
+   card components consume tokens only and contain no colour literals.
+
+     original  "Original — photo-first list"      (ref: .wrap / .force-*-og)
+     bento     "Bento — modular tile grid"        (ref: .bn   / .force-*-bn)
+     editorial "Editorial — magazine spotlight"   (ref: .ed   / .force-*-ed)
+
+   Applied by <CardThemeScope> as [data-card-theme] + [data-card-mode].
+
+   DELIBERATE DEVIATION FROM THE REFERENCE: the light palettes are warmed from
+   the reference's cool slate (#F8FAFC / #F1F5F9 / #FBFCFD) to ivory. Structure,
+   type scale, spacing, shadows and every dark palette are unchanged.
+
+   ADDING A THEME: add a palette block in section 2 + 3, a layout block in
+   section 8, and an entry in THEME_PRESETS (lib/theme-presets.ts). Nothing else.
+
+   The `--background`/`--card`/`--border`/... declarations in the palette blocks
+   are the app's shadcn tokens, deliberately remapped inside the card scope so
+   already-token-driven section components (ServicesSection, FaqSection,
+   CardGallery, ...) inherit the active card palette with no edits. They are
+   bare OKLCH component triplets ("L C H") because tailwind.config.ts wraps them
+   as `oklch(var(--card) / <alpha-value>)`. Keep both halves of a block in sync.
+   ========================================================================== */
+
+/* ============================================================================
+   1. NON-COLOUR TOKENS  (shared by all themes and modes)
+   ========================================================================== */
+[data-card-theme] {
+  /* The reference specifies Inter; the app already ships Geist, so the sans
+     stack points at the loaded font rather than pulling a second webfont. */
+  --card-font-sans: var(--font-geist-sans), "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --card-font-serif: Georgia, "Times New Roman", serif;
+  --card-font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --card-radius-sm: 8px;
+  --card-radius-md: 12px;
+  --card-radius-lg: 14px;
+  --card-radius-xl: 20px;
+  --card-radius-2xl: 24px;
+  --card-radius-pill: 999px;
+
+  --card-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --card-transition-press: transform 0.08s ease;
+  --card-transition-hover: transform 0.1s ease, box-shadow 0.1s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+/* ============================================================================
+   2. LIGHT PALETTES — ivory
+   ========================================================================== */
+[data-card-theme][data-card-mode="light"] {
+  --card-text: #1a1712;
+  --card-text-muted: #6b6459;
+  --card-text-on-primary: #ffffff;
+  --card-border: #e7e1d5;
+  --card-divider: #efeae0;
+  --card-surface: #fffdf8;
+  --card-surface-muted: #f2ede3;
+  --card-input: #f2ede3;
+
+  --card-ph-from: #e9e2d6;
+  --card-ph-to: #d8cfbe;
+  --card-ph-icon: #a79c89;
+
+  --card-warning: #b45309;
+  --card-error: #b91c1c;
+
+  --card-hover: rgb(26 23 18 / 0.04);
+  --card-active: rgb(26 23 18 / 0.08);
+  --card-disabled: #efeae0;
+  --card-disabled-text: #a79c89;
+
+  --card-glass: rgb(26 23 18 / 0.04);
+  --card-glass-border: rgb(26 23 18 / 0.1);
+  --card-scrim: linear-gradient(to bottom, transparent 40%, rgb(0 0 0 / 0.74));
+
+  /* shadcn remap — light shared */
+  --foreground: 0.2063 0.0107 80.55;
+  --card-foreground: 0.2063 0.0107 80.55;
+  --popover-foreground: 0.2063 0.0107 80.55;
+  --muted-foreground: 0.5064 0.0191 79.25;
+  --accent-foreground: 0.2063 0.0107 80.55;
+  --secondary-foreground: 0.2063 0.0107 80.55;
+  --primary-foreground: 1 0 0;
+  --destructive: 0.5054 0.1905 27.52;
+  --destructive-foreground: 1 0 0;
+  --border: 0.9112 0.0174 84.59;
+  --input: 0.9473 0.0144 84.58;
+  --card: 0.9942 0.0069 88.64;
+  --popover: 0.9942 0.0069 88.64;
+  --muted: 0.9473 0.0144 84.58;
+  --accent: 0.9473 0.0144 84.58;
+  --secondary: 0.9473 0.0144 84.58;
+  --ink: 0.2063 0.0107 80.55;
+  --ink-muted: 0.5064 0.0191 79.25;
+}
+
+/* --- Original: soft ivory canvas, borderless rows on wide ambient shadow --- */
+[data-card-theme="original"][data-card-mode="light"] {
+  --card-bg: #faf7f0;
+  --card-shadow: 0 0 20px rgb(110 135 171 / 0.15);
+  --card-shadow-tile: 0 0 20px rgb(110 135 171 / 0.15);
+  --card-banner: linear-gradient(120deg, #dcfce7, #bbf7d0 55%, #a7f3d0);
+  --card-banner-blob: rgb(34 197 94 / 0.28);
+  --background: 0.9765 0.0098 87.47;
+}
+
+/* --- Bento: canvas sits *below* the surface so floating tiles read --------- */
+[data-card-theme="bento"][data-card-mode="light"] {
+  --card-bg: #f4efe4;
+  --card-divider: #f0ebe1;
+  --card-shadow: 0 1px 2px rgb(26 23 18 / 0.04), 0 8px 24px rgb(110 135 171 / 0.14);
+  --card-shadow-tile: 0 1px 2px rgb(26 23 18 / 0.04), 0 8px 24px rgb(110 135 171 / 0.14);
+  --background: 0.953 0.0156 86.43;
+}
+
+/* --- Editorial: near-white ivory, generous whitespace, soft brand glow ----- */
+[data-card-theme="editorial"][data-card-mode="light"] {
+  --card-bg: #fdfbf6;
+  --card-divider: #ece6da;
+  --card-shadow: 0 0 22px rgb(110 135 171 / 0.14);
+  --card-shadow-tile: 0 0 22px rgb(110 135 171 / 0.14);
+  --background: 0.9882 0.0069 88.64;
+}
+
+/* ============================================================================
+   3. DARK PALETTES — verbatim from the reference
+   ========================================================================== */
+[data-card-theme][data-card-mode="dark"] {
+  --card-text: #e8f0eb;
+  --card-text-muted: #8ea79b;
+  --card-text-on-primary: #ffffff;
+  --card-border: #22302a;
+  --card-divider: #1b241f;
+  --card-surface: #131c17;
+  --card-surface-muted: #1b241f;
+  --card-input: #1b241f;
+
+  --card-ph-from: #1b241f;
+  --card-ph-to: #243029;
+  --card-ph-icon: #3c4e45;
+
+  --card-warning: #fbbf24;
+  --card-error: #f87171;
+
+  --card-hover: rgb(255 255 255 / 0.05);
+  --card-active: rgb(255 255 255 / 0.09);
+  --card-disabled: #1b241f;
+  --card-disabled-text: #3c4e45;
+
+  --card-glass: rgb(255 255 255 / 0.05);
+  --card-glass-border: rgb(255 255 255 / 0.1);
+  --card-scrim: linear-gradient(to bottom, transparent 40%, rgb(0 0 0 / 0.74));
+
+  /* Reference overrides the video gradient in dark so it stops glowing. */
+  --card-video-gradient: linear-gradient(140deg, #0a1f14, #123c25);
+
+  /* shadcn remap — dark shared */
+  --foreground: 0.9477 0.0108 158.84;
+  --card-foreground: 0.9477 0.0108 158.84;
+  --popover-foreground: 0.9477 0.0108 158.84;
+  --muted-foreground: 0.7056 0.0328 164.88;
+  --accent-foreground: 0.9477 0.0108 158.84;
+  --secondary-foreground: 0.9477 0.0108 158.84;
+  --primary-foreground: 1 0 0;
+  --destructive: 0.7106 0.1661 22.22;
+  --destructive-foreground: 0.2156 0.0164 160.32;
+  --border: 0.2943 0.0218 166.72;
+  --input: 0.2497 0.0159 160.68;
+  --muted: 0.2497 0.0159 160.68;
+  --accent: 0.2497 0.0159 160.68;
+  --secondary: 0.2497 0.0159 160.68;
+  --ink: 0.9477 0.0108 158.84;
+  --ink-muted: 0.7056 0.0328 164.88;
+}
+
+[data-card-theme="original"][data-card-mode="dark"] {
+  --card-bg: #0c1510;
+  --card-surface: #131c17;
+  --card-shadow: 0 0 20px rgb(0 0 0 / 0.45);
+  --card-shadow-tile: 0 0 20px rgb(0 0 0 / 0.45);
+  --card-banner: linear-gradient(120deg, #0f291b, #14532d 60%, #166534);
+  --card-banner-blob: rgb(34 197 94 / 0.22);
+  --background: 0.1847 0.0169 159.86;
+  --card: 0.2156 0.0164 160.32;
+  --popover: 0.2156 0.0164 160.32;
+}
+
+[data-card-theme="bento"][data-card-mode="dark"] {
+  --card-bg: #0a120d;
+  --card-surface: #131c17;
+  --card-divider: #1b241f;
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+  --card-shadow-tile: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+  --background: 0.172 0.016 156.83;
+  --card: 0.2156 0.0164 160.32;
+  --popover: 0.2156 0.0164 160.32;
+}
+
+[data-card-theme="editorial"][data-card-mode="dark"] {
+  --card-bg: #0b120e;
+  --card-surface: #121a15;
+  --card-divider: #1a231e;
+  --card-shadow: 0 0 22px rgb(0 0 0 / 0.4);
+  --card-shadow-tile: 0 0 22px rgb(0 0 0 / 0.4);
+  --background: 0.1733 0.0136 159.53;
+  --card: 0.2078 0.0154 157.34;
+  --popover: 0.2078 0.0154 157.34;
+}
+
+/* ============================================================================
+   4. BRAND RAMP
+   ----------------------------------------------------------------------------
+   The card owner's brandColor arrives as --brand (set inline by
+   <CardThemeScope>). One hex drives the whole accent ramp via color-mix, so
+   there is no JS colour maths and brandColor keeps behaving exactly as before.
+   Defaults are the reference greens, so an untouched card matches the mockups.
+   ========================================================================== */
+[data-card-theme][data-card-mode="light"] {
+  --card-primary: var(--brand, #16a34a);
+  --card-primary-hover: color-mix(in oklab, var(--card-primary) 84%, #000);
+  --card-primary-accent: color-mix(in oklab, var(--card-primary) 86%, #fff);
+  --card-primary-soft: color-mix(in oklab, var(--card-primary) 14%, var(--card-bg));
+  --card-primary-deep: color-mix(in oklab, var(--card-primary) 52%, #000);
+  --card-primary-ring: color-mix(in oklab, var(--card-primary) 35%, transparent);
+  --card-shadow-cta: 0 2px 0 var(--card-primary-hover);
+  --card-glow: color-mix(in oklab, var(--card-primary) 22%, transparent);
+  --card-video-gradient: linear-gradient(140deg, var(--card-primary-deep), var(--card-primary-hover));
+}
+
+[data-card-theme][data-card-mode="dark"] {
+  --card-primary: var(--brand, #22c55e);
+  --card-primary-hover: color-mix(in oklab, var(--card-primary) 86%, #fff);
+  --card-primary-accent: color-mix(in oklab, var(--card-primary) 78%, #fff);
+  --card-primary-soft: color-mix(in oklab, var(--card-primary) 18%, var(--card-bg));
+  --card-primary-deep: color-mix(in oklab, var(--card-primary) 70%, #fff);
+  --card-primary-ring: color-mix(in oklab, var(--card-primary) 45%, transparent);
+  --card-shadow-cta: 0 0 26px color-mix(in oklab, var(--card-primary) 50%, transparent);
+  --card-glow: color-mix(in oklab, var(--card-primary) 28%, transparent);
+}
+
+/* Success intentionally aliases the brand ramp: in this product "success" and
+   "primary" are the same affordance (verified badge, paid, secure payment). */
+[data-card-theme] {
+  --card-success: var(--card-primary);
+  --card-success-soft: var(--card-primary-soft);
+}
+
+/* ============================================================================
+   5. SCOPE ROOT
+   ========================================================================== */
+[data-card-theme] {
+  background: var(--card-bg);
+  color: var(--card-text);
+  font-family: var(--card-font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  /* Container queries, not media queries: the builder's Desktop/Mobile toggle
+     resizes a panel rather than the viewport, so only a container query makes
+     that toggle show the true desktop layout. */
+  container-type: inline-size;
+  container-name: card;
+}
+
+/* The public /[slug] route, where the card is the entire page. */
+[data-card-theme][data-card-scope="page"] {
+  min-height: 100dvh;
+}
+
+/* Focus rings follow the brand rather than the app's global --ring. */
+[data-card-theme] :focus-visible {
+  outline: 2px solid var(--card-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+[data-card-theme] a {
+  color: var(--card-primary);
+  text-decoration: none;
+}
+[data-card-theme] a:hover {
+  color: var(--card-primary-hover);
+}
+
+/* Deliberately no `* { margin:0; padding:0 }` reset here, unlike the standalone
+   reference files: Tailwind's preflight already covers it, and a universal
+   padding reset would win over the padding utilities that the reused section
+   components (ServicesSection, ProductsSection, ...) depend on. */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-card-theme],
+  [data-card-theme] *,
+  [data-card-theme] *::before,
+  [data-card-theme] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
