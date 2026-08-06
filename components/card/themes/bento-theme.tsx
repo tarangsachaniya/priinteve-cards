@@ -24,7 +24,7 @@ import type { ThemeCardData } from "@/components/card/theme-card";
  */
 
 function Hero({ card }: { card: CardModel }) {
-  const image = card.coverImage || card.photo;
+  const image = card.photo;
 
   return (
     <header className="pe-hero">
@@ -85,28 +85,28 @@ export function BentoTheme({ data }: { data: ThemeCardData }) {
         {card.contacts.length > 0 && (
           <>
             <SectionHeading>Get In Touch</SectionHeading>
-            {card.contacts.map((contact) => (
-              <a
-                key={contact.type}
-                className="pe-ct"
-                href={contact.href}
-                target={contact.external ? "_blank" : undefined}
-                rel={contact.external ? "noopener noreferrer" : undefined}
-              >
-                <span className="pe-ct-top">
-                  <span className="pe-med">
+            <div className="pe-rows">
+              {card.contacts.map((contact) => (
+                <a
+                  key={contact.type}
+                  className="pe-row"
+                  href={contact.href}
+                  target={contact.external ? "_blank" : undefined}
+                  rel={contact.external ? "noopener noreferrer" : undefined}
+                >
+                  <span className="pe-row-ic">
                     <contact.icon aria-hidden />
                   </span>
-                  <span className="pe-arr">
+                  <span className="pe-row-b">
+                    <span className="pe-row-lab">{contact.label}</span>
+                    <span className="pe-row-val">{contact.value}</span>
+                  </span>
+                  <span className="pe-row-go">
                     <ChevronRight aria-hidden />
                   </span>
-                </span>
-                <span className="pe-ct-text">
-                  <span className="pe-ct-lab">{contact.label}</span>
-                  <span className="pe-ct-val">{contact.value}</span>
-                </span>
-              </a>
-            ))}
+                </a>
+              ))}
+            </div>
           </>
         )}
 

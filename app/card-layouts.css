@@ -18,7 +18,18 @@
    Repeatable content sections (services, products, testimonials, FAQ, buttons,
    gallery, business hours, custom HTML) are NOT restyled here — they render
    through the existing shared components, which are already token-driven and
-   inherit the active palette via the shadcn remap in card-theme.css.
+   inherit the active palette via the shadcn remap in card-theme.css. Two
+   exceptions:
+     - Column/width counts for the grid-based sections (services, products,
+       gallery): those need to track the `card` container width rather than
+       Tailwind's viewport breakpoints, so they're defined below under SHARED
+       PRIMITIVES instead of as Tailwind classes on the components.
+     - Testimonials render as a one-at-a-time carousel. The card/arrows/dots
+       shell (.pe-quote-card / -nav / -arrow / -dots / -dot) is shared under
+       SHARED PRIMITIVES below, but the quote typography inside it
+       (.pe-quote-mark / -text / -attr / -stars) is styled per theme further
+       down since it genuinely differs (Original/Bento: serif with a big
+       quote-mark glyph; Editorial: centred serif, no glyph).
 
    Breakpoints are container queries on the `card` container declared by
    <CardThemeScope>:
@@ -169,6 +180,130 @@
   margin-left: 3px;
 }
 
+/* Container-responsive grids for shared content sections (services, products,
+   testimonials, gallery). These render inside [data-card-theme] in all three
+   themes, so one shared, theme-agnostic ruleset covers all of them — tracks
+   the `card` container width instead of Tailwind's viewport breakpoints. */
+.pe-services-grid {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+@container card (min-width: 640px) {
+  .pe-services-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container card (min-width: 900px) {
+  .pe-services-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.pe-products-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@container card (min-width: 640px) {
+  .pe-products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.pe-gallery-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@container card (min-width: 640px) {
+  .pe-gallery-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container card (min-width: 900px) {
+  .pe-gallery-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.pe-gallery-grid-dense {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@container card (min-width: 640px) {
+  .pe-gallery-grid-dense {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@container card (min-width: 900px) {
+  .pe-gallery-grid-dense {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.pe-gallery-masonry {
+  columns: 2;
+}
+@container card (min-width: 640px) {
+  .pe-gallery-masonry {
+    columns: 3;
+  }
+}
+@container card (min-width: 900px) {
+  .pe-gallery-masonry {
+    columns: 4;
+  }
+}
+
+/* Testimonials carousel shell — shared across all three themes; each theme's
+   own .pe-quote-mark/-stars/-text/-attr typography (defined per theme below)
+   supplies the visual personality. Uses --card-surface-muted rather than
+   --card-surface so it reads as a nested sub-card instead of double-boxing
+   whatever surface the theme's own section wrapper already provides. */
+.pe-quote-card {
+  background: var(--card-surface-muted);
+  border-radius: var(--card-radius-lg);
+  padding: 20px;
+}
+.pe-quote-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+.pe-quote-arrow {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--card-radius-pill);
+  border: 1px solid var(--card-border);
+  background: var(--card-surface);
+  color: var(--card-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--card-transition-hover);
+}
+.pe-quote-arrow:hover {
+  color: var(--card-primary);
+  border-color: var(--card-primary);
+}
+.pe-quote-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+.pe-quote-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pe-quote-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--card-radius-pill);
+  background: var(--card-border);
+  transition: var(--card-transition-hover);
+}
+.pe-quote-dot.is-active {
+  width: 16px;
+  background: var(--card-primary);
+}
+
 /* ============================================================================
    1a — ORIGINAL   "photo-first list"
    Reference: .wrap  |  desktop = one centred 840px profile column
@@ -176,7 +311,7 @@
 .pe-og {
   max-width: 422px;
   margin: 0 auto;
-  padding: 20px 18px 40px;
+  padding: 20px 18px 88px;
 }
 .pe-og .pe-stack {
   display: flex;
@@ -365,73 +500,6 @@
   color: var(--card-primary);
 }
 
-/* contact info cards — icon badge / eyebrow / title / value */
-.pe-og .pe-cinfo {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-.pe-og .pe-cinfo-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  /* Grid items default to a min-width of their content's natural width, which
-     lets one long, unbroken value (an email, a URL) force the whole grid wider
-     than its container instead of wrapping/ellipsizing. min-width: 0 opts back
-     into shrinking to the track size; every ".pe-*-val"/"-card"/"-row"-style
-     grid item in this file carries the same fix for the same reason. */
-  min-width: 0;
-  background: var(--card-surface-muted);
-  border-radius: var(--card-radius-lg);
-  padding: 18px 16px;
-  color: inherit;
-  transition: var(--card-transition-hover);
-}
-.pe-og .pe-cinfo-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--card-shadow);
-  color: inherit;
-}
-.pe-og .pe-cinfo-ic {
-  width: 42px;
-  height: 42px;
-  flex: none;
-  border-radius: var(--card-radius-pill);
-  background: var(--card-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
-}
-.pe-og .pe-cinfo-ic svg {
-  width: 20px;
-  height: 20px;
-  color: var(--card-text-on-primary);
-  stroke-width: 2;
-}
-.pe-og .pe-cinfo-eyebrow {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--card-primary);
-}
-.pe-og .pe-cinfo-title {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--card-text);
-  margin-top: 5px;
-}
-.pe-og .pe-cinfo-val {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--card-text-muted);
-  margin-top: 8px;
-  line-height: 1.45;
-  word-break: break-word;
-}
-
 .pe-og .pe-about-p {
   font-size: 15px;
   line-height: 1.55;
@@ -497,8 +565,12 @@
   gap: 14px;
   padding: 12px 2px;
   color: inherit;
-  /* Becomes a CSS Grid item at >=900px (.pe-rows switches to a 2-col grid) —
-     see the min-width: 0 note on .pe-cinfo-card above. */
+  /* Grid items default to a min-width of their content's natural width, which
+     lets one long, unbroken value (an email, a URL) force the whole grid wider
+     than its container instead of wrapping/ellipsizing. min-width: 0 opts back
+     into shrinking to the track size; every ".pe-*-val"/"-row"-style grid item
+     in this file carries the same fix for the same reason. Becomes a CSS Grid
+     item at >=900px (.pe-rows switches to a 2-col grid). */
   min-width: 0;
 }
 .pe-og .pe-row + .pe-row {
@@ -540,6 +612,10 @@
   font-weight: 600;
   margin-top: 3px;
   word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .pe-og .pe-row-go {
   color: var(--card-text-muted);
@@ -639,6 +715,16 @@
 }
 
 /* quote + scan */
+.pe-og .pe-quote-stars {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.pe-og .pe-quote-stars svg {
+  width: 13px;
+  height: 13px;
+  color: var(--card-primary);
+}
 .pe-og .pe-quote-mark {
   font-size: 40px;
   line-height: 0.6;
@@ -646,7 +732,7 @@
   color: var(--card-primary);
   font-family: var(--card-font-serif);
 }
-.pe-og .pe-quote {
+.pe-og .pe-quote-text {
   font-size: 18px;
   line-height: 1.45;
   font-weight: 500;
@@ -690,16 +776,13 @@
   .pe-og {
     max-width: 620px;
   }
-  .pe-og .pe-cinfo {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 /* --- Original desktop: one centred 840px profile column ------------------- */
 @container card (min-width: 900px) {
   .pe-og {
     max-width: 840px;
-    padding: 32px 24px 64px;
+    padding: 32px 24px 112px;
   }
   .pe-og .pe-stack {
     gap: 18px;
@@ -732,9 +815,6 @@
   .pe-og .pe-sec-h .pe-t {
     font-size: 18px;
   }
-  .pe-og .pe-cinfo {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
   .pe-og .pe-pay {
     flex-direction: row;
     align-items: stretch;
@@ -748,7 +828,7 @@
     align-self: stretch;
     justify-content: center;
   }
-  .pe-og .pe-quote {
+  .pe-og .pe-quote-text {
     font-size: 20px;
   }
   .pe-og .pe-scan .pe-qr {
@@ -782,7 +862,7 @@
 .pe-bn {
   max-width: 422px;
   margin: 0 auto;
-  padding: 16px 14px 40px;
+  padding: 16px 14px 88px;
 }
 .pe-bn .pe-bngrid {
   display: grid;
@@ -969,80 +1049,6 @@
   color: var(--card-primary);
 }
 
-/* contact tiles */
-.pe-bn .pe-ct {
-  background: var(--card-surface);
-  border-radius: var(--card-radius-xl);
-  box-shadow: var(--card-shadow-tile);
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 104px;
-  /* A grid item of .pe-bngrid (2-col mobile, 4-col desktop) whose value text
-     is nowrap+ellipsis — without this it forces the whole grid, and the page,
-     wider than the viewport. See the note on .pe-cinfo-card above. */
-  min-width: 0;
-  color: inherit;
-  transition: var(--card-transition-press);
-}
-.pe-bn .pe-ct:active {
-  transform: scale(0.98);
-}
-.pe-bn .pe-ct:hover {
-  color: inherit;
-}
-.pe-bn .pe-ct-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-.pe-bn .pe-ct-top .pe-arr {
-  color: var(--card-text-muted);
-}
-.pe-bn .pe-ct-top .pe-arr svg {
-  width: 16px;
-  height: 16px;
-  display: block;
-}
-.pe-bn .pe-med {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--card-radius-md);
-  background: var(--card-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.pe-bn .pe-med svg {
-  width: 20px;
-  height: 20px;
-  color: var(--card-text-on-primary);
-  stroke-width: 2;
-}
-.pe-bn .pe-ct-text {
-  /* Block, not inline: ellipsis only clips within a block/inline-block box
-     with a constrained width, and only a block child of a min-width:0 flex
-     item actually shrinks to that width. */
-  display: block;
-  min-width: 0;
-}
-.pe-bn .pe-ct-lab {
-  display: block;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.pe-bn .pe-ct-val {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--card-text-muted);
-  margin-top: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 /* stats */
 .pe-bn .pe-stats {
@@ -1121,7 +1127,7 @@
   color: inherit;
   transition: var(--card-transition-press);
   /* Becomes a CSS Grid item at >=640px (.pe-rows switches to a 2-col grid) —
-     see the min-width: 0 note on .pe-cinfo-card above. */
+     see the min-width: 0 note on .pe-og .pe-row above. */
   min-width: 0;
 }
 .pe-bn .pe-row:active {
@@ -1167,6 +1173,10 @@
   font-weight: 600;
   margin-top: 2px;
   word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .pe-bn .pe-row-meta {
   font-family: var(--card-font-mono);
@@ -1258,35 +1268,41 @@
   color: var(--card-primary-hover);
 }
 
-/* quote / scan / footer */
-.pe-bn .pe-quote {
-  grid-column: 1 / -1;
-  background: var(--card-surface);
-  border-radius: var(--card-radius-xl);
-  box-shadow: var(--card-shadow-tile);
-  padding: 20px;
+/* quote / scan / footer — rendered inside bento-theme.tsx's own .pe-tile.pe-span2
+   wrapper (see BentoTheme's sections.map) AND inside the shared .pe-quote-card
+   box (see SHARED PRIMITIVES), so .pe-quote itself stays unboxed: giving it a
+   third background/shadow here would double-box it. */
+.pe-bn .pe-quote-stars {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 4px;
 }
-.pe-bn .pe-qm {
+.pe-bn .pe-quote-stars svg {
+  width: 13px;
+  height: 13px;
+  color: var(--card-primary);
+}
+.pe-bn .pe-quote-mark {
   font-family: var(--card-font-serif);
   font-size: 40px;
   line-height: 0.5;
   color: var(--card-primary);
   font-weight: 800;
 }
-.pe-bn .pe-qt {
+.pe-bn .pe-quote-text {
   font-family: var(--card-font-serif);
   font-size: 18px;
   line-height: 1.4;
   font-weight: 500;
   margin-top: 10px;
 }
-.pe-bn .pe-qa {
+.pe-bn .pe-quote-attr {
   font-size: 12px;
   font-weight: 600;
   color: var(--card-text-muted);
   margin-top: 14px;
 }
-.pe-bn .pe-qa b {
+.pe-bn .pe-quote-attr b {
   color: var(--card-text);
 }
 .pe-bn .pe-scan {
@@ -1337,7 +1353,7 @@
 @container card (min-width: 900px) {
   .pe-bn {
     max-width: 1300px;
-    padding: 36px 40px 72px;
+    padding: 36px 40px 120px;
   }
   .pe-bn .pe-bngrid {
     grid-template-columns: 380px minmax(0, 1fr);
@@ -1368,10 +1384,6 @@
   .pe-bn .pe-vcard {
     grid-column: 2 / span 1;
   }
-  /* contact tiles sit in one horizontal row */
-  .pe-bn .pe-ct {
-    min-height: 118px;
-  }
   .pe-bn .pe-video {
     aspect-ratio: 21 / 9;
   }
@@ -1393,7 +1405,7 @@
     width: 104px;
     height: 104px;
   }
-  .pe-bn .pe-qt {
+  .pe-bn .pe-quote-text {
     font-size: 22px;
   }
 }
@@ -1405,7 +1417,7 @@
 .pe-ed {
   max-width: 422px;
   margin: 0 auto;
-  padding: 0 0 40px;
+  padding: 0 0 88px;
 }
 .pe-ed .pe-side,
 .pe-ed .pe-main {
@@ -1597,80 +1609,6 @@
   color: var(--card-primary);
 }
 
-/* contact rows */
-.pe-ed .pe-clist {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-.pe-ed .pe-crow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--card-surface-muted);
-  border-radius: var(--card-radius-md);
-  padding: 12px 14px;
-  min-height: 56px;
-  color: inherit;
-  transition: var(--card-transition-press);
-  /* A grid item of .pe-clist (always 2 columns, even on mobile) whose value
-     text is nowrap+ellipsis — see the min-width: 0 note on .pe-cinfo-card
-     above. */
-  min-width: 0;
-}
-.pe-ed .pe-crow:active {
-  transform: scale(0.98);
-}
-.pe-ed .pe-crow:hover {
-  color: inherit;
-}
-.pe-ed .pe-cicon {
-  width: 36px;
-  height: 36px;
-  flex: none;
-  border-radius: var(--card-radius-pill);
-  border: 1.5px solid var(--card-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--card-primary);
-}
-.pe-ed .pe-cicon svg {
-  width: 16px;
-  height: 16px;
-}
-.pe-ed .pe-cbody {
-  flex: 1;
-  min-width: 0;
-}
-.pe-ed .pe-clab {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.pe-ed .pe-cval {
-  /* Must be block: an inline element ignores overflow/text-overflow for width
-     containment, so a plain <span> here would just paint past its box instead
-     of being clipped — the same failure mode fixed on .pe-ct-val in Bento. */
-  display: block;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--card-text-muted);
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.pe-ed .pe-carr {
-  color: var(--card-text-muted);
-  flex: none;
-}
-.pe-ed .pe-carr svg {
-  width: 14px;
-  height: 14px;
-  display: block;
-}
 
 /* about / stats / chips */
 .pe-ed .pe-about p {
@@ -1744,7 +1682,7 @@
   color: inherit;
   transition: var(--card-transition-press);
   /* Becomes a CSS Grid item at >=640px (.pe-rows switches to a 2-col grid) —
-     see the min-width: 0 note on .pe-cinfo-card above. */
+     see the min-width: 0 note on .pe-og .pe-row above. */
   min-width: 0;
 }
 .pe-ed .pe-row:active {
@@ -1798,6 +1736,10 @@
   font-weight: 600;
   margin-top: 2px;
   word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .pe-ed .pe-row-meta {
   font-size: 11px;
@@ -1886,29 +1828,42 @@
   color: var(--card-primary);
 }
 
-/* quote / scan / footer */
+/* quote / scan / footer — the box itself is the shared .pe-quote-card (see
+   SHARED PRIMITIVES); .pe-quote here just centers its contents within it. */
 .pe-ed .pe-quote {
   text-align: center;
-  padding: 8px 6px;
 }
-.pe-ed .pe-qt {
+.pe-ed .pe-quote-mark {
+  /* No quote-mark glyph in this theme's design (matches the reference, which
+     relies on the serif italic type alone rather than a literal " glyph). */
+  display: none;
+}
+.pe-ed .pe-quote-stars {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+.pe-ed .pe-quote-stars svg {
+  width: 13px;
+  height: 13px;
+  color: var(--card-primary);
+}
+.pe-ed .pe-quote-text {
   font-family: var(--card-font-serif);
   font-size: 18px;
   line-height: 1.45;
   font-weight: 500;
   letter-spacing: -0.01em;
 }
-.pe-ed .pe-qt .pe-hl {
-  color: var(--card-primary);
-}
-.pe-ed .pe-qa {
+.pe-ed .pe-quote-attr {
   font-size: 11px;
   font-weight: 600;
   color: var(--card-text-muted);
   margin-top: 14px;
   letter-spacing: 0.02em;
 }
-.pe-ed .pe-qa b {
+.pe-ed .pe-quote-attr b {
   color: var(--card-text);
 }
 .pe-ed .pe-scan {
@@ -1947,7 +1902,7 @@
 @container card (min-width: 900px) {
   .pe-ed {
     max-width: 1240px;
-    padding: 52px 44px 72px;
+    padding: 52px 44px 120px;
     display: grid;
     grid-template-columns: 360px minmax(0, 1fr);
     gap: 60px;
@@ -2005,7 +1960,7 @@
   .pe-ed .pe-video {
     aspect-ratio: 21 / 9;
   }
-  .pe-ed .pe-qt {
+  .pe-ed .pe-quote-text {
     font-size: 22px;
   }
   .pe-ed .pe-scan {

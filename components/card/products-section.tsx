@@ -29,7 +29,7 @@ export function ProductsSection({
   return (
     <div className="flex w-full flex-col gap-2">
       {showTitle && <h3 className="px-1 text-sm font-semibold text-foreground/90">Products</h3>}
-      <MotionSection stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <MotionSection stagger className="pe-products-grid grid gap-3">
         {products.map((product, i) => (
           <MotionItem
             key={i}

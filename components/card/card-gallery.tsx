@@ -72,7 +72,7 @@ export function CardGallery({
   const sorted = [...items].sort((a, b) => a.order - b.order);
 
   const grid = (
-    <MotionSection stagger className="grid grid-cols-2 gap-2">
+    <MotionSection stagger className="pe-gallery-grid grid gap-2">
       {sorted.map((item, i) => (
         <MotionItem key={i} className="aspect-square">
           <GalleryItemButton item={item} onOpen={setActive} />
@@ -92,7 +92,7 @@ export function CardGallery({
   );
 
   const masonry = (
-    <MotionSection stagger className="columns-2 gap-2 [&>*]:mb-2 [&>*]:break-inside-avoid">
+    <MotionSection stagger className="pe-gallery-masonry gap-2 [&>*]:mb-2 [&>*]:break-inside-avoid">
       {sorted.map((item, i) => (
         <MotionItem key={i} className={i % 2 === 0 ? "aspect-square w-full" : "aspect-[3/4] w-full"}>
           <GalleryItemButton item={item} onOpen={setActive} />
@@ -102,7 +102,7 @@ export function CardGallery({
   );
 
   const lightbox = (
-    <MotionSection stagger className="grid grid-cols-3 gap-2">
+    <MotionSection stagger className="pe-gallery-grid-dense grid gap-2">
       {sorted.map((item, i) => (
         <MotionItem key={i} className="aspect-square">
           <GalleryItemButton item={item} onOpen={setActive} />

@@ -19,7 +19,7 @@ export function ServicesSection({
   return (
     <div className="flex w-full flex-col gap-2">
       {showTitle && <h3 className="px-1 text-sm font-semibold text-foreground/90">Services</h3>}
-      <MotionSection stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <MotionSection stagger className="pe-services-grid grid gap-3">
         {services.map((service, i) => {
           const Icon = resolveLucideIcon(service.icon);
           return (

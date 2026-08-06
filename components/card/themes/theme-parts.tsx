@@ -150,7 +150,7 @@ export function contentSections(card: CardModel, flat?: boolean): ContentSection
     sections.push({
       key: "testimonials",
       title: "Testimonials",
-      node: <TestimonialsSection testimonials={card.testimonials} flat={flat} showTitle={false} />,
+      node: <TestimonialsSection testimonials={card.testimonials} showTitle={false} />,
     });
   }
   if (card.faqs.length > 0) {
