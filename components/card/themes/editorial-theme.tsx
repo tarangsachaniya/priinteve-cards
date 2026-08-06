@@ -112,23 +112,23 @@ export function EditorialTheme({ data }: { data: ThemeCardData }) {
         {card.contacts.length > 0 && (
           <section className="pe-sec pe-pad">
             <Mark index={nextMark()} label="Get In Touch" />
-            <div className="pe-clist">
+            <div className="pe-rows">
               {card.contacts.map((contact) => (
                 <a
                   key={contact.type}
-                  className="pe-crow"
+                  className="pe-row"
                   href={contact.href}
                   target={contact.external ? "_blank" : undefined}
                   rel={contact.external ? "noopener noreferrer" : undefined}
                 >
-                  <span className="pe-cicon">
+                  <span className="pe-row-ic">
                     <contact.icon aria-hidden />
                   </span>
-                  <span className="pe-cbody">
-                    <span className="pe-clab">{contact.label}</span>
-                    <span className="pe-cval">{contact.value}</span>
+                  <span className="pe-row-b">
+                    <span className="pe-row-lab">{contact.label}</span>
+                    <span className="pe-row-val">{contact.value}</span>
                   </span>
-                  <span className="pe-carr">
+                  <span className="pe-row-go">
                     <ChevronRight aria-hidden />
                   </span>
                 </a>

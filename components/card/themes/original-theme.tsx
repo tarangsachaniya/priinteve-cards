@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Building2, Download, Globe, Wallet } from "lucide-react";
+import { ArrowUpRight, Building2, ChevronRight, Download, Globe, Wallet } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { SaveContactButton } from "@/components/card/save-contact-button";
@@ -112,7 +112,7 @@ function ProfileHead({ card }: { card: CardModel }) {
 
 export function OriginalTheme({ data }: { data: ThemeCardData }) {
   const card = buildCardModel(data);
-  const sections = contentSections(card);
+  const sections = contentSections(card, true);
   const video = card.videos[0];
 
   return (
@@ -121,20 +121,25 @@ export function OriginalTheme({ data }: { data: ThemeCardData }) {
 
       {card.contacts.length > 0 && (
         <Section title="Get In Touch">
-          <div className="pe-cinfo">
+          <div className="pe-rows">
             {card.contacts.map((contact) => (
               <a
                 key={contact.type}
-                className="pe-cinfo-card"
+                className="pe-row"
                 href={contact.href}
                 target={contact.external ? "_blank" : undefined}
                 rel={contact.external ? "noopener noreferrer" : undefined}
               >
-                <span className="pe-cinfo-ic">
+                <span className="pe-row-ic">
                   <contact.icon aria-hidden />
                 </span>
-                <span className="pe-cinfo-eyebrow">{contact.label}</span>
-                <span className="pe-cinfo-title">{contact.value}</span>
+                <span className="pe-row-b">
+                  <span className="pe-row-lab">{contact.label}</span>
+                  <span className="pe-row-val">{contact.value}</span>
+                </span>
+                <span className="pe-row-go">
+                  <ChevronRight aria-hidden />
+                </span>
               </a>
             ))}
           </div>
