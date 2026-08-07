@@ -4,11 +4,7 @@ import bcrypt from "bcryptjs";
 import { requireAdminSession } from "@/lib/admin-guard";
 import { writeAuditLog } from "@/lib/audit-log";
 import { db } from "@/lib/db";
-import {
-  generateInitialPassword,
-  generateUniqueRestaurantSlug,
-  generateUniqueTableCode,
-} from "@/lib/restaurant/codes";
+import { generateUniqueRestaurantSlug, generateUniqueTableCode } from "@/lib/restaurant/codes";
 import { normalizeMobile } from "@/lib/restaurant/mobile";
 import { restaurantCreateSchema } from "@/lib/validations/restaurant";
 
@@ -79,8 +75,7 @@ export async function POST(req: Request) {
 
   // Shown to the admin exactly once, in the create-response. We only ever
   // store the hash.
-  const plainPassword = ownerPassword || generateInitialPassword();
-  const passwordHash = await bcrypt.hash(plainPassword, 10);
+  const passwordHash = await bcrypt.hash(ownerPassword, 10);
 
   /**
    * Table codes are generated up front rather than inside the create, because
@@ -142,6 +137,6 @@ export async function POST(req: Request) {
       isActive: restaurant.isActive,
       tableCount: tables.length,
     },
-    credentials: { email: ownerEmail, password: plainPassword },
+    credentials: { email: ownerEmail, password: ownerPassword },
   });
 }

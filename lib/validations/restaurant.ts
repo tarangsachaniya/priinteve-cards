@@ -46,7 +46,11 @@ export const mobileSchema = z
 
 export const restaurantCreateSchema = z.object({
   name: z.string().trim().min(2).max(80),
-  branch: z.string().trim().max(60).optional().or(z.literal("")),
+  // Required: two outlets of the same brand are the normal case this module
+  // is built for, and the branch is what keeps their slugs, QR codes and
+  // owner logins from colliding. A single-outlet business types its area or
+  // "Main" — there is no reading of "restaurant" here that has no location.
+  branch: z.string().trim().min(2).max(60),
   slug: z
     .string()
     .trim()
@@ -56,7 +60,10 @@ export const restaurantCreateSchema = z.object({
     .optional(),
   ownerName: z.string().trim().min(2).max(80),
   ownerEmail: z.string().trim().toLowerCase().email(),
-  ownerPassword: z.string().min(8).max(72).optional(),
+  // Required: the admin sets the owner's first password directly rather than
+  // a generated one being the only path, so it can be something the admin
+  // reads out over a phone call without a typo risk.
+  ownerPassword: z.string().min(8).max(72),
   phone: mobileSchema.optional().or(z.literal("")),
   address: z.string().trim().max(300).optional().or(z.literal("")),
   /**

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -37,6 +38,7 @@ const EMPTY_FORM = {
   branch: "",
   ownerName: "",
   ownerEmail: "",
+  ownerPassword: "",
   phone: "",
   address: "",
   tableCount: "",
@@ -120,7 +122,7 @@ export function RestaurantForm({
       setCredentials(data.credentials);
       onCreated({
         ...data.restaurant,
-        branch: form.branch || null,
+        branch: form.branch,
         phone: form.phone || null,
         ownerEmail: form.ownerEmail,
         tableCount: data.restaurant.tableCount ?? 0,
@@ -167,7 +169,7 @@ export function RestaurantForm({
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="flex max-h-[65vh] flex-col gap-4 overflow-y-auto px-1"
+            className="scrollbar-none flex max-h-[70vh] flex-col gap-4 overflow-y-auto px-1"
           >
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="restaurant-name">Restaurant name</Label>
@@ -181,16 +183,18 @@ export function RestaurantForm({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="restaurant-branch">Branch / Area (optional)</Label>
+              <Label htmlFor="restaurant-branch">Branch / Area</Label>
               <Input
                 id="restaurant-branch"
                 value={form.branch}
                 onChange={(e) => update("branch", e.target.value)}
                 placeholder="Bandra West"
+                required
+                minLength={2}
               />
               <p className="text-xs text-muted-foreground">
-                Distinguishes outlets of the same brand. The ordering URL is generated from the
-                name and branch together.
+                Distinguishes outlets of the same brand and feeds the ordering URL. A single
+                outlet still needs one — its city or &ldquo;Main&rdquo; works.
               </p>
             </div>
 
@@ -215,8 +219,22 @@ export function RestaurantForm({
                 placeholder="owner@spicegarden.in"
                 required
               />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="owner-password">Owner password</Label>
+              <PasswordInput
+                id="owner-password"
+                autoComplete="new-password"
+                value={form.ownerPassword}
+                onChange={(e) => update("ownerPassword", e.target.value)}
+                placeholder="At least 8 characters"
+                minLength={8}
+                required
+              />
               <p className="text-xs text-muted-foreground">
-                A password is generated automatically and shown once.
+                The owner signs in at <span className="font-medium text-foreground">/r/login</span>{" "}
+                with this email and password.
               </p>
             </div>
 

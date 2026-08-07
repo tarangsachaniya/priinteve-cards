@@ -4,7 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import type { Role } from "@prisma/client";
-import { Crown, ExternalLink, LayoutDashboard, LogOut, Menu, Nfc, Shield, Wand2, X } from "lucide-react";
+import {
+  Crown,
+  ExternalLink,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Nfc,
+  Shield,
+  UtensilsCrossed,
+  Wand2,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarBadge, AvatarFallback } from "@/components/ui/avatar";
@@ -162,6 +173,20 @@ export function Navbar({ content, user }: { content: HomepageNavbar; user: Navba
         </nav>
 
         <div className="hidden items-center gap-5 md:flex">
+          {/* Restaurant owners are a separate login (RestaurantUser, not
+              User) and separate session, so this is shown regardless of
+              whether a card-product user is signed in. */}
+          <Link
+            href="/r/login"
+            className={cn(
+              "flex items-center gap-1.5 text-sm font-medium transition-colors",
+              transparent ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <UtensilsCrossed className="size-4" />
+            Restaurant login
+          </Link>
+
           {user ? (
             <ProfileMenu user={user} transparent={transparent} />
           ) : (
@@ -209,6 +234,14 @@ export function Navbar({ content, user }: { content: HomepageNavbar; user: Navba
             </a>
           ))}
           <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              render={<Link href="/r/login" onClick={() => setOpen(false)} />}
+            >
+              <UtensilsCrossed data-icon="inline-start" />
+              Restaurant login
+            </Button>
             {user ? (
               <>
                 {user.role !== "ADMIN" && !user.cardPublished && (
