@@ -235,6 +235,7 @@ export function MenuItemForm({
               <Select
                 value={form.categoryId}
                 onValueChange={(v) => update("categoryId", v ?? form.categoryId)}
+                items={categories.map((category) => ({ value: category.id, label: category.name }))}
               >
                 <SelectTrigger>
                   <SelectValue />
