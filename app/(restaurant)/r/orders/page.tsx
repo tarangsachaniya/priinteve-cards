@@ -17,9 +17,18 @@ export default async function RestaurantOrdersPage() {
       restaurantId: session.restaurantId,
       status: { in: ["PLACED", "ACCEPTED", "PREPARING", "READY"] },
     },
-    orderBy: { placedAt: "asc" },
+    orderBy: { placedAt: "desc" },
     include: {
-      items: { select: { id: true, name: true, quantity: true, lineTotal: true } },
+      items: {
+        select: {
+          id: true,
+          name: true,
+          quantity: true,
+          lineTotal: true,
+          variantName: true,
+          addOns: { select: { name: true } },
+        },
+      },
       table: { select: { label: true } },
     },
   });
@@ -49,7 +58,10 @@ export default async function RestaurantOrdersPage() {
           deliveryPincode: order.deliveryPincode,
           pickupInMinutes: order.pickupInMinutes,
           placedAt: order.placedAt.toISOString(),
-          items: order.items,
+          items: order.items.map((item) => ({
+            ...item,
+            addOns: item.addOns.map((addOn) => addOn.name),
+          })),
         }))}
       />
     </main>

@@ -22,10 +22,19 @@ export async function GET(req: Request) {
       restaurantId: auth.session.restaurantId,
       status: scope === "live" ? { in: LIVE_STATUSES } : { in: ["COMPLETED", "CANCELLED"] },
     },
-    orderBy: { placedAt: scope === "live" ? "asc" : "desc" },
+    orderBy: { placedAt: "desc" },
     take: scope === "live" ? 200 : 50,
     include: {
-      items: { select: { id: true, name: true, quantity: true, lineTotal: true } },
+      items: {
+        select: {
+          id: true,
+          name: true,
+          quantity: true,
+          lineTotal: true,
+          variantName: true,
+          addOns: { select: { name: true } },
+        },
+      },
       table: { select: { label: true } },
     },
   });
@@ -47,7 +56,10 @@ export async function GET(req: Request) {
       deliveryPincode: order.deliveryPincode,
       pickupInMinutes: order.pickupInMinutes,
       placedAt: order.placedAt,
-      items: order.items,
+      items: order.items.map((item) => ({
+        ...item,
+        addOns: item.addOns.map((addOn) => addOn.name),
+      })),
     })),
   });
 }

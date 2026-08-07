@@ -60,7 +60,14 @@ export type BoardOrder = {
   deliveryPincode: string | null;
   pickupInMinutes: number | null;
   placedAt: string;
-  items: { id: string; name: string; quantity: number; lineTotal: number }[];
+  items: {
+    id: string;
+    name: string;
+    quantity: number;
+    lineTotal: number;
+    variantName: string | null;
+    addOns: string[];
+  }[];
 };
 
 function minutesAgo(iso: string): string {
@@ -168,18 +175,26 @@ function OrderCard({
           <PaymentPill order={order} />
         </div>
 
-        <ul className="flex flex-col gap-0.5 rounded-xl bg-muted/60 p-2 text-sm">
-          {order.items.map((item) => (
-            <li key={item.id} className="flex justify-between gap-2">
-              <span className="min-w-0 truncate">
-                <span className="text-muted-foreground tabular-nums">{item.quantity}×</span>{" "}
-                {item.name}
-              </span>
-              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                {formatCurrency(item.lineTotal)}
-              </span>
-            </li>
-          ))}
+        <ul className="flex flex-col gap-1 rounded-xl bg-muted/60 p-2 text-sm">
+          {order.items.map((item) => {
+            const options = [item.variantName, ...item.addOns].filter(Boolean).join(" · ");
+            return (
+              <li key={item.id} className="flex justify-between gap-2">
+                <span className="min-w-0">
+                  <span className="truncate">
+                    <span className="text-muted-foreground tabular-nums">{item.quantity}×</span>{" "}
+                    {item.name}
+                  </span>
+                  {options && (
+                    <span className="block truncate text-xs text-muted-foreground">{options}</span>
+                  )}
+                </span>
+                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                  {formatCurrency(item.lineTotal)}
+                </span>
+              </li>
+            );
+          })}
         </ul>
 
         {order.note && (
