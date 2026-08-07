@@ -19,7 +19,7 @@ export async function generateMetadata({
   const title = data.restaurant.branch
     ? `${data.restaurant.name} — ${data.restaurant.branch}`
     : data.restaurant.name;
-  return { title: `${title} · Order online` };
+  return { title: `${title} · Order online`, description: `Browse the menu and order from ${title}.` };
 }
 
 /**

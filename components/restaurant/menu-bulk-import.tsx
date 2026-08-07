@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { menuBulkImportSchema } from "@/lib/validations/restaurant";
 import type { CategoryRow } from "@/components/restaurant/menu-manager";
@@ -163,7 +164,7 @@ export function MenuBulkImport({
           </Button>
         }
       />
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Bulk import menu</DialogTitle>
           <DialogDescription>
@@ -175,62 +176,79 @@ export function MenuBulkImport({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              {"{ categories: [{ name, description?, items: [...] }] }"}
-            </span>
-            <Button type="button" variant="ghost" size="xs" onClick={loadExample}>
-              Load example
-            </Button>
+        {/* Two columns rather than one tall stack: a real menu's worth of
+            JSON plus the results panels below it made this dialog taller
+            than most laptop screens, forcing the page to scroll to reach the
+            Import button. Side by side, both fit without any scrollbar. */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Paste JSON</Label>
+              <Button type="button" variant="ghost" size="xs" onClick={loadExample}>
+                Load example
+              </Button>
+            </div>
+            <Textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              rows={16}
+              placeholder='{\n  "categories": [\n    { "name": "Starters", "items": [ { "name": "Spring Rolls", "price": 180 } ] }\n  ]\n}'
+              className="scrollbar-none flex-1 resize-none font-mono text-xs"
+              spellCheck={false}
+            />
           </div>
 
-          <Textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows={14}
-            placeholder='{\n  "categories": [\n    { "name": "Starters", "items": [ { "name": "Spring Rolls", "price": 180 } ] }\n  ]\n}'
-            className="scrollbar-none font-mono text-xs"
-            spellCheck={false}
-          />
-
-          {augmented && augmented.length > 0 && (
-            <div className="flex flex-col gap-1 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
-              <p className="font-medium">Added options to existing items:</p>
-              <ul className="list-inside list-disc">
-                {augmented.map((a, i) => (
-                  <li key={i}>
-                    {a.item} <span className="opacity-70">({a.category})</span> —{" "}
-                    {[
-                      a.variantsAdded > 0 && `${a.variantsAdded} size${a.variantsAdded === 1 ? "" : "s"}`,
-                      a.addOnsAdded > 0 && `${a.addOnsAdded} add-on${a.addOnsAdded === 1 ? "" : "s"}`,
-                    ]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </li>
-                ))}
-              </ul>
+          <div className="flex flex-col gap-3">
+            <div className="rounded-xl border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+              <p className="font-medium text-foreground">Shape</p>
+              <pre className="mt-1 whitespace-pre-wrap font-mono">
+                {"{ categories: [{ name, description?, items: [...] }] }"}
+              </pre>
+              <p className="mt-2 font-medium text-foreground">Per item</p>
+              <p className="mt-1">
+                name, price, description?, isVeg?, isAvailable?, imageUrl?, badge?, variants?,
+                addOns?
+              </p>
             </div>
-          )}
 
-          {skipped && skipped.length > 0 && (
-            <div className="flex flex-col gap-1 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
-              <p className="font-medium">Skipped — already on the menu with the same options:</p>
-              <ul className="list-inside list-disc">
-                {skipped.map((s, i) => (
-                  <li key={i}>
-                    {s.item} <span className="opacity-70">({s.category})</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+            {augmented && augmented.length > 0 && (
+              <div className="flex flex-col gap-1 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
+                <p className="font-medium">Added options to existing items:</p>
+                <ul className="max-h-32 list-inside list-disc overflow-y-auto">
+                  {augmented.map((a, i) => (
+                    <li key={i}>
+                      {a.item} <span className="opacity-70">({a.category})</span> —{" "}
+                      {[
+                        a.variantsAdded > 0 && `${a.variantsAdded} size${a.variantsAdded === 1 ? "" : "s"}`,
+                        a.addOnsAdded > 0 && `${a.addOnsAdded} add-on${a.addOnsAdded === 1 ? "" : "s"}`,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-          <Button type="button" onClick={handleImport} disabled={isSaving || !text.trim()}>
-            {isSaving && <Loader2 data-icon="inline-start" className="animate-spin" />}
-            {isSaving ? "Importing…" : "Import"}
-          </Button>
+            {skipped && skipped.length > 0 && (
+              <div className="flex flex-col gap-1 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
+                <p className="font-medium">Skipped — already on the menu with the same options:</p>
+                <ul className="max-h-32 list-inside list-disc overflow-y-auto">
+                  {skipped.map((s, i) => (
+                    <li key={i}>
+                      {s.item} <span className="opacity-70">({s.category})</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
+
+        <Button type="button" onClick={handleImport} disabled={isSaving || !text.trim()}>
+          {isSaving && <Loader2 data-icon="inline-start" className="animate-spin" />}
+          {isSaving ? "Importing…" : "Import"}
+        </Button>
       </DialogContent>
     </Dialog>
   );

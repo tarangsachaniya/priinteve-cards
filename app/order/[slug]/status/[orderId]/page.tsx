@@ -8,9 +8,26 @@ import { RestoPage } from "@/components/order/resto-page";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Your order",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string; orderId: string };
+}): Promise<Metadata> {
+  const order = await db.restoOrder.findFirst({
+    where: { id: params.orderId, restaurant: { slug: params.slug } },
+    select: {
+      orderNumber: true,
+      restaurant: { select: { name: true, branch: true } },
+    },
+  });
+
+  if (!order) return { title: "Order not found" };
+
+  const restaurantTitle = order.restaurant.branch
+    ? `${order.restaurant.name} — ${order.restaurant.branch}`
+    : order.restaurant.name;
+  return { title: `Order #${order.orderNumber} · ${restaurantTitle}` };
+}
 
 /**
  * Live status for one order. `status` is a static segment, so it always wins
