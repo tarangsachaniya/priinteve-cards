@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { formatMobile } from "@/lib/restaurant/mobile";
+import type { RestoMode } from "@/lib/restaurant/theme";
 import { cn } from "@/lib/utils";
 import { restaurantSettingsSchema } from "@/lib/validations/restaurant";
 
@@ -21,6 +22,12 @@ export type RestaurantSettings = {
   email: string | null;
   address: string | null;
   brandColor: string;
+  /**
+   * Required by restaurantSettingsSchema with no default — carried through
+   * unchanged on every save rather than left out, which is what silently
+   * failed validation on every submit before this field existed here.
+   */
+  themeMode: RestoMode;
   coverImageUrl: string | null;
   coverPublicId: string | null;
   logoUrl: string | null;
@@ -159,6 +166,49 @@ function ToggleRow({
   );
 }
 
+/** Matches the visible <Label> text in this form, so the two never disagree. */
+const SETTINGS_FIELD_LABELS: Record<string, string> = {
+  name: "Restaurant name",
+  branch: "Branch / Area",
+  phone: "Phone",
+  email: "Email",
+  address: "Address",
+  brandColor: "Brand colour",
+  themeMode: "Theme mode",
+  coverImageUrl: "Cover photo",
+  coverPublicId: "Cover photo",
+  logoUrl: "Logo",
+  logoPublicId: "Logo",
+  tagline: "Tagline",
+  description: "Description",
+  cuisineTags: "Cuisine tags",
+  prepTimeMinMins: "Prep time, from",
+  prepTimeMaxMins: "Prep time, to",
+  costForTwo: "Cost for two",
+  ratingValue: "Starting rating",
+  ratingCount: "Based on how many reviews",
+  dineInEnabled: "Order types",
+  takeAwayEnabled: "Order types",
+  deliveryEnabled: "Order types",
+  onlinePaymentEnabled: "Payments",
+  counterPaymentEnabled: "Payments",
+  taxPercent: "Tax (%)",
+  deliveryFee: "Delivery fee (₹)",
+  minOrderValue: "Minimum order (₹)",
+};
+
+/**
+ * Zod's own message never says which field failed, and on a form this long
+ * "Invalid input" gives the owner no way to know whether that was the cover
+ * photo, the rating, or something else entirely.
+ */
+function describeSettingsIssue(issue: { path: PropertyKey[]; message: string } | undefined): string {
+  if (!issue) return "Check your settings";
+  const field = issue.path[0];
+  const label = typeof field === "string" ? SETTINGS_FIELD_LABELS[field] : undefined;
+  return label ? `${label}: ${issue.message}` : issue.message;
+}
+
 export function SettingsForm({
   settings,
   razorpayConfigured,
@@ -243,7 +293,7 @@ export function SettingsForm({
         .filter(Boolean),
     });
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Check your settings");
+      toast.error(describeSettingsIssue(parsed.error.issues[0]));
       return;
     }
 

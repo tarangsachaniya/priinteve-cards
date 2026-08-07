@@ -12,7 +12,16 @@ export async function PATCH(req: Request) {
 
   const parsed = restaurantSettingsSchema.safeParse(await req.json());
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
+    // The client validates with this same schema before ever sending a
+    // request, so landing here means the two have drifted — worth naming the
+    // field, not just the bare message, since that mismatch is exactly what
+    // costs time to track down otherwise.
+    const issue = parsed.error.issues[0];
+    const field = issue?.path.join(".");
+    return NextResponse.json(
+      { error: field ? `${field}: ${issue.message}` : issue?.message },
+      { status: 400 }
+    );
   }
 
   const { name, branch, phone, email, address, ...rest } = parsed.data;

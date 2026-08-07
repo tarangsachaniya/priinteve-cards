@@ -4,6 +4,7 @@ import { Settings } from "lucide-react";
 import { db } from "@/lib/db";
 import { getRestaurantSession } from "@/lib/restaurant/auth";
 import { isRazorpayConfigured } from "@/lib/restaurant/payment";
+import { normalizeRestoMode } from "@/lib/restaurant/theme";
 import { PageHeader } from "@/components/shared/page-header";
 import { HoursForm } from "@/components/restaurant/hours-form";
 import { SettingsForm } from "@/components/restaurant/settings-form";
@@ -37,6 +38,7 @@ export default async function RestaurantSettingsPage() {
           email: restaurant.email,
           address: restaurant.address,
           brandColor: restaurant.brandColor,
+          themeMode: normalizeRestoMode(restaurant.themeMode),
           coverImageUrl: restaurant.coverImageUrl,
           coverPublicId: restaurant.coverPublicId,
           logoUrl: restaurant.logoUrl,
