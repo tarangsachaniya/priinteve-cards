@@ -13,6 +13,7 @@ import { HowItWorks } from "@/components/sections/how-it-works";
 import { Testimonial } from "@/components/sections/testimonial";
 import { VideoDemo } from "@/components/sections/video-demo";
 import { Comparison } from "@/components/sections/comparison";
+import { RestaurantOrdering } from "@/components/sections/restaurant-ordering";
 import { Pricing } from "@/components/sections/pricing";
 import { Faq } from "@/components/sections/faq";
 import { Contact } from "@/components/sections/contact";
@@ -111,6 +112,7 @@ export default async function Home() {
         <Testimonial testimonials={testimonials} />
         <VideoDemo video={video} />
         <Comparison rows={comparisonRows} />
+        <RestaurantOrdering />
         <Pricing plans={plans} ctaHref={primaryCtaHref} />
         <Faq items={faqs} contactEmail={contact.email} />
         <Contact content={contact} />

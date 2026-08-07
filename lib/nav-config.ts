@@ -8,6 +8,7 @@ import {
   FileText,
   KeyRound,
   IdCard,
+  UtensilsCrossed,
   type LucideIcon,
 } from "lucide-react";
 
@@ -38,6 +39,7 @@ export const ADMIN_NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/admin/plans", label: "Plans", icon: CreditCardIcon },
       { href: "/admin/users", label: "Users", icon: Users },
+      { href: "/admin/restaurants", label: "Restaurants", icon: UtensilsCrossed },
     ],
   },
   {

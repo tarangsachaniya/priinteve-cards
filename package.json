@@ -9,6 +9,7 @@
     "lint": "next lint",
     "db:seed": "tsx prisma/seed.ts",
     "db:wipe": "tsx scripts/wipe-data.ts",
+    "db:wipe:restaurant": "tsx scripts/wipe-restaurant-data.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -29,6 +30,7 @@
     "pdfkit": "^0.19.1",
     "prisma": "^5.22.0",
     "qrcode": "^1.5.4",
+    "razorpay": "^2.9.8",
     "react": "^18",
     "react-dom": "^18",
     "recharts": "^3.9.2",

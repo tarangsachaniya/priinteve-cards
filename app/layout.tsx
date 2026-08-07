@@ -6,6 +6,7 @@ import "./globals.css";
 // Tailwind output and let :root win over the card-scope token overrides.
 import "./card-theme.css";
 import "./card-layouts.css";
+import "./resto-theme.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
