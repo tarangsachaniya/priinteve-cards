@@ -13,6 +13,7 @@ import {
   ORDER_TYPE_LABEL,
 } from "@/lib/restaurant/order-status";
 import { PaidReceipt, PaymentPanel } from "@/components/order/payment-panel";
+import { PlatformCredit } from "@/components/order/platform-credit";
 import { ReviewPrompt } from "@/components/order/review-prompt";
 
 const POLL_INTERVAL_MS = 8000;
@@ -307,6 +308,8 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
       >
         Order something else
       </Link>
+
+      <PlatformCredit />
     </main>
   );
 }

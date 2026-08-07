@@ -8,6 +8,7 @@ import { CheckoutSheet } from "@/components/order/checkout-sheet";
 import { ItemOptionsSheet } from "@/components/order/item-options-sheet";
 import { MenuItemCard } from "@/components/order/menu-item-card";
 import { MenuToolbar } from "@/components/order/menu-toolbar";
+import { PlatformCredit } from "@/components/order/platform-credit";
 import { RestaurantHero } from "@/components/order/restaurant-hero";
 import { ReviewsSection } from "@/components/order/reviews-section";
 import { isCustomisable, useCart } from "@/components/order/use-cart";
@@ -207,6 +208,8 @@ export function MenuBrowser({
 
         <ReviewsSection summary={restaurant.reviewSummary} />
       </main>
+
+      <PlatformCredit />
 
       {cart.itemCount > 0 && panel === "none" && !optionsFor && (
         <CartBar
