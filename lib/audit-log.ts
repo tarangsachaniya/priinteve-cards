@@ -11,13 +11,18 @@ export type AuditAction =
   | "plan.disable"
   | "plan.import"
   | "user.update"
-  | "user.card.update";
+  | "user.card.update"
+  | "restaurant.create"
+  | "restaurant.update"
+  | "restaurant.enable"
+  | "restaurant.disable"
+  | "restaurant.password.reset";
 
 export async function writeAuditLog(params: {
   actorId: string;
   actorEmail: string;
   action: AuditAction;
-  targetType: "plan" | "user";
+  targetType: "plan" | "user" | "restaurant";
   targetId: string | null;
   metadata?: Record<string, unknown>;
 }) {

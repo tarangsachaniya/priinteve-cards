@@ -95,17 +95,17 @@ model Plan {
   durationYears    Int
   price            Int
   validityDays     Int
-  featuresJson      Json
+  featuresJson     Json
   maxGalleryImages Int
-  maxVideos        Int      @default(0)
-  maxPdfs          Int      @default(0)
-  maxFields        Int      @default(20)
-  storageLimitMb   Int      @default(0)
-  isActive         Boolean  @default(true)
-  isDraft          Boolean  @default(false)
-  recommended      Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  maxVideos        Int          @default(0)
+  maxPdfs          Int          @default(0)
+  maxFields        Int          @default(20)
+  storageLimitMb   Int          @default(0)
+  isActive         Boolean      @default(true)
+  isDraft          Boolean      @default(false)
+  recommended      Boolean      @default(false)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   users     User[]
   purchases Purchase[]
@@ -130,32 +130,32 @@ model AdminAuditLog {
 }
 
 model CardField {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fieldType  String
-  label      String
-  value      String
-  order      Int      @default(0)
-  isVisible  Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fieldType String
+  label     String
+  value     String
+  order     Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }
 
 model GalleryItem {
-  id          String      @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        GalleryType
-  url         String
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         GalleryType
+  url          String
   cloudinaryId String?
-  caption     String?
-  altText     String?
-  order       Int         @default(0)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  caption      String?
+  altText      String?
+  order        Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   @@index([userId])
 }
@@ -180,20 +180,20 @@ model CardSettings {
 }
 
 model Purchase {
-  id                String         @id @default(cuid())
-  userId            String
-  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planId            String
-  plan              Plan           @relation(fields: [planId], references: [id])
-  amountPaid        Int
-  walletUsed        Int            @default(0)
-  status            PurchaseStatus @default(PENDING)
-  isRenewal         Boolean        @default(false)
-  gatewayName       String         @default("mock")
-  gatewayOrderId    String?
-  gatewayPaymentId  String?
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  id               String         @id @default(cuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId           String
+  plan             Plan           @relation(fields: [planId], references: [id])
+  amountPaid       Int
+  walletUsed       Int            @default(0)
+  status           PurchaseStatus @default(PENDING)
+  isRenewal        Boolean        @default(false)
+  gatewayName      String         @default("mock")
+  gatewayOrderId   String?
+  gatewayPaymentId String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   referral Referral?
 
@@ -203,15 +203,15 @@ model Purchase {
 }
 
 model Referral {
-  id             String   @id @default(cuid())
-  referrerId     String
-  referrer       User     @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
-  referredId     String
-  referred       User     @relation("ReferralReferred", fields: [referredId], references: [id], onDelete: Cascade)
-  pointsAwarded  Int      @default(0)
-  purchaseId     String?  @unique
-  purchase       Purchase? @relation(fields: [purchaseId], references: [id])
-  createdAt      DateTime @default(now())
+  id            String    @id @default(cuid())
+  referrerId    String
+  referrer      User      @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId    String
+  referred      User      @relation("ReferralReferred", fields: [referredId], references: [id], onDelete: Cascade)
+  pointsAwarded Int       @default(0)
+  purchaseId    String?   @unique
+  purchase      Purchase? @relation(fields: [purchaseId], references: [id])
+  createdAt     DateTime  @default(now())
 
   @@index([referrerId])
   @@index([referredId])
@@ -255,4 +255,457 @@ model Settings {
   value     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Restaurant Ordering module
+//
+// A self-contained product that shares this database and Prisma client but
+// nothing else. Deliberately has NO relation to User, Plan, or Purchase —
+// restaurants authenticate against RestaurantUser with their own session
+// cookie (see lib/restaurant/auth.ts), never through NextAuth.
+//
+// Every table is mapped to a `resto_`-prefixed name so the boundary is
+// visible in the database itself. All money is stored as whole rupees (Int),
+// matching Plan.price and formatCurrency() — convert to paise only at the
+// Razorpay boundary.
+// ═══════════════════════════════════════════════════════════════════════════
+
+enum RestoUserRole {
+  OWNER
+  STAFF
+}
+
+enum RestoOrderType {
+  DINE_IN
+  TAKE_AWAY
+  DELIVERY
+}
+
+enum RestoOrderStatus {
+  PLACED
+  ACCEPTED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum RestoPaymentMode {
+  ONLINE
+  COUNTER
+}
+
+/// PENDING is "the meal is not over yet" — no one is expected to pay.
+/// REQUESTED means the restaurant has closed the bill and the customer's
+/// payment screen has opened. Nothing charges a customer before REQUESTED.
+enum RestoPaymentStatus {
+  PENDING
+  REQUESTED
+  PAID
+  FAILED
+  REFUNDED
+}
+
+/// Owner-set highlight on a dish. Presentation only — it never affects
+/// pricing, availability or ordering.
+enum RestoItemBadge {
+  BESTSELLER
+  CHEFS_PICK
+  POPULAR
+  NEW
+}
+
+model Restaurant {
+  id           String  @id @default(cuid())
+  name         String
+  slug         String  @unique
+  // Area or branch name, e.g. "Bandra West". Shown next to the restaurant
+  // name so multiple outlets of one brand stay distinguishable.
+  branch       String?
+  phone        String?
+  email        String?
+  address      String?
+  logoUrl      String?
+  logoPublicId String?
+  brandColor   String  @default("#16A34A")
+  isActive     Boolean @default(true)
+
+  // ─── Presentation ────────────────────────────────────────────────────────
+  // Everything the customer-facing template renders above the menu. All
+  // nullable: a restaurant that fills in nothing still gets a clean page,
+  // because each block is omitted rather than shown empty.
+  coverImageUrl   String?
+  coverPublicId   String?
+  /// Eyebrow above the name, e.g. "Wood-fired kitchen · Modern Indian & Grill".
+  tagline         String?
+  /// The paragraph under the name.
+  description     String?
+  cuisineTags     String[] @default([])
+  /// Quoted prep window, shown as "30–40 min".
+  prepTimeMinMins Int?
+  prepTimeMaxMins Int?
+  /// Approximate spend for two, in whole rupees.
+  costForTwo      Int?
+  /// Owner-entered display rating, stored ×10 so 47 renders as "4.7". An Int
+  /// rather than a float, matching how every money field here avoids decimals.
+  ratingValue     Int?
+  ratingCount     Int?
+  /// light | dark | system — see lib/restaurant/theme.ts.
+  themeMode       String   @default("dark")
+
+  // ─── Opening hours ───────────────────────────────────────────────────────
+  /// IANA zone the weekly hours are interpreted in. Stored rather than
+  /// hardcoded to Asia/Kolkata so "open now" stays correct for a guest whose
+  /// phone is set to another timezone — the restaurant's clock is the one
+  /// that decides, not the visitor's.
+  timezone        String   @default("Asia/Kolkata")
+  /// Manual override, independent of the weekly schedule. A kitchen that runs
+  /// out of gas at 8pm needs to stop taking orders without editing its hours.
+  acceptingOrders Boolean  @default(true)
+  /// Shown to guests when acceptingOrders is false, e.g. "Closed for a private
+  /// event". Falls back to generic wording when unset.
+  closedMessage   String?
+
+  // Which order types customers may choose. The customer UI renders only
+  // the types enabled here.
+  dineInEnabled   Boolean @default(true)
+  takeAwayEnabled Boolean @default(true)
+  deliveryEnabled Boolean @default(false)
+
+  // Which payment modes customers may choose. Online additionally requires
+  // Razorpay keys to be configured — see isRazorpayConfigured().
+  onlinePaymentEnabled  Boolean @default(true)
+  counterPaymentEnabled Boolean @default(true)
+
+  taxPercent    Int @default(0)
+  deliveryFee   Int @default(0)
+  minOrderValue Int @default(0)
+
+  // Per-restaurant order counter, incremented atomically when an order is
+  // placed so each restaurant gets a gap-free #1, #2, #3 sequence.
+  orderSeq Int @default(0)
+
+  // The admin who created this restaurant. A plain string, NOT a relation:
+  // this module must never hold a foreign key into the card product's User
+  // table.
+  createdByAdminId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      RestaurantUser[]
+  categories MenuCategory[]
+  menuItems  MenuItem[]
+  tables     RestaurantTable[]
+  customers  RestoCustomer[]
+  orders     RestoOrder[]
+  hours      RestaurantHours[]
+  reviews    RestoReview[]
+
+  @@index([isActive])
+  @@map("resto_restaurant")
+}
+
+/// A guest's rating, left after their bill was paid.
+///
+/// Anchored to an order rather than to a person: one paid order earns exactly
+/// one review, which is what stops a restaurant (or a competitor) from
+/// manufacturing a rating. There is no moderation queue — the order is the
+/// proof of purchase, and the owner can hide a review rather than delete it.
+model RestoReview {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  /// One review per order, enforced by the database rather than by the UI.
+  orderId      String     @unique
+  order        RestoOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  /// Snapshot, for the same reason RestoOrder snapshots the customer: the
+  /// review must stay readable if the customer record is later edited.
+  customerName String
+  rating       Int
+  comment      String?
+  /// Owner-set. Hidden reviews still count toward nothing and display nowhere,
+  /// but are kept so a dispute can be reconstructed.
+  isHidden     Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([restaurantId, isHidden, createdAt(sort: Desc)])
+  @@map("resto_review")
+}
+
+/// One row per weekday. A restaurant with no rows at all is treated as always
+/// open — that is deliberate: a tenant created before hours existed, or one
+/// that never filled them in, must not silently stop taking orders.
+model RestaurantHours {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  /// 0 = Sunday … 6 = Saturday, matching JavaScript's Date.getDay() so the
+  /// lookup needs no remapping.
+  dayOfWeek Int
+  /// Minutes from midnight in the restaurant's timezone. Integers rather than
+  /// DateTime because these are times of day, not instants — 18:30 every
+  /// Tuesday, not 18:30 on one particular Tuesday.
+  opensAt   Int @default(600)  // 10:00
+  /// May be less than opensAt, which means the shift runs past midnight:
+  /// 18:00 → 01:00 is a normal late kitchen, not bad data.
+  closesAt  Int @default(1380) // 23:00
+  /// Closed all day. Kept as a flag rather than a deleted row so the owner's
+  /// usual hours survive a weekly day off.
+  isClosed  Boolean @default(false)
+
+  @@unique([restaurantId, dayOfWeek])
+  @@index([restaurantId])
+  @@map("resto_hours")
+}
+
+model RestaurantUser {
+  id           String        @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         RestoUserRole @default(OWNER)
+  isActive     Boolean       @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([restaurantId])
+  @@map("resto_user")
+}
+
+model MenuCategory {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  sortOrder    Int        @default(0)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  items MenuItem[]
+
+  @@unique([restaurantId, name])
+  @@index([restaurantId])
+  @@map("resto_menu_category")
+}
+
+model MenuItem {
+  id            String          @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  categoryId    String
+  category      MenuCategory    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  price         Int
+  imageUrl      String?
+  imagePublicId String?
+  isVeg         Boolean         @default(true)
+  isAvailable   Boolean         @default(true)
+  sortOrder     Int             @default(0)
+  /// Owner-set highlight. Presentation only.
+  badge         RestoItemBadge?
+  /// Display rating, stored ×10 — see Restaurant.ratingValue.
+  ratingValue   Int?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  orderItems RestoOrderItem[]
+  variants   MenuItemVariant[]
+  addOns     MenuItemAddOn[]
+
+  @@index([restaurantId])
+  @@index([categoryId])
+  @@map("resto_menu_item")
+}
+
+/// A required, single-choice size or portion — "Regular", "Large".
+/// Exactly one is chosen when an item has any; priceDelta adjusts the base
+/// price rather than replacing it, so editing the item's price still moves
+/// every variant together.
+model MenuItemVariant {
+  id          String   @id @default(cuid())
+  menuItemId  String
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  name        String
+  priceDelta  Int      @default(0)
+  isDefault   Boolean  @default(false)
+  isAvailable Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([menuItemId, name])
+  @@index([menuItemId])
+  @@map("resto_menu_item_variant")
+}
+
+/// An optional extra — "Extra cheese", "No onions". Any number may be chosen.
+/// Priced absolutely, not as a delta: an add-on costs what it costs.
+model MenuItemAddOn {
+  id          String   @id @default(cuid())
+  menuItemId  String
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  name        String
+  price       Int      @default(0)
+  isAvailable Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([menuItemId, name])
+  @@index([menuItemId])
+  @@map("resto_menu_item_addon")
+}
+
+model RestaurantTable {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  label        String
+  // Random, unguessable segment of the customer URL:
+  // /order/<restaurant.slug>/<code>
+  code         String     @unique
+  seats        Int?
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  orders RestoOrder[]
+
+  @@unique([restaurantId, label])
+  @@index([restaurantId])
+  @@map("resto_table")
+}
+
+model RestoCustomer {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  // Normalised to +91XXXXXXXXXX — see lib/restaurant/mobile.ts.
+  mobile       String
+  name         String
+  orderCount   Int        @default(0)
+  lastOrderAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  orders RestoOrder[]
+
+  // Scoped per restaurant, not global: name prefill is a convenience for one
+  // restaurant's own guests, and a global table would leak a person's name to
+  // any restaurant that guessed their number.
+  @@unique([restaurantId, mobile])
+  @@index([restaurantId])
+  @@map("resto_customer")
+}
+
+model RestoOrder {
+  id           String           @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant       @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  // Human-facing number, unique within the restaurant.
+  orderNumber  Int
+  tableId      String?
+  table        RestaurantTable? @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  customerId   String
+  customer     RestoCustomer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  // Snapshot of who ordered, so the order stays readable even if the
+  // customer record is later edited.
+  customerName   String
+  customerMobile String
+
+  type   RestoOrderType
+  status RestoOrderStatus @default(PLACED)
+  /// Null until the bill is settled. Payment is chosen by the customer on the
+  /// payment screen after the restaurant closes the bill, so at placement time
+  /// this is genuinely unknown — a default would record a guess as fact.
+  paymentMode   RestoPaymentMode?
+  paymentStatus RestoPaymentStatus @default(PENDING)
+
+  subtotal    Int
+  taxAmount   Int @default(0)
+  deliveryFee Int @default(0)
+  total       Int
+
+  deliveryAddress String?
+  deliveryPincode String?
+  deliveryNotes   String?
+  pickupInMinutes Int?
+  note            String?
+
+  razorpayOrderId   String? @unique
+  razorpayPaymentId String?
+
+  placedAt     DateTime  @default(now())
+  /// When the restaurant closed the bill and opened the customer's payment
+  /// screen. Same convention as the status timestamps below.
+  paymentRequestedAt DateTime?
+  acceptedAt   DateTime?
+  preparingAt  DateTime?
+  readyAt      DateTime?
+  completedAt  DateTime?
+  cancelledAt  DateTime?
+  cancelReason String?
+  updatedAt    DateTime  @updatedAt
+
+  items  RestoOrderItem[]
+  review RestoReview?
+
+  @@unique([restaurantId, orderNumber])
+  @@index([restaurantId, status])
+  @@index([restaurantId, placedAt(sort: Desc)])
+  @@index([customerId])
+  @@map("resto_order")
+}
+
+model RestoOrderItem {
+  id                String     @id @default(cuid())
+  orderId           String
+  order             RestoOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  // Kept nullable and SetNull: deleting a menu item must never delete
+  // history. Name and price below are snapshots taken at order time.
+  menuItemId        String?
+  menuItem          MenuItem?  @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  name              String
+  /// The dish price before options, kept alongside unitPrice so a receipt can
+  /// show what the base cost and what the choices added.
+  basePrice         Int        @default(0)
+  /// Chosen variant, snapshotted. Deleting the variant must never rewrite an
+  /// order that already happened.
+  variantName       String?
+  variantPriceDelta Int        @default(0)
+  /// Fully resolved per-unit price: basePrice + variantPriceDelta + add-ons.
+  unitPrice         Int
+  quantity          Int
+  lineTotal         Int
+  note              String?
+
+  addOns RestoOrderItemAddOn[]
+
+  @@index([orderId])
+  @@map("resto_order_item")
+}
+
+/// Add-ons chosen on one order line, snapshotted by name and price for the
+/// same reason the line snapshots the dish.
+model RestoOrderItemAddOn {
+  id          String         @id @default(cuid())
+  orderItemId String
+  orderItem   RestoOrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  name        String
+  price       Int
+
+  @@index([orderItemId])
+  @@map("resto_order_item_addon")
 }
