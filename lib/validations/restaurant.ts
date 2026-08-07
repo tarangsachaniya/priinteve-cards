@@ -24,12 +24,31 @@ function optionalInt(max: number) {
 
 /**
  * Owners type a rating the way they'd read it ("4.7"); storage is ×10 — see
- * Restaurant.ratingValue for why the schema avoids floats.
+ * Restaurant.ratingValue for why the schema avoids floats. Used where a
+ * schema is only ever parsed once, immediately before a database write, so
+ * transforming straight to the ×10 storage form here is safe.
  */
 const optionalDisplayRating = z
   .preprocess(emptyToNull, z.coerce.number().min(1, "Ratings run from 1.0 to 5.0").max(5, "Ratings run from 1.0 to 5.0").nullable())
   .optional()
   .transform((value) => (value === null || value === undefined ? null : Math.round(value * 10)));
+
+/**
+ * Same 1.0–5.0 validation, without the ×10 transform.
+ *
+ * restaurantSettingsSchema is parsed TWICE on one save — once client-side
+ * before the request is sent, and again server-side on receipt — so its
+ * output has to be a stable wire format both ends agree on. optionalDisplayRating
+ * doesn't survive that: the client would transform "4.7" to 47 and send 47
+ * over the wire, and the server would then run the same 1.0–5.0 bounds check
+ * against 47 and reject every non-null rating. This variant keeps the value
+ * as the decimal an owner actually typed at every step; the ×10 scaling
+ * happens exactly once, right before the database write, in
+ * app/api/restaurant/settings/route.ts.
+ */
+const optionalDisplayRatingRaw = z
+  .preprocess(emptyToNull, z.coerce.number().min(1, "Ratings run from 1.0 to 5.0").max(5, "Ratings run from 1.0 to 5.0").nullable())
+  .optional();
 
 const optionalText = (max: number) =>
   z.preprocess(emptyToNull, z.string().trim().max(max).nullable()).optional();
@@ -127,7 +146,7 @@ export const restaurantSettingsSchema = z
     prepTimeMinMins: optionalInt(240),
     prepTimeMaxMins: optionalInt(240),
     costForTwo: optionalInt(100000),
-    ratingValue: optionalDisplayRating,
+    ratingValue: optionalDisplayRatingRaw,
     ratingCount: optionalInt(10000000),
     themeMode: z.enum(RESTO_MODE_IDS),
   })

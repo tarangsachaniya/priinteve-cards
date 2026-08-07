@@ -24,7 +24,7 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const { name, branch, phone, email, address, ...rest } = parsed.data;
+  const { name, branch, phone, email, address, ratingValue, ...rest } = parsed.data;
 
   // Turning on online payment without keys would show customers a Pay Online
   // button that can't work, so refuse it here rather than at checkout.
@@ -43,6 +43,11 @@ export async function PATCH(req: Request) {
       phone: phone ? normalizeMobile(phone) : null,
       email: email || null,
       address: address || null,
+      // Stored ×10 (see Restaurant.ratingValue) — the schema validates the
+      // decimal an owner actually typed, so the scaling happens exactly once,
+      // right here, rather than inside the schema where it would double up
+      // on the second (server-side) parse of an already-scaled value.
+      ratingValue: ratingValue == null ? null : Math.round(ratingValue * 10),
       ...rest,
     },
   });

@@ -33,6 +33,13 @@ export function MenuToolbar({
   activeCategory: string;
   onCategorySelect: (id: string) => void;
 }) {
+  // A restaurant with no non-veg dish at all has nothing for the toggle to
+  // filter out — showing it anyway would just be a switch that does nothing,
+  // and would wrongly imply the kitchen serves non-veg somewhere it doesn't.
+  const hasNonVegItem = categories.some((category) =>
+    category.items.some((item) => !item.isVeg)
+  );
+
   return (
     <div
       className="sticky top-0 z-30 border-b backdrop-blur-xl"
@@ -80,7 +87,7 @@ export function MenuToolbar({
             )}
           </div>
 
-          <VegToggle checked={vegOnly} onChange={onVegOnlyChange} />
+          {hasNonVegItem && <VegToggle checked={vegOnly} onChange={onVegOnlyChange} />}
         </div>
 
         {categories.length > 1 && (
