@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, Loader2, X } from "lucide-react";
+import { ImagePlus, Loader2, Plus, Star, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,11 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { menuItemCreateSchema } from "@/lib/validations/restaurant";
 
+/** A size choice — "Half" / "Full". `priceDelta` adjusts the base price. */
+export type VariantRow = { id?: string; name: string; priceDelta: number; isDefault: boolean };
+/** An optional extra, priced on its own rather than as a delta. */
+export type AddOnRow = { id?: string; name: string; price: number };
+
 export type MenuItemRow = {
   id: string;
   categoryId: string;
@@ -36,12 +41,35 @@ export type MenuItemRow = {
   imagePublicId: string | null;
   isVeg: boolean;
   isAvailable: boolean;
+  badge: string | null;
   sortOrder: number;
+  variants: VariantRow[];
+  addOns: AddOnRow[];
 };
 
 export type CategoryOption = { id: string; name: string };
 
-function toFormState(item: MenuItemRow | undefined, defaultCategoryId: string) {
+/** Row shapes while being edited — numbers stay strings so a field can be
+ * emptied mid-edit without snapping to 0, matching how the top-level price
+ * input already behaves. Converted back to numbers by the schema's coercion
+ * at submit time. */
+type VariantFormRow = { id?: string; name: string; priceDelta: string; isDefault: boolean };
+type AddOnFormRow = { id?: string; name: string; price: string };
+
+type ItemFormState = {
+  categoryId: string;
+  name: string;
+  description: string;
+  price: string;
+  isVeg: boolean;
+  isAvailable: boolean;
+  imageUrl: string;
+  imagePublicId: string;
+  variants: VariantFormRow[];
+  addOns: AddOnFormRow[];
+};
+
+function toFormState(item: MenuItemRow | undefined, defaultCategoryId: string): ItemFormState {
   return {
     categoryId: item?.categoryId ?? defaultCategoryId,
     name: item?.name ?? "",
@@ -51,6 +79,13 @@ function toFormState(item: MenuItemRow | undefined, defaultCategoryId: string) {
     isAvailable: item?.isAvailable ?? true,
     imageUrl: item?.imageUrl ?? "",
     imagePublicId: item?.imagePublicId ?? "",
+    variants: (item?.variants ?? []).map((v) => ({
+      id: v.id,
+      name: v.name,
+      priceDelta: String(v.priceDelta),
+      isDefault: v.isDefault,
+    })),
+    addOns: (item?.addOns ?? []).map((a) => ({ id: a.id, name: a.name, price: String(a.price) })),
   };
 }
 
@@ -76,6 +111,43 @@ export function MenuItemForm({
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function addVariant() {
+    setForm((prev) => ({
+      ...prev,
+      // The first size added defaults to selected — an item with sizes and
+      // no default is one the cart can't preselect anything for.
+      variants: [...prev.variants, { name: "", priceDelta: "0", isDefault: prev.variants.length === 0 }],
+    }));
+  }
+  function updateVariant(index: number, patch: Partial<VariantFormRow>) {
+    setForm((prev) => ({
+      ...prev,
+      variants: prev.variants.map((v, i) => (i === index ? { ...v, ...patch } : v)),
+    }));
+  }
+  function setDefaultVariant(index: number) {
+    setForm((prev) => ({
+      ...prev,
+      variants: prev.variants.map((v, i) => ({ ...v, isDefault: i === index })),
+    }));
+  }
+  function removeVariant(index: number) {
+    setForm((prev) => ({ ...prev, variants: prev.variants.filter((_, i) => i !== index) }));
+  }
+
+  function addAddOn() {
+    setForm((prev) => ({ ...prev, addOns: [...prev.addOns, { name: "", price: "0" }] }));
+  }
+  function updateAddOn(index: number, patch: Partial<AddOnFormRow>) {
+    setForm((prev) => ({
+      ...prev,
+      addOns: prev.addOns.map((a, i) => (i === index ? { ...a, ...patch } : a)),
+    }));
+  }
+  function removeAddOn(index: number) {
+    setForm((prev) => ({ ...prev, addOns: prev.addOns.filter((_, i) => i !== index) }));
   }
 
   async function handleUpload(file: File) {
@@ -287,6 +359,100 @@ export function MenuItemForm({
               checked={form.isAvailable}
               onCheckedChange={(checked) => update("isAvailable", checked)}
             />
+          </div>
+
+          <div className="flex flex-col gap-2 rounded-xl border border-border/70 p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Sizes (optional)</p>
+                <p className="text-xs text-muted-foreground">
+                  A guest picks exactly one. Price adjusts the base — negative for smaller.
+                </p>
+              </div>
+              <Button type="button" variant="outline" size="xs" onClick={addVariant}>
+                <Plus data-icon="inline-start" /> Add size
+              </Button>
+            </div>
+
+            {form.variants.map((variant, index) => (
+              <div key={index} className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setDefaultVariant(index)}
+                  aria-label={variant.isDefault ? "Default size" : "Make this the default size"}
+                  aria-pressed={variant.isDefault}
+                  className="shrink-0 p-1 text-muted-foreground data-[active=true]:text-amber-500"
+                  data-active={variant.isDefault}
+                  title="Default size"
+                >
+                  <Star className={variant.isDefault ? "size-4 fill-current" : "size-4"} />
+                </button>
+                <Input
+                  value={variant.name}
+                  onChange={(e) => updateVariant(index, { name: e.target.value })}
+                  placeholder="Half"
+                  className="min-w-0 flex-1"
+                  required
+                />
+                <Input
+                  type="number"
+                  value={variant.priceDelta}
+                  onChange={(e) => updateVariant(index, { priceDelta: e.target.value })}
+                  placeholder="0"
+                  className="w-24 shrink-0"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={`Remove ${variant.name || "this size"}`}
+                  onClick={() => removeVariant(index)}
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-2 rounded-xl border border-border/70 p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Add-ons (optional)</p>
+                <p className="text-xs text-muted-foreground">A guest may choose any number.</p>
+              </div>
+              <Button type="button" variant="outline" size="xs" onClick={addAddOn}>
+                <Plus data-icon="inline-start" /> Add add-on
+              </Button>
+            </div>
+
+            {form.addOns.map((addOn, index) => (
+              <div key={index} className="flex items-center gap-1.5">
+                <Input
+                  value={addOn.name}
+                  onChange={(e) => updateAddOn(index, { name: e.target.value })}
+                  placeholder="Extra cheese"
+                  className="min-w-0 flex-1"
+                  required
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  value={addOn.price}
+                  onChange={(e) => updateAddOn(index, { price: e.target.value })}
+                  placeholder="0"
+                  className="w-24 shrink-0"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={`Remove ${addOn.name || "this add-on"}`}
+                  onClick={() => removeAddOn(index)}
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+            ))}
           </div>
 
           <Button type="submit" disabled={isSaving || isUploading} className="mt-1">

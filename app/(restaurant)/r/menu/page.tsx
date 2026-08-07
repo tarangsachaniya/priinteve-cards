@@ -20,6 +20,10 @@ export default async function RestaurantMenuPage() {
     db.menuItem.findMany({
       where: { restaurantId: session.restaurantId },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      include: {
+        variants: { orderBy: { sortOrder: "asc" } },
+        addOns: { orderBy: { sortOrder: "asc" } },
+      },
     }),
   ]);
 
@@ -49,7 +53,15 @@ export default async function RestaurantMenuPage() {
           imagePublicId: i.imagePublicId,
           isVeg: i.isVeg,
           isAvailable: i.isAvailable,
+          badge: i.badge,
           sortOrder: i.sortOrder,
+          variants: i.variants.map((v) => ({
+            id: v.id,
+            name: v.name,
+            priceDelta: v.priceDelta,
+            isDefault: v.isDefault,
+          })),
+          addOns: i.addOns.map((a) => ({ id: a.id, name: a.name, price: a.price })),
         }))}
       />
     </main>

@@ -21,6 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/format";
 import { categoryCreateSchema } from "@/lib/validations/restaurant";
+import { MenuBulkImport } from "@/components/restaurant/menu-bulk-import";
 import { MenuItemForm, type MenuItemRow } from "@/components/restaurant/menu-item-form";
 
 export type CategoryRow = {
@@ -145,6 +146,11 @@ export function MenuManager({
     });
   }
 
+  function handleImported(newCategories: CategoryRow[], newItems: MenuItemRow[]) {
+    if (newCategories.length > 0) setCategories((prev) => [...prev, ...newCategories]);
+    if (newItems.length > 0) setItems((prev) => [...prev, ...newItems]);
+  }
+
   async function toggleAvailable(item: MenuItemRow) {
     const previous = items;
     const nextAvailable = !item.isAvailable;
@@ -211,14 +217,17 @@ export function MenuManager({
               Start with a category like Starters or Main Course.
             </p>
           </div>
-          <CategoryForm
-            onCreated={(category) => setCategories([category])}
-            trigger={
-              <Button type="button">
-                <FolderPlus /> Add your first category
-              </Button>
-            }
-          />
+          <div className="flex flex-wrap justify-center gap-2">
+            <CategoryForm
+              onCreated={(category) => setCategories([category])}
+              trigger={
+                <Button type="button">
+                  <FolderPlus /> Add your first category
+                </Button>
+              }
+            />
+            <MenuBulkImport onImported={handleImported} />
+          </div>
         </CardContent>
       </Card>
     );
@@ -227,6 +236,7 @@ export function MenuManager({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap justify-end gap-2">
+        <MenuBulkImport onImported={handleImported} />
         <CategoryForm
           onCreated={(category) => setCategories((prev) => [...prev, category])}
           trigger={

@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   }
 
   const { restaurantId } = auth.session;
-  const { categoryId, name, description, price, isVeg, isAvailable, imageUrl, imagePublicId } =
+  const { categoryId, name, description, price, isVeg, isAvailable, imageUrl, imagePublicId, badge, variants, addOns } =
     parsed.data;
 
   // The category must belong to this restaurant — otherwise a caller could
@@ -56,8 +56,27 @@ export async function POST(req: Request) {
       isAvailable,
       imageUrl: imageUrl || null,
       imagePublicId: imagePublicId || null,
+      badge: badge ?? null,
       sortOrder: (last?.sortOrder ?? -1) + 1,
+      // New items never carry an `id` on their options — every row here is a
+      // create, in the order the form listed them.
+      variants: {
+        create: (variants ?? []).map((variant, index) => ({
+          name: variant.name,
+          priceDelta: variant.priceDelta,
+          isDefault: variant.isDefault,
+          sortOrder: index,
+        })),
+      },
+      addOns: {
+        create: (addOns ?? []).map((addOn, index) => ({
+          name: addOn.name,
+          price: addOn.price,
+          sortOrder: index,
+        })),
+      },
     },
+    include: { variants: true, addOns: true },
   });
 
   return NextResponse.json({ item });

@@ -119,6 +119,8 @@ export const restaurantSettingsSchema = z
     // Presentation — how the restaurant appears above its menu.
     coverImageUrl: optionalText(500),
     coverPublicId: optionalText(200),
+    logoUrl: optionalText(500),
+    logoPublicId: optionalText(200),
     tagline: optionalText(120),
     description: optionalText(400),
     cuisineTags: z.array(z.string().trim().min(1).max(24)).max(6).default([]),
@@ -160,6 +162,48 @@ export const categoryUpdateSchema = categoryCreateSchema.partial().extend({
   sortOrder: z.coerce.number().int().min(0).optional(),
 });
 
+/**
+ * Rejects two rows with the same name (case-insensitive) within one item.
+ * The database enforces this too via @@unique([menuItemId, name]), but
+ * catching it here turns a 500 from a constraint violation into a message
+ * that names the actual problem.
+ */
+function noDuplicateNames(items: { name: string }[]): boolean {
+  const seen = new Set<string>();
+  for (const item of items) {
+    const key = item.name.trim().toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+  }
+  return true;
+}
+
+/**
+ * A variant adjusts the dish price rather than replacing it, so the delta may
+ * be negative — a "Half plate" is priced below the base. Shared field shape
+ * between the single-item form (which reconciles by `id`) and bulk import
+ * (which has no `id` and matches by name instead).
+ */
+const variantFieldsSchema = z.object({
+  name: z.string().trim().min(1).max(40),
+  priceDelta: z.coerce.number().int().min(-100000).max(100000).default(0),
+  isDefault: z.boolean().default(false),
+});
+
+/// An optional extra — priced absolutely, not as a delta.
+const addOnFieldsSchema = z.object({
+  name: z.string().trim().min(1).max(40),
+  price: z.coerce.number().int().min(0).max(100000).default(0),
+});
+
+/**
+ * `id` present means "this is an existing row, keep or edit it"; absent means
+ * "create a new one". The item routes reconcile against this — see
+ * app/api/restaurant/menu-items/[id]/route.ts.
+ */
+const menuItemVariantInputSchema = variantFieldsSchema.extend({ id: z.string().optional() });
+const menuItemAddOnInputSchema = addOnFieldsSchema.extend({ id: z.string().optional() });
+
 export const menuItemCreateSchema = z.object({
   categoryId: z.string().min(1),
   name: z.string().trim().min(1).max(80),
@@ -171,8 +215,25 @@ export const menuItemCreateSchema = z.object({
   imagePublicId: z.string().optional().or(z.literal("")),
   badge: z.preprocess(emptyToNull, z.enum(["BESTSELLER", "CHEFS_PICK", "POPULAR", "NEW"]).nullable()).optional(),
   ratingValue: optionalDisplayRating,
+  // Capped at 20: a dish with no size choice and no extras is the common
+  // case, and 20 of either is already more than a printed menu shows.
+  variants: z
+    .array(menuItemVariantInputSchema)
+    .max(20)
+    .refine(noDuplicateNames, "Size names must be unique")
+    .default([]),
+  addOns: z
+    .array(menuItemAddOnInputSchema)
+    .max(20)
+    .refine(noDuplicateNames, "Add-on names must be unique")
+    .default([]),
 });
 
+/**
+ * `.partial()` makes variants/addOns optional rather than defaulted, which is
+ * exactly the distinction the PATCH route needs: omitted means "leave options
+ * alone", an explicit `[]` means "remove every option this item has".
+ */
 export const menuItemUpdateSchema = menuItemCreateSchema.partial().extend({
   sortOrder: z.coerce.number().int().min(0).optional(),
 });
@@ -183,14 +244,7 @@ export const reorderSchema = z.object({
 
 // ─── Restaurant: item options ──────────────────────────────────────────────
 
-/**
- * A variant adjusts the dish price rather than replacing it, so the delta may
- * be negative — a "Half plate" is priced below the base.
- */
-export const variantCreateSchema = z.object({
-  name: z.string().trim().min(1).max(40),
-  priceDelta: z.coerce.number().int().min(-100000).max(100000).default(0),
-  isDefault: z.boolean().default(false),
+export const variantCreateSchema = variantFieldsSchema.extend({
   isAvailable: z.boolean().default(true),
 });
 
@@ -198,14 +252,54 @@ export const variantUpdateSchema = variantCreateSchema.partial().extend({
   sortOrder: z.coerce.number().int().min(0).optional(),
 });
 
-export const addOnCreateSchema = z.object({
-  name: z.string().trim().min(1).max(40),
-  price: z.coerce.number().int().min(0).max(100000).default(0),
+export const addOnCreateSchema = addOnFieldsSchema.extend({
   isAvailable: z.boolean().default(true),
 });
 
 export const addOnUpdateSchema = addOnCreateSchema.partial().extend({
   sortOrder: z.coerce.number().int().min(0).optional(),
+});
+
+// ─── Restaurant: bulk menu import ──────────────────────────────────────────
+//
+// Reuses variantFieldsSchema / addOnFieldsSchema from the item schema above —
+// bulk-imported options carry no `id` (they're matched against existing rows
+// by name instead, in the import route), which is exactly what those base
+// shapes are before menuItemVariantInputSchema/menuItemAddOnInputSchema
+// extend them with one.
+
+const bulkItemSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  description: z.string().trim().max(300).optional().or(z.literal("")),
+  price: z.coerce.number().int().min(0).max(1000000),
+  isVeg: z.boolean().default(true),
+  isAvailable: z.boolean().default(true),
+  imageUrl: z.string().trim().url().optional().or(z.literal("")),
+  badge: z
+    .preprocess(emptyToNull, z.enum(["BESTSELLER", "CHEFS_PICK", "POPULAR", "NEW"]).nullable())
+    .optional(),
+  // Optional and capped: a dish with no size choice and no extras is the
+  // common case, and 20 of either is already more than a printed menu shows.
+  variants: z
+    .array(variantFieldsSchema)
+    .max(20)
+    .refine(noDuplicateNames, "Size names must be unique")
+    .default([]),
+  addOns: z
+    .array(addOnFieldsSchema)
+    .max(20)
+    .refine(noDuplicateNames, "Add-on names must be unique")
+    .default([]),
+});
+
+const bulkCategorySchema = z.object({
+  name: z.string().trim().min(1).max(60),
+  description: z.string().trim().max(200).optional().or(z.literal("")),
+  items: z.array(bulkItemSchema).min(1).max(150),
+});
+
+export const menuBulkImportSchema = z.object({
+  categories: z.array(bulkCategorySchema).min(1).max(50),
 });
 
 // ─── Restaurant: tables ────────────────────────────────────────────────────
@@ -336,3 +430,4 @@ export type RestaurantSettingsInput = z.infer<typeof restaurantSettingsSchema>;
 export type MenuItemCreateInput = z.infer<typeof menuItemCreateSchema>;
 export type PlaceOrderInput = z.infer<typeof placeOrderSchema>;
 export type HoursUpdateInput = z.infer<typeof hoursUpdateSchema>;
+export type MenuBulkImportInput = z.infer<typeof menuBulkImportSchema>;

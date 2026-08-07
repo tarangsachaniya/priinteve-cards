@@ -10,6 +10,7 @@ import {
   formatRating,
   formatRatingCount,
 } from "@/lib/restaurant/menu-display";
+import { cn } from "@/lib/utils";
 import { RestoModeToggle } from "@/components/order/resto-mode-toggle";
 import type { PublicRestaurant, PublicTable } from "@/components/order/types";
 
@@ -118,17 +119,19 @@ export function RestaurantHero({
               </p>
             )}
             <h1
-              className="resto-display mt-1.5 text-xl font-bold leading-tight md:text-3xl"
+              className={cn(
+                "resto-display text-xl font-bold leading-tight md:text-3xl",
+                eyebrow && "mt-1.5"
+              )}
               style={{ color: "var(--resto-text)" }}
             >
               {restaurant.name}
-              {restaurant.branch && (
-                <span className="font-normal" style={{ color: "var(--resto-text-muted)" }}>
-                  {" · "}
-                  {restaurant.branch}
-                </span>
-              )}
             </h1>
+            {restaurant.branch && (
+              <p className="mt-0.5 text-sm" style={{ color: "var(--resto-text-muted)" }}>
+                {restaurant.branch}
+              </p>
+            )}
           </div>
         </div>
 
