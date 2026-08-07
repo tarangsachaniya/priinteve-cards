@@ -18,6 +18,16 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/format";
 import { formatMobile } from "@/lib/restaurant/mobile";
 import {
@@ -290,11 +300,74 @@ function OrderCard({
   );
 }
 
+/**
+ * Replaces the native prompt() the cancel action used to open — same reason
+ * confirm() was replaced elsewhere: it blocks the render thread and can't be
+ * styled or made keyboard/screen-reader friendly like the rest of the app.
+ */
+function CancelOrderDialog({
+  order,
+  onOpenChange,
+  onConfirm,
+}: {
+  order: BoardOrder | null;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: (reason: string) => void;
+}) {
+  const [reason, setReason] = useState("");
+
+  return (
+    <Dialog
+      open={order !== null}
+      onOpenChange={(open) => {
+        if (!open) setReason("");
+        onOpenChange(open);
+      }}
+    >
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Cancel order?</DialogTitle>
+          <DialogDescription>
+            {order && `Let the kitchen know why order #${order.orderNumber} is being cancelled.`}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="cancel-reason">Reason (optional)</Label>
+          <Textarea
+            id="cancel-reason"
+            rows={2}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Out of stock, guest changed their mind…"
+            autoFocus
+          />
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Keep order
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => {
+              onConfirm(reason.trim());
+              setReason("");
+            }}
+          >
+            Cancel order
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function OrdersBoard({ initialOrders }: { initialOrders: BoardOrder[] }) {
   const [orders, setOrders] = useState(initialOrders);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [tableFilter, setTableFilter] = useState<string>("all");
+  const [pendingCancel, setPendingCancel] = useState<BoardOrder | null>(null);
   const knownIds = useRef(new Set(initialOrders.map((o) => o.id)));
 
   /**
@@ -374,9 +447,13 @@ export function OrdersBoard({ initialOrders }: { initialOrders: BoardOrder[] }) 
   }
 
   function cancel(order: BoardOrder) {
-    const reason = prompt(`Why is order #${order.orderNumber} being cancelled?`);
-    if (reason === null) return;
-    updateStatus(order, "CANCELLED", reason.trim() || undefined);
+    setPendingCancel(order);
+  }
+
+  function confirmCancel(reason: string) {
+    if (!pendingCancel) return;
+    updateStatus(pendingCancel, "CANCELLED", reason || undefined);
+    setPendingCancel(null);
   }
 
   /**
@@ -510,6 +587,12 @@ export function OrdersBoard({ initialOrders }: { initialOrders: BoardOrder[] }) 
           })}
         </div>
       )}
+
+      <CancelOrderDialog
+        order={pendingCancel}
+        onOpenChange={(open) => !open && setPendingCancel(null)}
+        onConfirm={confirmCancel}
+      />
     </div>
   );
 }
