@@ -56,6 +56,16 @@ export function canTransition(from: RestoOrderStatus, to: RestoOrderStatus): boo
   return ALLOWED_TRANSITIONS[from].includes(to);
 }
 
+/**
+ * Whether the bill is actually settled. Kept separate from canTransition —
+ * kitchen status and payment status are independent facts (see the request-
+ * payment and pay routes), so this is checked at the point of use rather than
+ * folded into the status transition map.
+ */
+export function isSettled(paymentStatus: RestoPaymentStatus): boolean {
+  return paymentStatus === "PAID";
+}
+
 export function nextStatus(from: RestoOrderStatus): RestoOrderStatus | null {
   const index = ORDER_STATUS_FLOW.indexOf(from);
   if (index === -1 || index === ORDER_STATUS_FLOW.length - 1) return null;

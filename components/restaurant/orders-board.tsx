@@ -120,6 +120,9 @@ function OrderCard({
   const canRequestPayment =
     order.paymentStatus === "PENDING" && order.status !== "PLACED";
   const canMarkPaid = order.paymentStatus === "REQUESTED" || order.paymentStatus === "FAILED";
+  // Completing is gated on the money actually having arrived — cash included,
+  // via "Mark paid" below — not just on the kitchen being done.
+  const blockedByPayment = advanceTo === "COMPLETED" && order.paymentStatus !== "PAID";
   // A dine-in order with no table is a data problem the kitchen has to know
   // about — they have no way to deliver it.
   const missingTable = order.type === "DINE_IN" && !order.tableLabel;
@@ -222,6 +225,12 @@ function OrderCard({
           </div>
         )}
 
+        {blockedByPayment && (
+          <p className="rounded-xl bg-amber-500/10 px-2.5 py-1.5 text-xs font-medium text-amber-800">
+            Mark paid to complete
+          </p>
+        )}
+
         <div className="flex items-center justify-between gap-2 border-t border-border pt-2">
           <span className="font-semibold tabular-nums">{formatCurrency(order.total)}</span>
           <div className="flex gap-1.5">
@@ -243,7 +252,13 @@ function OrderCard({
               <Phone />
             </Button>
             {advanceTo && (
-              <Button type="button" size="xs" disabled={isBusy} onClick={() => onAdvance(order)}>
+              <Button
+                type="button"
+                size="xs"
+                disabled={isBusy || blockedByPayment}
+                title={blockedByPayment ? "Mark this order paid before completing it" : undefined}
+                onClick={() => onAdvance(order)}
+              >
                 {advanceTo === "ACCEPTED"
                   ? "Accept"
                   : advanceTo === "PREPARING"
