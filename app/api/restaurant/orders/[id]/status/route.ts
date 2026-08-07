@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { requireRestaurantSession } from "@/lib/restaurant/auth";
-import { canTransition, timestampFieldFor } from "@/lib/restaurant/order-status";
+import { canTransition, isSettled, timestampFieldFor } from "@/lib/restaurant/order-status";
 import { orderStatusUpdateSchema } from "@/lib/validations/restaurant";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
@@ -34,17 +34,25 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     );
   }
 
+  // Payment is no longer inferred from the kitchen status. Completing an order
+  // used to silently mark a counter order paid; now money is only ever
+  // recorded by the customer paying or the owner confirming cash, because
+  // "the food went out" and "we were paid" are genuinely different facts.
+  // But the reverse still holds: an order can't be marked complete until that
+  // separate fact — payment — is actually settled.
+  if (status === "COMPLETED" && !isSettled(order.paymentStatus)) {
+    return NextResponse.json(
+      { error: "Mark this order paid before completing it" },
+      { status: 409 }
+    );
+  }
+
   const timestampField = timestampFieldFor(status);
   const data: Prisma.RestoOrderUpdateInput = {
     status,
     ...(timestampField ? { [timestampField]: new Date() } : {}),
     ...(status === "CANCELLED" && cancelReason ? { cancelReason } : {}),
   };
-
-  // Payment is no longer inferred from the kitchen status. Completing an order
-  // used to silently mark a counter order paid; now money is only ever
-  // recorded by the customer paying or the owner confirming cash, because
-  // "the food went out" and "we were paid" are genuinely different facts.
 
   const updated = await db.restoOrder.update({ where: { id: order.id }, data });
 
