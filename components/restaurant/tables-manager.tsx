@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export type TableRow = {
   id: string;
@@ -248,9 +249,12 @@ export function TablesManager({
   baseUrl: string;
 }) {
   const [tables, setTables] = useState(initialTables);
+  const [pendingDelete, setPendingDelete] = useState<TableRow | null>(null);
 
-  async function deleteTable(table: TableRow) {
-    if (!confirm(`Remove "${table.label}"?`)) return;
+  async function confirmDeleteTable() {
+    const table = pendingDelete;
+    if (!table) return;
+    setPendingDelete(null);
 
     const previous = tables;
     setTables((prev) => prev.filter((t) => t.id !== table.id));
@@ -325,11 +329,21 @@ export function TablesManager({
               key={table.id}
               table={table}
               orderUrl={`${baseUrl}/order/${restaurantSlug}/${table.code}`}
-              onDelete={deleteTable}
+              onDelete={setPendingDelete}
             />
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+        title="Remove table?"
+        description={pendingDelete ? `"${pendingDelete.label}" will be removed.` : undefined}
+        confirmLabel="Remove"
+        variant="destructive"
+        onConfirm={confirmDeleteTable}
+      />
     </div>
   );
 }

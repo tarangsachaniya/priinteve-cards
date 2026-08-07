@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrency } from "@/lib/format";
 import { categoryCreateSchema } from "@/lib/validations/restaurant";
 import { MenuBulkImport } from "@/components/restaurant/menu-bulk-import";
@@ -123,6 +124,8 @@ export function MenuManager({
 }) {
   const [categories, setCategories] = useState(initialCategories);
   const [items, setItems] = useState(initialItems);
+  const [pendingDeleteItem, setPendingDeleteItem] = useState<MenuItemRow | null>(null);
+  const [pendingDeleteCategory, setPendingDeleteCategory] = useState<CategoryRow | null>(null);
 
   const categoryOptions = useMemo(
     () => categories.map((c) => ({ id: c.id, name: c.name })),
@@ -169,8 +172,10 @@ export function MenuManager({
     }
   }
 
-  async function deleteItem(item: MenuItemRow) {
-    if (!confirm(`Delete "${item.name}" from the menu?`)) return;
+  async function confirmDeleteItem() {
+    const item = pendingDeleteItem;
+    if (!item) return;
+    setPendingDeleteItem(null);
 
     const previous = items;
     setItems((prev) => prev.filter((i) => i.id !== item.id));
@@ -184,13 +189,19 @@ export function MenuManager({
     toast.success("Item deleted");
   }
 
-  async function deleteCategory(category: CategoryRow) {
+  function requestDeleteCategory(category: CategoryRow) {
     const count = itemsByCategory.get(category.id)?.length ?? 0;
     if (count > 0) {
       toast.error("Move or delete this category's items first");
       return;
     }
-    if (!confirm(`Delete the "${category.name}" category?`)) return;
+    setPendingDeleteCategory(category);
+  }
+
+  async function confirmDeleteCategory() {
+    const category = pendingDeleteCategory;
+    if (!category) return;
+    setPendingDeleteCategory(null);
 
     const previous = categories;
     setCategories((prev) => prev.filter((c) => c.id !== category.id));
@@ -288,7 +299,7 @@ export function MenuManager({
                   variant="ghost"
                   size="icon-xs"
                   aria-label={`Delete ${category.name}`}
-                  onClick={() => deleteCategory(category)}
+                  onClick={() => requestDeleteCategory(category)}
                 >
                   <Trash2 />
                 </Button>
@@ -350,7 +361,7 @@ export function MenuManager({
                               variant="ghost"
                               size="icon-xs"
                               aria-label={`Delete ${item.name}`}
-                              onClick={() => deleteItem(item)}
+                              onClick={() => setPendingDeleteItem(item)}
                             >
                               <Trash2 />
                             </Button>
@@ -382,6 +393,33 @@ export function MenuManager({
           </section>
         );
       })}
+
+      <ConfirmDialog
+        open={pendingDeleteItem !== null}
+        onOpenChange={(open) => !open && setPendingDeleteItem(null)}
+        title="Delete item?"
+        description={
+          pendingDeleteItem
+            ? `"${pendingDeleteItem.name}" will be removed from the menu.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={confirmDeleteItem}
+      />
+      <ConfirmDialog
+        open={pendingDeleteCategory !== null}
+        onOpenChange={(open) => !open && setPendingDeleteCategory(null)}
+        title="Delete category?"
+        description={
+          pendingDeleteCategory
+            ? `The "${pendingDeleteCategory.name}" category will be removed.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={confirmDeleteCategory}
+      />
     </div>
   );
 }
