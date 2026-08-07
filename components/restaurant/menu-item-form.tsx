@@ -213,7 +213,7 @@ export function MenuItemForm({
       }}
     >
       <DialogTrigger render={trigger} />
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit item" : "Add menu item"}</DialogTitle>
           <DialogDescription>
@@ -223,8 +223,14 @@ export function MenuItemForm({
 
         <form
           onSubmit={handleSubmit}
-          className="flex max-h-[65vh] flex-col gap-4 overflow-y-auto px-1"
+          className="scrollbar-none flex max-h-[75vh] flex-col gap-4 overflow-y-auto px-1"
         >
+          {/* Two columns rather than one long stack: the dish's own fields on
+              the left, sizes and add-ons — which can grow arbitrarily long —
+              on the right, so a plain item's dialog isn't dominated by empty
+              "optional" sections and a loaded one doesn't force page scroll. */}
+          <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
+          <div className="flex flex-col gap-4">
           <div className="flex gap-3">
             <div className="relative size-20 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
               {form.imageUrl ? (
@@ -360,7 +366,9 @@ export function MenuItemForm({
               onCheckedChange={(checked) => update("isAvailable", checked)}
             />
           </div>
+          </div>
 
+          <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2 rounded-xl border border-border/70 p-3">
             <div className="flex items-center justify-between">
               <div>
@@ -453,6 +461,8 @@ export function MenuItemForm({
                 </Button>
               </div>
             ))}
+          </div>
+          </div>
           </div>
 
           <Button type="submit" disabled={isSaving || isUploading} className="mt-1">
