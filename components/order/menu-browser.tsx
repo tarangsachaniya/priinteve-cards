@@ -12,6 +12,7 @@ import { PlatformCredit } from "@/components/order/platform-credit";
 import { RestaurantHero } from "@/components/order/restaurant-hero";
 import { ResumeOrderBanner } from "@/components/order/resume-order-banner";
 import { ReviewsSection } from "@/components/order/reviews-section";
+import { TrackOrderDialog } from "@/components/order/track-order-dialog";
 import { isCustomisable, useCart } from "@/components/order/use-cart";
 import type {
   PublicMenuCategory,
@@ -47,6 +48,9 @@ export function MenuBrowser({
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id ?? "");
   const [panel, setPanel] = useState<"none" | "cart" | "checkout">("none");
   const [optionsFor, setOptionsFor] = useState<PublicMenuItem | null>(null);
+  // Independent of `panel`: this is a lookup dialog reachable from anywhere
+  // on the page, not a step in the cart → checkout flow.
+  const [showTrackOrder, setShowTrackOrder] = useState(false);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const cart = useCart(categories);
@@ -110,6 +114,17 @@ export function MenuBrowser({
       <RestaurantHero restaurant={restaurant} table={table} />
 
       <ResumeOrderBanner slug={restaurant.slug} />
+
+      <div className="mx-auto mt-3 w-full max-w-[var(--resto-measure)] px-4 text-right">
+        <button
+          type="button"
+          onClick={() => setShowTrackOrder(true)}
+          className="text-xs font-semibold underline-offset-2 hover:underline"
+          style={{ color: "var(--resto-text-muted)" }}
+        >
+          Track my order
+        </button>
+      </div>
 
       {!isOpen && (
         <div className="mx-auto mt-6 w-full max-w-[var(--resto-measure)] px-4">
@@ -251,6 +266,10 @@ export function MenuBrowser({
           lines={cart.lines}
           onClose={() => setPanel("cart")}
         />
+      )}
+
+      {showTrackOrder && (
+        <TrackOrderDialog restaurant={restaurant} onClose={() => setShowTrackOrder(false)} />
       )}
     </div>
   );

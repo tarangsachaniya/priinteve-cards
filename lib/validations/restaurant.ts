@@ -353,6 +353,11 @@ export const customerLookupSchema = z.object({
   mobile: mobileSchema,
 });
 
+export const trackOrderSchema = z.object({
+  restaurantSlug: z.string().trim().min(1).max(60),
+  mobile: mobileSchema,
+});
+
 export const placeOrderSchema = z
   .object({
     restaurantSlug: z.string().trim().min(1).max(60),
