@@ -52,6 +52,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     status,
     ...(timestampField ? { [timestampField]: new Date() } : {}),
     ...(status === "CANCELLED" && cancelReason ? { cancelReason } : {}),
+    ...(status === "CANCELLED" && order.paymentStatus === "PAID" ? { paymentStatus: "REFUNDED" } : {}),
   };
 
   const updated = await db.restoOrder.update({ where: { id: order.id }, data });

@@ -331,6 +331,12 @@ function CancelOrderDialog({
             {order && `Let the kitchen know why order #${order.orderNumber} is being cancelled.`}
           </DialogDescription>
         </DialogHeader>
+        {order?.paymentStatus === "PAID" && (
+          <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
+            This order has already been paid ({formatCurrency(order.total)}). Cancelling it will mark it
+            as Refunded — you'll still need to process the actual refund yourself.
+          </p>
+        )}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="cancel-reason">Reason (optional)</Label>
           <Textarea

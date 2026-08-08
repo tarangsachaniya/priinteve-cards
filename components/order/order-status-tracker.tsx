@@ -160,6 +160,12 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
               {cancelReason}
             </p>
           )}
+          {paymentStatus === "REFUNDED" && (
+            <p className="text-sm" style={{ color: "var(--resto-text-muted)" }}>
+              This order was already paid — a refund of {formatCurrency(initialOrder.total)} will be
+              processed by the restaurant.
+            </p>
+          )}
         </div>
       ) : (
         <ol
