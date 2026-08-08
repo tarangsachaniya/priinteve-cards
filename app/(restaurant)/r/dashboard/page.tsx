@@ -28,7 +28,60 @@ function startOfDay(date: Date): Date {
   return copy;
 }
 
-export default async function RestaurantDashboardPage() {
+type Period = "day" | "month" | "year";
+
+const PERIODS: { key: Period; tab: string; title: string }[] = [
+  { key: "day", tab: "Daily", title: "Last 14 days" },
+  { key: "month", tab: "Monthly", title: "Last 12 months" },
+  { key: "year", tab: "Yearly", title: "Last 5 years" },
+];
+
+function parsePeriod(value: string | undefined): Period {
+  return value === "month" || value === "year" ? value : "day";
+}
+
+/**
+ * The left edge of every bucket, oldest first.
+ *
+ * Months and years are built from the calendar rather than by subtracting a
+ * fixed number of days, so a 28-day February and a leap year both land on the
+ * right boundary instead of drifting.
+ */
+function bucketStarts(period: Period, now: Date): Date[] {
+  if (period === "day") {
+    const today = startOfDay(now);
+    return Array.from({ length: 14 }, (_, i) => new Date(today.getTime() - (13 - i) * DAY_MS));
+  }
+  if (period === "month") {
+    return Array.from(
+      { length: 12 },
+      (_, i) => new Date(now.getFullYear(), now.getMonth() - (11 - i), 1)
+    );
+  }
+  return Array.from({ length: 5 }, (_, i) => new Date(now.getFullYear() - (4 - i), 0, 1));
+}
+
+function bucketEnd(period: Period, start: Date): Date {
+  if (period === "day") return new Date(start.getTime() + DAY_MS);
+  if (period === "month") return new Date(start.getFullYear(), start.getMonth() + 1, 1);
+  return new Date(start.getFullYear() + 1, 0, 1);
+}
+
+function bucketLabel(period: Period, start: Date): string {
+  if (period === "day") {
+    return start.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  }
+  if (period === "month") {
+    return start.toLocaleDateString("en-IN", { month: "short" });
+  }
+  return String(start.getFullYear());
+}
+
+export default async function RestaurantDashboardPage({
+  searchParams,
+}: {
+  searchParams: { period?: string };
+}) {
   const session = await getRestaurantSession();
   if (!session) redirect("/r/login");
 
@@ -38,10 +91,13 @@ export default async function RestaurantDashboardPage() {
   });
   if (!restaurant) redirect("/r/login");
 
-  const today = startOfDay(new Date());
-  const weekStart = new Date(today.getTime() - 6 * DAY_MS);
+  const now = new Date();
+  const today = startOfDay(now);
+  const period = parsePeriod(searchParams.period);
+  const starts = bucketStarts(period, now);
+  const trendStart = starts[0];
 
-  const [todayOrders, weekOrders, liveCount, menuItemCount, tableCount] = await Promise.all([
+  const [todayOrders, trendOrders, liveCount, menuItemCount, tableCount] = await Promise.all([
     db.restoOrder.findMany({
       where: {
         restaurantId: session.restaurantId,
@@ -53,7 +109,7 @@ export default async function RestaurantDashboardPage() {
     db.restoOrder.findMany({
       where: {
         restaurantId: session.restaurantId,
-        placedAt: { gte: weekStart },
+        placedAt: { gte: trendStart },
         status: { not: "CANCELLED" },
       },
       select: { total: true, placedAt: true },
@@ -72,20 +128,22 @@ export default async function RestaurantDashboardPage() {
   const averageOrder =
     todayOrders.length > 0 ? Math.round(todayRevenue / todayOrders.length) : 0;
 
-  // Seven buckets, oldest first, so an empty day still shows as a zero rather
-  // than being skipped in the chart.
-  const trend: RevenuePoint[] = Array.from({ length: 7 }, (_, offset) => {
-    const dayStart = new Date(weekStart.getTime() + offset * DAY_MS);
-    const dayEnd = new Date(dayStart.getTime() + DAY_MS);
-    const dayOrders = weekOrders.filter(
-      (order) => order.placedAt >= dayStart && order.placedAt < dayEnd
+  // One bucket per period step, oldest first, so an empty day or month still
+  // shows as a zero rather than being skipped in the chart.
+  const trend: RevenuePoint[] = starts.map((start) => {
+    const end = bucketEnd(period, start);
+    const bucketOrders = trendOrders.filter(
+      (order) => order.placedAt >= start && order.placedAt < end
     );
     return {
-      label: dayStart.toLocaleDateString("en-IN", { weekday: "short" }),
-      revenue: dayOrders.reduce((sum, order) => sum + order.total, 0),
-      orders: dayOrders.length,
+      label: bucketLabel(period, start),
+      revenue: bucketOrders.reduce((sum, order) => sum + order.total, 0),
+      orders: bucketOrders.length,
     };
   });
+
+  const periodRevenue = trendOrders.reduce((sum, order) => sum + order.total, 0);
+  const activePeriod = PERIODS.find((p) => p.key === period) ?? PERIODS[0];
 
   const stats = [
     {
@@ -176,9 +234,32 @@ export default async function RestaurantDashboardPage() {
         </div>
 
         <Card className="border-border/80">
-          <CardHeader>
-            <CardTitle className="text-base">Last 7 days</CardTitle>
-            <CardDescription>Revenue from orders that weren&apos;t cancelled.</CardDescription>
+          <CardHeader className="flex flex-wrap items-start justify-between gap-3 sm:flex-row">
+            <div>
+              <CardTitle className="text-base">
+                Earnings · {formatCurrency(periodRevenue)}
+              </CardTitle>
+              <CardDescription>
+                {activePeriod.title} — orders that weren&apos;t cancelled.
+              </CardDescription>
+            </div>
+
+            {/* Links rather than buttons: the page is a server component, so
+                switching period is a navigation and stays shareable. */}
+            <nav aria-label="Earnings period" className="flex gap-1 rounded-full bg-muted p-1">
+              {PERIODS.map(({ key, tab }) => (
+                <Link
+                  key={key}
+                  href={`/r/dashboard?period=${key}`}
+                  aria-current={key === period ? "page" : undefined}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                    key === period ? "bg-card shadow-sm" : "text-muted-foreground"
+                  }`}
+                >
+                  {tab}
+                </Link>
+              ))}
+            </nav>
           </CardHeader>
           <CardContent>
             <RevenueChart data={trend} />

@@ -66,6 +66,7 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
 
   const isPaid = paymentStatus === "PAID";
   const isCancelled = status === "CANCELLED";
+  const isCompleted = status === "COMPLETED";
 
   /**
    * Polling continues after the kitchen is done, which it did not used to.
@@ -74,7 +75,7 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
    * terminal kitchen status would leave the guest staring at a screen that
    * never opens its payment panel.
    */
-  const settled = isCancelled || (isPaid && hasReview);
+  const settled = isCancelled || (isCompleted && hasReview);
 
   useEffect(() => {
     if (settled) return;
@@ -137,10 +138,6 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
       )}
 
       {!isCancelled && isPaid && <PaidReceipt total={initialOrder.total} mode={paymentMode} />}
-
-      {!isCancelled && isPaid && !hasReview && (
-        <ReviewPrompt orderId={initialOrder.id} onSubmitted={() => setHasReview(true)} />
-      )}
 
       {isCancelled ? (
         <div
@@ -252,6 +249,13 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
             );
           })}
         </ol>
+      )}
+
+      {/* Asked only once the meal is actually over. Payment is no longer the
+          cue: take-away and delivery orders are paid up front, so gating on
+          it would ask a guest to rate food the kitchen has not yet cooked. */}
+      {isCompleted && !hasReview && (
+        <ReviewPrompt orderId={initialOrder.id} onSubmitted={() => setHasReview(true)} />
       )}
 
       <section

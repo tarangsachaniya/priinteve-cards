@@ -1,24 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Loader2, PackageSearch, X } from "lucide-react";
-import type { RestoOrderStatus, RestoPaymentStatus } from "@prisma/client";
+import { Loader2, X } from "lucide-react";
 
-import { formatCurrency, formatDateTime } from "@/lib/format";
 import { extractNationalDigits, INDIAN_MOBILE_REGEX } from "@/lib/restaurant/mobile";
-import { ORDER_STATUS_CUSTOMER_LABEL } from "@/lib/restaurant/order-status";
+import {
+  CustomerOrderList,
+  type CustomerOrder,
+} from "@/components/order/customer-order-list";
 import type { PublicRestaurant } from "@/components/order/types";
-
-type TrackedOrder = {
-  id: string;
-  orderNumber: number;
-  status: RestoOrderStatus;
-  paymentStatus: RestoPaymentStatus;
-  total: number;
-  placedAt: string;
-  statusUrl: string;
-};
 
 /**
  * No-login fallback for a guest who placed an order on a different device,
@@ -35,7 +25,7 @@ export function TrackOrderDialog({
   const [mobile, setMobile] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [orders, setOrders] = useState<TrackedOrder[] | null>(null);
+  const [orders, setOrders] = useState<CustomerOrder[] | null>(null);
 
   const nationalDigits = extractNationalDigits(mobile);
   const mobileValid = INDIAN_MOBILE_REGEX.test(nationalDigits);
@@ -191,57 +181,11 @@ export function TrackOrderDialog({
             </p>
           )}
 
-          {orders && orders.length === 0 && (
-            <div
-              className="flex flex-col items-center gap-2 border border-dashed py-8 text-center"
-              style={{ borderColor: "var(--resto-border)", borderRadius: "var(--resto-radius-lg)" }}
-            >
-              <PackageSearch className="size-6" style={{ color: "var(--resto-text-subtle)" }} aria-hidden />
-              <p className="text-sm" style={{ color: "var(--resto-text-muted)" }}>
-                No recent orders found for this number.
-              </p>
-            </div>
-          )}
-
-          {orders && orders.length > 0 && (
-            <ul className="flex flex-col gap-2">
-              {orders.map((order) => (
-                <li key={order.id}>
-                  <Link
-                    href={order.statusUrl}
-                    className="flex flex-col gap-1 border px-3 py-2.5 transition-colors hover:opacity-80"
-                    style={{
-                      backgroundColor: "var(--resto-card)",
-                      borderColor: "var(--resto-border)",
-                      borderRadius: "var(--resto-radius-md)",
-                    }}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span
-                        className="resto-numeric text-sm font-semibold"
-                        style={{ color: "var(--resto-text)" }}
-                      >
-                        Order #{order.orderNumber}
-                      </span>
-                      <span
-                        className="resto-numeric text-sm font-medium"
-                        style={{ color: "var(--resto-text)" }}
-                      >
-                        {formatCurrency(order.total)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 text-xs">
-                      <span style={{ color: "var(--resto-text-muted)" }}>
-                        {ORDER_STATUS_CUSTOMER_LABEL[order.status]}
-                      </span>
-                      <span style={{ color: "var(--resto-text-subtle)" }}>
-                        {formatDateTime(order.placedAt)}
-                      </span>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {orders && (
+            <CustomerOrderList
+              orders={orders}
+              emptyMessage="No recent orders found for this number."
+            />
           )}
         </div>
       </div>

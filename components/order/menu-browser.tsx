@@ -6,6 +6,7 @@ import { Clock, SearchX, UtensilsCrossed } from "lucide-react";
 import { CartBar, CartSheet } from "@/components/order/cart-sheet";
 import { CheckoutSheet } from "@/components/order/checkout-sheet";
 import { CustomerAuthDialog } from "@/components/order/customer-auth-dialog";
+import { OrderHistoryDialog } from "@/components/order/order-history-dialog";
 import { ItemOptionsSheet } from "@/components/order/item-options-sheet";
 import { MenuItemCard } from "@/components/order/menu-item-card";
 import { MenuToolbar } from "@/components/order/menu-toolbar";
@@ -55,6 +56,9 @@ export function MenuBrowser({
   // Same idea for the sign-in dialog: reachable from anywhere on the page,
   // not part of the cart → checkout flow.
   const [showAuth, setShowAuth] = useState(false);
+  // The signed-in counterpart to showTrackOrder — no number to type, so it
+  // reads the session instead of asking.
+  const [showHistory, setShowHistory] = useState(false);
   const [customer, setCustomer] = useState<{ name: string; mobile: string } | null>(null);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -174,13 +178,16 @@ export function MenuBrowser({
             Sign in with mobile number
           </button>
         )}
+        {/* Signed in, the mobile number is already known, so the history opens
+            straight from the session — asking for the number again would be
+            the one thing signing in was meant to save. */}
         <button
           type="button"
-          onClick={() => setShowTrackOrder(true)}
+          onClick={() => (customer ? setShowHistory(true) : setShowTrackOrder(true))}
           className="shrink-0 text-xs font-semibold underline-offset-2 hover:underline"
           style={{ color: "var(--resto-text-muted)" }}
         >
-          Track my order
+          {customer ? "My orders" : "Track my order"}
         </button>
       </div>
 
@@ -336,6 +343,14 @@ export function MenuBrowser({
           restaurant={restaurant}
           onSignedIn={(signedIn) => setCustomer(signedIn)}
           onClose={() => setShowAuth(false)}
+        />
+      )}
+
+      {showHistory && customer && (
+        <OrderHistoryDialog
+          restaurant={restaurant}
+          customerName={customer.name}
+          onClose={() => setShowHistory(false)}
         />
       )}
     </div>
