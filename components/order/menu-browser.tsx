@@ -10,6 +10,7 @@ import { MenuItemCard } from "@/components/order/menu-item-card";
 import { MenuToolbar } from "@/components/order/menu-toolbar";
 import { PlatformCredit } from "@/components/order/platform-credit";
 import { RestaurantHero } from "@/components/order/restaurant-hero";
+import { ResumeOrderBanner } from "@/components/order/resume-order-banner";
 import { ReviewsSection } from "@/components/order/reviews-section";
 import { isCustomisable, useCart } from "@/components/order/use-cart";
 import type {
@@ -107,6 +108,8 @@ export function MenuBrowser({
   return (
     <div className="min-h-screen pb-28" style={{ backgroundColor: "var(--resto-bg)" }}>
       <RestaurantHero restaurant={restaurant} table={table} />
+
+      <ResumeOrderBanner slug={restaurant.slug} />
 
       {!isOpen && (
         <div className="mx-auto mt-6 w-full max-w-[var(--resto-measure)] px-4">

@@ -14,6 +14,7 @@ import { formatCurrency } from "@/lib/format";
 import { extractNationalDigits, INDIAN_MOBILE_REGEX } from "@/lib/restaurant/mobile";
 import { computeOrderTotals } from "@/lib/restaurant/pricing";
 import { ORDER_TYPE_LABEL } from "@/lib/restaurant/order-status";
+import { writeResumeOrder } from "@/lib/restaurant/order-recovery";
 import type { CartLine, PublicRestaurant, PublicTable } from "@/components/order/types";
 
 const ORDER_TYPE_ICON: Record<RestoOrderType, typeof Store> = {
@@ -154,6 +155,12 @@ export function CheckoutSheet({
       }
 
       toast.success(`Order #${data.orderNumber} placed`);
+      writeResumeOrder(restaurant.slug, {
+        orderId: data.orderId,
+        orderNumber: data.orderNumber,
+        statusUrl: data.statusUrl,
+        placedAt: new Date().toISOString(),
+      });
       router.push(data.statusUrl);
     } catch {
       toast.error("Something went wrong. Please try again.");
