@@ -38,3 +38,7 @@ next-env.d.ts
 
 # local docs — kept on disk, never committed
 docs/
+
+# Claude Code — local only. Holds the git worktrees, which are second
+# checkouts of this same repo and must never be committed into it.
+.claude/
