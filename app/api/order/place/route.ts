@@ -219,9 +219,12 @@ export async function POST(req: Request) {
         customerName,
         customerMobile: normalizedMobile,
         type,
-        // paymentMode stays null: the customer chooses cash or UPI on the
-        // payment screen, after the restaurant closes the bill.
-        paymentStatus: "PENDING",
+        // Dine-in still pays after the meal, once staff close the bill. Take-away
+        // and delivery have no "closing the bill" moment, so payment opens the
+        // instant the order is placed — same REQUESTED state request-payment
+        // already uses, just set at creation instead of by staff later.
+        paymentStatus: type === "DINE_IN" ? "PENDING" : "REQUESTED",
+        paymentRequestedAt: type === "DINE_IN" ? undefined : new Date(),
         subtotal: totals.subtotal,
         taxAmount: totals.taxAmount,
         deliveryFee: totals.deliveryFee,
