@@ -2,18 +2,16 @@ import { redirect } from "next/navigation";
 import { History } from "lucide-react";
 
 import { db } from "@/lib/db";
-import { formatCurrency } from "@/lib/format";
 import { getRestaurantSession } from "@/lib/restaurant/auth";
 import {
   HISTORY_PAGE_SIZE,
   buildHistoryWhere,
+  historyQuery,
   parseHistoryFilters,
   type HistorySearchParams,
 } from "@/lib/restaurant/order-history";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent } from "@/components/ui/card";
-import { OrderHistoryFilters } from "@/components/restaurant/order-history-filters";
-import { OrderHistoryTable } from "@/components/restaurant/order-history-table";
+import { OrderHistoryView } from "@/components/restaurant/order-history-view";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +37,11 @@ export default async function RestaurantHistoryPage({
   const filters = parseHistoryFilters(searchParams, restaurant.timezone);
   const where = buildHistoryWhere(session.restaurantId, filters);
 
-  const [total, orders, cancelledCount, revenue, menuItems] = await Promise.all([
+  // Cancelled orders are not money taken, so neither the revenue figure nor
+  // the dish report counts them — one rule, applied in both places.
+  const soldWhere = { ...where, status: { not: "CANCELLED" as const } };
+
+  const [total, orders, cancelledCount, revenue, menuItems, dishSales] = await Promise.all([
     db.restoOrder.count({ where }),
     db.restoOrder.findMany({
       where,
@@ -62,16 +64,24 @@ export default async function RestaurantHistoryPage({
       },
     }),
     db.restoOrder.count({ where: { ...where, status: "CANCELLED" } }),
-    // Cancelled orders are not money taken, so they never count toward revenue
-    // — same rule the dashboard applies.
-    db.restoOrder.aggregate({
-      where: { ...where, status: { not: "CANCELLED" } },
-      _sum: { total: true },
-    }),
+    db.restoOrder.aggregate({ where: soldWhere, _sum: { total: true } }),
     db.menuItem.findMany({
       where: { restaurantId: session.restaurantId },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
+    }),
+    /**
+     * Grouped by the snapshot `name`, not `menuItemId`: that column is
+     * nullable with onDelete SetNull so history survives a deleted dish, and
+     * grouping on it would tip every deleted dish into one anonymous null row.
+     * The name is what was actually sold and is always present.
+     */
+    db.restoOrderItem.groupBy({
+      by: ["name"],
+      where: { order: soldWhere },
+      _sum: { quantity: true, lineTotal: true },
+      _count: { _all: true },
+      orderBy: { _sum: { lineTotal: "desc" } },
     }),
   ]);
 
@@ -85,58 +95,45 @@ export default async function RestaurantHistoryPage({
         description="Every past order, cancelled ones included."
       />
 
-      <div className="flex flex-col gap-6">
-        <OrderHistoryFilters
-          filters={{
-            preset: filters.preset,
-            status: filters.status,
-            fromDate: filters.fromDate,
-            toDate: filters.toDate,
-            menuItemId: filters.menuItemId,
-          }}
-          menuItems={menuItems}
-        />
-
-        <Card className="border-border/80">
-          <CardContent className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-            <div>
-              <p className="text-2xl font-semibold tracking-tight">
-                {formatCurrency(revenue._sum.total ?? 0)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Revenue · {filters.fromDate} to {filters.toDate}
-              </p>
-            </div>
-            <div>
-              <p className="text-2xl font-semibold tracking-tight">{total}</p>
-              <p className="text-xs text-muted-foreground">Orders</p>
-            </div>
-            <div>
-              <p className="text-2xl font-semibold tracking-tight">{cancelledCount}</p>
-              <p className="text-xs text-muted-foreground">Cancelled</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <OrderHistoryTable
-          rows={orders.map((order) => ({
-            id: order.id,
-            orderNumber: order.orderNumber,
-            status: order.status,
-            type: order.type,
-            paymentStatus: order.paymentStatus,
-            customerName: order.customerName,
-            customerMobile: order.customerMobile,
-            tableLabel: order.table?.label ?? null,
-            total: order.total,
-            placedAt: order.placedAt.toISOString(),
-            cancelReason: order.cancelReason,
-            items: order.items,
-          }))}
-          page={filters.page}
-          totalPages={totalPages}
-        />
-      </div>
+      <OrderHistoryView
+        filters={{
+          preset: filters.preset,
+          status: filters.status,
+          fromDate: filters.fromDate,
+          toDate: filters.toDate,
+          menuItemId: filters.menuItemId,
+        }}
+        currentParams={historyQuery(filters)}
+        menuItems={menuItems}
+        rangeLabel={`${filters.fromDate} to ${filters.toDate}`}
+        summary={{
+          revenue: revenue._sum.total ?? 0,
+          orders: total,
+          cancelled: cancelledCount,
+        }}
+        rows={orders.map((order) => ({
+          id: order.id,
+          orderNumber: order.orderNumber,
+          status: order.status,
+          type: order.type,
+          paymentStatus: order.paymentStatus,
+          customerName: order.customerName,
+          customerMobile: order.customerMobile,
+          tableLabel: order.table?.label ?? null,
+          total: order.total,
+          placedAt: order.placedAt.toISOString(),
+          cancelReason: order.cancelReason,
+          items: order.items,
+        }))}
+        dishRows={dishSales.map((dish) => ({
+          name: dish.name,
+          quantity: dish._sum.quantity ?? 0,
+          revenue: dish._sum.lineTotal ?? 0,
+          timesOrdered: dish._count._all,
+        }))}
+        page={filters.page}
+        totalPages={totalPages}
+      />
     </main>
   );
 }

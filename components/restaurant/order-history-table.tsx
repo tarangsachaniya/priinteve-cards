@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import type { RestoOrderStatus, RestoOrderType, RestoPaymentStatus } from "@prisma/client";
 
 import { cn } from "@/lib/utils";
@@ -46,22 +45,23 @@ export function OrderHistoryTable({
   rows,
   page,
   totalPages,
+  currentParams,
+  onNavigate,
 }: {
   rows: HistoryRow[];
   page: number;
   totalPages: number;
+  /** The filters currently in the URL, so paging preserves them. */
+  currentParams: URLSearchParams;
+  onNavigate: (params: URLSearchParams) => void;
 }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   // The page itself is a server component; paging is a navigation so the range
   // stays in the URL and stays shareable.
   function goToPage(next: number) {
-    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    const params = new URLSearchParams(currentParams.toString());
     if (next <= 1) params.delete("page");
     else params.set("page", String(next));
-    const query = params.toString();
-    router.push(query ? `/r/history?${query}` : "/r/history");
+    onNavigate(params);
   }
 
   if (rows.length === 0) {

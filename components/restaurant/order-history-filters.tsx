@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Download } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -28,12 +27,13 @@ export type FilterState = {
 export function OrderHistoryFilters({
   filters,
   menuItems,
+  onNavigate,
 }: {
   filters: FilterState;
   menuItems: { id: string; name: string }[];
+  /** Navigation is owned by the view, so one transition covers the whole page. */
+  onNavigate: (params: URLSearchParams) => void;
 }) {
-  const router = useRouter();
-
   function apply(changes: Partial<Record<string, string | null>>) {
     const params = new URLSearchParams();
     const next = {
@@ -52,8 +52,7 @@ export function OrderHistoryFilters({
     // is meaningless in the new one.
     params.delete("page");
 
-    const query = params.toString();
-    router.push(query ? `/r/history?${query}` : "/r/history");
+    onNavigate(params);
   }
 
   const exportQuery = new URLSearchParams();
