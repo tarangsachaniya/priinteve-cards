@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, CircleX, Clock, Loader2 } from "lucide-react";
+import { Check, CircleX, Clock, Loader2, PartyPopper } from "lucide-react";
 import type { RestoOrderStatus, RestoPaymentStatus } from "@prisma/client";
 
 import { formatCurrency } from "@/lib/format";
@@ -166,6 +166,23 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
               processed by the restaurant.
             </p>
           )}
+        </div>
+      ) : status === "COMPLETED" ? (
+        <div
+          className="flex flex-col items-center gap-2 border p-6 text-center"
+          style={{
+            backgroundColor: "var(--resto-success-soft)",
+            borderColor: "var(--resto-success)",
+            borderRadius: "var(--resto-radius-lg)",
+          }}
+        >
+          <PartyPopper className="size-8" style={{ color: "var(--resto-success)" }} aria-hidden />
+          <p className="resto-display font-semibold" style={{ color: "var(--resto-text)" }}>
+            Thank you!
+          </p>
+          <p className="text-sm" style={{ color: "var(--resto-text-muted)" }}>
+            Thanks for ordering from {initialOrder.restaurantName}. We hope you enjoyed your meal.
+          </p>
         </div>
       ) : (
         <ol

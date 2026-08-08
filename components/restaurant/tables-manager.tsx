@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Download, Plus, Printer, QrCode, Trash2 } from "lucide-react";
+import { Check, Copy, Download, Plus, Printer, QrCode, ShoppingBag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -160,6 +160,68 @@ function AddTablesDialog({
   );
 }
 
+/**
+ * The single code for take-away and delivery. It opens the table-less menu,
+ * so unlike the table cards there is nothing here to retire or delete —
+ * print it once for the counter or the shopfront window.
+ */
+function TakeawayQrCard({ orderUrl }: { orderUrl: string }) {
+  const [copied, setCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
+
+  async function copyUrl() {
+    await navigator.clipboard.writeText(orderUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <Card className="border-border/80 bg-muted/30">
+      <CardContent className="flex flex-col gap-3 p-4">
+        <div className="flex items-start gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-ink">
+            <ShoppingBag className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate font-medium">Take-away &amp; delivery</p>
+            <p className="text-xs text-muted-foreground">
+              One code for guests ordering without a table.
+            </p>
+          </div>
+        </div>
+
+        {showQr && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src="/api/restaurant/takeaway-qr"
+            alt="QR code for take-away and delivery orders"
+            className="mx-auto size-40 rounded-xl border border-border bg-white p-2"
+          />
+        )}
+
+        <div className="flex flex-wrap gap-1.5">
+          <Button type="button" variant="outline" size="xs" onClick={() => setShowQr((v) => !v)}>
+            <QrCode data-icon="inline-start" />
+            {showQr ? "Hide QR" : "Show QR"}
+          </Button>
+          <Button type="button" variant="outline" size="xs" onClick={copyUrl}>
+            {copied ? <Check data-icon="inline-start" /> : <Copy data-icon="inline-start" />}
+            {copied ? "Copied" : "Copy link"}
+          </Button>
+          <Button
+            variant="outline"
+            size="xs"
+            render={<a href="/api/restaurant/takeaway-qr" download="take-away-qr.png" />}
+          >
+            <Download data-icon="inline-start" />
+            PNG
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function TableCard({
   table,
   orderUrl,
@@ -243,10 +305,12 @@ export function TablesManager({
   initialTables,
   restaurantSlug,
   baseUrl,
+  offersTakeaway,
 }: {
   initialTables: TableRow[];
   restaurantSlug: string;
   baseUrl: string;
+  offersTakeaway: boolean;
 }) {
   const [tables, setTables] = useState(initialTables);
   const [pendingDelete, setPendingDelete] = useState<TableRow | null>(null);
@@ -280,7 +344,7 @@ export function TablesManager({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap justify-end gap-2">
-        {tables.some((t) => t.isActive) && (
+        {(offersTakeaway || tables.some((t) => t.isActive)) && (
           <Button
             variant="outline"
             size="sm"
@@ -299,6 +363,8 @@ export function TablesManager({
           }
         />
       </div>
+
+      {offersTakeaway && <TakeawayQrCard orderUrl={`${baseUrl}/order/${restaurantSlug}`} />}
 
       {tables.length === 0 ? (
         <Card className="border-dashed border-border">

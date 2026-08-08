@@ -334,7 +334,7 @@ function CancelOrderDialog({
         {order?.paymentStatus === "PAID" && (
           <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
             This order has already been paid ({formatCurrency(order.total)}). Cancelling it will mark it
-            as Refunded — you'll still need to process the actual refund yourself.
+            as Refunded — you&apos;ll still need to process the actual refund yourself.
           </p>
         )}
         <div className="flex flex-col gap-1.5">

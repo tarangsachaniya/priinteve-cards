@@ -15,7 +15,7 @@ export default async function RestaurantTablesPage() {
 
   const restaurant = await db.restaurant.findUnique({
     where: { id: session.restaurantId },
-    select: { slug: true },
+    select: { slug: true, takeAwayEnabled: true, deliveryEnabled: true },
   });
   if (!restaurant) redirect("/r/login");
 
@@ -49,6 +49,7 @@ export default async function RestaurantTablesPage() {
         }))}
         restaurantSlug={restaurant.slug}
         baseUrl={baseUrl}
+        offersTakeaway={restaurant.takeAwayEnabled || restaurant.deliveryEnabled}
       />
     </main>
   );

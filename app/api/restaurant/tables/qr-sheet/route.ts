@@ -4,7 +4,7 @@ import PDFDocument from "pdfkit";
 import { db } from "@/lib/db";
 import { generateQrPngBuffer } from "@/lib/qr";
 import { requireRestaurantSession } from "@/lib/restaurant/auth";
-import { getTableOrderUrl } from "@/lib/restaurant/qr";
+import { getRestaurantOrderUrl, getTableOrderUrl } from "@/lib/restaurant/qr";
 
 export const runtime = "nodejs";
 
@@ -19,7 +19,7 @@ export async function GET() {
 
   const restaurant = await db.restaurant.findUnique({
     where: { id: auth.session.restaurantId },
-    select: { name: true, slug: true },
+    select: { name: true, slug: true, takeAwayEnabled: true, deliveryEnabled: true },
   });
   if (!restaurant) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -30,7 +30,20 @@ export async function GET() {
     orderBy: { createdAt: "asc" },
   });
 
-  if (tables.length === 0) {
+  // The take-away code goes first, so a delivery-only restaurant still has a
+  // sheet to print even with no tables at all.
+  const offersTakeaway = restaurant.takeAwayEnabled || restaurant.deliveryEnabled;
+  const tiles = [
+    ...(offersTakeaway
+      ? [{ label: "Take-away & delivery", url: getRestaurantOrderUrl(restaurant.slug) }]
+      : []),
+    ...tables.map((table) => ({
+      label: table.label,
+      url: getTableOrderUrl(restaurant.slug, table.code),
+    })),
+  ];
+
+  if (tiles.length === 0) {
     return NextResponse.json({ error: "No active tables to print" }, { status: 400 });
   }
 
@@ -48,8 +61,8 @@ export async function GET() {
   const cellHeight = (pageHeight - margin * 2) / 2;
   const qrSize = 170;
 
-  for (let index = 0; index < tables.length; index += 1) {
-    const table = tables[index];
+  for (let index = 0; index < tiles.length; index += 1) {
+    const tile = tiles[index];
     const positionOnPage = index % 4;
 
     if (index > 0 && positionOnPage === 0) {
@@ -61,7 +74,7 @@ export async function GET() {
     const cellX = margin + column * cellWidth;
     const cellY = margin + row * cellHeight;
 
-    const url = getTableOrderUrl(restaurant.slug, table.code);
+    const url = tile.url;
     const qrBuffer = await generateQrPngBuffer(url);
 
     doc
@@ -94,7 +107,7 @@ export async function GET() {
     doc
       .fillColor("#111111")
       .fontSize(20)
-      .text(table.label, cellX + 16, cellY + 72 + qrSize + 12, {
+      .text(tile.label, cellX + 16, cellY + 72 + qrSize + 12, {
         width: cellWidth - 32,
         align: "center",
       });
