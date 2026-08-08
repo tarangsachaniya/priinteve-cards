@@ -1,0 +1,166 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Download } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import {
+  HISTORY_PRESETS,
+  HISTORY_STATUSES,
+  type HistoryPreset,
+  type HistoryStatus,
+} from "@/lib/restaurant/order-history";
+import { Button } from "@/components/ui/button";
+
+export type FilterState = {
+  preset: HistoryPreset;
+  status: HistoryStatus;
+  fromDate: string;
+  toDate: string;
+  menuItemId: string | null;
+};
+
+/**
+ * Every filter is a navigation, not local state: the range an owner is looking
+ * at belongs in the URL so it can be bookmarked, shared, and — the reason it
+ * matters most here — handed to the CSV export unchanged.
+ */
+export function OrderHistoryFilters({
+  filters,
+  menuItems,
+}: {
+  filters: FilterState;
+  menuItems: { id: string; name: string }[];
+}) {
+  const router = useRouter();
+
+  function apply(changes: Partial<Record<string, string | null>>) {
+    const params = new URLSearchParams();
+    const next = {
+      preset: filters.preset,
+      status: filters.status,
+      from: filters.preset === "custom" ? filters.fromDate : null,
+      to: filters.preset === "custom" ? filters.toDate : null,
+      menuItemId: filters.menuItemId,
+      ...changes,
+    };
+
+    for (const [key, value] of Object.entries(next)) {
+      if (value) params.set(key, value);
+    }
+    // Any filter change invalidates the page number — page 3 of the old range
+    // is meaningless in the new one.
+    params.delete("page");
+
+    const query = params.toString();
+    router.push(query ? `/r/history?${query}` : "/r/history");
+  }
+
+  const exportQuery = new URLSearchParams();
+  exportQuery.set("preset", filters.preset);
+  exportQuery.set("status", filters.status);
+  if (filters.preset === "custom") {
+    exportQuery.set("from", filters.fromDate);
+    exportQuery.set("to", filters.toDate);
+  }
+  if (filters.menuItemId) exportQuery.set("menuItemId", filters.menuItemId);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <nav aria-label="Date range" className="flex gap-1 rounded-full bg-muted p-1">
+          {HISTORY_PRESETS.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() =>
+                apply(
+                  key === "custom"
+                    ? { preset: key, from: filters.fromDate, to: filters.toDate }
+                    : { preset: key, from: null, to: null }
+                )
+              }
+              aria-pressed={filters.preset === key}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                filters.preset === key ? "bg-card shadow-sm" : "text-muted-foreground"
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          render={<a href={`/api/restaurant/orders/export?${exportQuery.toString()}`} />}
+        >
+          <Download data-icon="inline-start" />
+          Download CSV
+        </Button>
+      </div>
+
+      {filters.preset === "custom" && (
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            From
+            <input
+              type="date"
+              value={filters.fromDate}
+              max={filters.toDate}
+              onChange={(e) => apply({ preset: "custom", from: e.target.value })}
+              className="h-9 rounded-xl border border-border bg-card px-3 text-sm text-foreground"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            To
+            <input
+              type="date"
+              value={filters.toDate}
+              min={filters.fromDate}
+              onChange={(e) => apply({ preset: "custom", to: e.target.value })}
+              className="h-9 rounded-xl border border-border bg-card px-3 text-sm text-foreground"
+            />
+          </label>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        {HISTORY_STATUSES.map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => apply({ status: key })}
+            aria-pressed={filters.status === key}
+            className={cn(
+              "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+              filters.status === key
+                ? "bg-primary text-primary-foreground"
+                : "bg-card text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {label}
+          </button>
+        ))}
+
+        {menuItems.length > 0 && (
+          <select
+            aria-label="Filter by dish"
+            value={filters.menuItemId ?? ""}
+            onChange={(e) => apply({ menuItemId: e.target.value || null })}
+            className="ml-auto h-9 rounded-xl border border-border bg-card px-3 text-sm text-foreground"
+          >
+            <option value="">All dishes</option>
+            {menuItems.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+    </div>
+  );
+}

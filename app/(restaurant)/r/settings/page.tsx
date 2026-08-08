@@ -15,10 +15,15 @@ export default async function RestaurantSettingsPage() {
   const session = await getRestaurantSession();
   if (!session) redirect("/r/login");
 
-  const restaurant = await db.restaurant.findUnique({
-    where: { id: session.restaurantId },
-    include: { hours: { orderBy: { dayOfWeek: "asc" } } },
-  });
+  // Counted the same way the public aggregate is (non-hidden only), so the
+  // starting-rating fields lock at exactly the moment real reviews take over.
+  const [restaurant, publishedReviews] = await Promise.all([
+    db.restaurant.findUnique({
+      where: { id: session.restaurantId },
+      include: { hours: { orderBy: { dayOfWeek: "asc" } } },
+    }),
+    db.restoReview.count({ where: { restaurantId: session.restaurantId, isHidden: false } }),
+  ]);
   if (!restaurant) redirect("/r/login");
 
   return (
@@ -31,6 +36,7 @@ export default async function RestaurantSettingsPage() {
 
       <SettingsForm
         razorpayConfigured={isRazorpayConfigured()}
+        publishedReviews={publishedReviews}
         settings={{
           name: restaurant.name,
           branch: restaurant.branch,

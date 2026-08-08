@@ -10,6 +10,18 @@ export const ORDER_STATUS_FLOW: RestoOrderStatus[] = [
   "COMPLETED",
 ];
 
+/**
+ * The statuses the orders board is for — everything still in the kitchen.
+ * Closed orders live on /r/history instead. Shared so the board's page and its
+ * polling endpoint can't drift into disagreeing about what "live" means.
+ */
+export const LIVE_STATUSES: RestoOrderStatus[] = [
+  "PLACED",
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+];
+
 export const ORDER_STATUS_LABEL: Record<RestoOrderStatus, string> = {
   PLACED: "New",
   ACCEPTED: "Accepted",

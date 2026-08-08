@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireRestaurantSession } from "@/lib/restaurant/auth";
 import { normalizeMobile } from "@/lib/restaurant/mobile";
 import { isRazorpayConfigured } from "@/lib/restaurant/payment";
+import { REVIEW_DISPLAY_THRESHOLD } from "@/lib/restaurant/reviews";
 import { restaurantSettingsSchema } from "@/lib/validations/restaurant";
 
 export async function PATCH(req: Request) {
@@ -24,7 +25,24 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const { name, branch, phone, email, address, ratingValue, ...rest } = parsed.data;
+  const { name, branch, phone, email, address, ratingValue, ratingCount, ...rest } = parsed.data;
+
+  /**
+   * The owner-entered rating is a placeholder for a restaurant with no reviews
+   * yet. Once enough real ones exist, summariseReviews() stops showing it at
+   * all — so it stops being editable at the same moment, and by the same count
+   * (non-hidden reviews), or the lock and the display would disagree about
+   * when the switch happened.
+   *
+   * Ignored rather than rejected: the settings form PATCHes every field at
+   * once, so a 400 here would block an owner from changing their phone number
+   * because a stale rating rode along in the payload. The pair is dropped
+   * together, keeping the schema's "both null or both set" invariant intact.
+   */
+  const publishedReviews = await db.restoReview.count({
+    where: { restaurantId: auth.session.restaurantId, isHidden: false },
+  });
+  const ratingLocked = publishedReviews >= REVIEW_DISPLAY_THRESHOLD;
 
   // Turning on online payment without keys would show customers a Pay Online
   // button that can't work, so refuse it here rather than at checkout.
@@ -47,7 +65,12 @@ export async function PATCH(req: Request) {
       // decimal an owner actually typed, so the scaling happens exactly once,
       // right here, rather than inside the schema where it would double up
       // on the second (server-side) parse of an already-scaled value.
-      ratingValue: ratingValue == null ? null : Math.round(ratingValue * 10),
+      ...(ratingLocked
+        ? {}
+        : {
+            ratingValue: ratingValue == null ? null : Math.round(ratingValue * 10),
+            ratingCount,
+          }),
       ...rest,
     },
   });

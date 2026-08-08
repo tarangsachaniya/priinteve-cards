@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { formatMobile } from "@/lib/restaurant/mobile";
+import { REVIEW_DISPLAY_THRESHOLD } from "@/lib/restaurant/reviews";
 import type { RestoMode } from "@/lib/restaurant/theme";
 import { cn } from "@/lib/utils";
 import { restaurantSettingsSchema } from "@/lib/validations/restaurant";
@@ -212,10 +213,15 @@ function describeSettingsIssue(issue: { path: PropertyKey[]; message: string } |
 export function SettingsForm({
   settings,
   razorpayConfigured,
+  publishedReviews,
 }: {
   settings: RestaurantSettings;
   razorpayConfigured: boolean;
+  /** Non-hidden guest reviews — the count that decides the rating lock below. */
+  publishedReviews: number;
 }) {
+  const ratingLocked = publishedReviews >= REVIEW_DISPLAY_THRESHOLD;
+
   const [form, setForm] = useState({
     ...settings,
     branch: settings.branch ?? "",
@@ -519,6 +525,7 @@ export function SettingsForm({
                 value={form.ratingValue}
                 onChange={(e) => update("ratingValue", e.target.value)}
                 placeholder="4.5"
+                disabled={ratingLocked}
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -530,13 +537,24 @@ export function SettingsForm({
                 value={form.ratingCount}
                 onChange={(e) => update("ratingCount", e.target.value)}
                 placeholder="120"
+                disabled={ratingLocked}
               />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Shown until real guest reviews take over — once 10 paid orders have been rated, your
-            menu switches to the measured average automatically.
-          </p>
+          {/* The disabling is only the explanation — the settings route ignores
+              these two fields once locked, whatever the form sends. */}
+          {ratingLocked ? (
+            <p className="text-xs text-muted-foreground">
+              Your rating now comes from {publishedReviews} guest reviews, so this starting value
+              is no longer used and can&apos;t be changed.
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Shown until real guest reviews take over — once {REVIEW_DISPLAY_THRESHOLD} paid
+              orders have been rated, your menu switches to the measured average automatically and
+              these fields lock.
+            </p>
+          )}
         </CardContent>
       </Card>
 

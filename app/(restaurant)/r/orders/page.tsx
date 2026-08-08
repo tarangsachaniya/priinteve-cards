@@ -3,6 +3,7 @@ import { ReceiptText } from "lucide-react";
 
 import { db } from "@/lib/db";
 import { getRestaurantSession } from "@/lib/restaurant/auth";
+import { LIVE_STATUSES } from "@/lib/restaurant/order-status";
 import { PageHeader } from "@/components/shared/page-header";
 import { OrdersBoard } from "@/components/restaurant/orders-board";
 
@@ -15,7 +16,7 @@ export default async function RestaurantOrdersPage() {
   const orders = await db.restoOrder.findMany({
     where: {
       restaurantId: session.restaurantId,
-      status: { in: ["PLACED", "ACCEPTED", "PREPARING", "READY"] },
+      status: { in: LIVE_STATUSES },
     },
     orderBy: { placedAt: "desc" },
     include: {

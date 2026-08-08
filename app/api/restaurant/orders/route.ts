@@ -1,29 +1,27 @@
 import { NextResponse } from "next/server";
-import type { RestoOrderStatus } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { requireRestaurantSession } from "@/lib/restaurant/auth";
-
-const LIVE_STATUSES: RestoOrderStatus[] = ["PLACED", "ACCEPTED", "PREPARING", "READY"];
+import { LIVE_STATUSES } from "@/lib/restaurant/order-status";
 
 /**
- * Feeds the orders board. `?scope=live` (the default) returns everything
- * still in the kitchen; `?scope=history` returns the recently closed ones.
+ * Feeds the orders board — live orders only.
+ *
+ * A `?scope=history` branch used to live here, unused by anything and with no
+ * date filtering. Closed orders are served by /r/history now, so it is gone
+ * rather than left looking supported.
  */
-export async function GET(req: Request) {
+export async function GET() {
   const auth = await requireRestaurantSession();
   if (!auth.ok) return auth.response;
-
-  const { searchParams } = new URL(req.url);
-  const scope = searchParams.get("scope") === "history" ? "history" : "live";
 
   const orders = await db.restoOrder.findMany({
     where: {
       restaurantId: auth.session.restaurantId,
-      status: scope === "live" ? { in: LIVE_STATUSES } : { in: ["COMPLETED", "CANCELLED"] },
+      status: { in: LIVE_STATUSES },
     },
     orderBy: { placedAt: "desc" },
-    take: scope === "live" ? 200 : 50,
+    take: 200,
     include: {
       items: {
         select: {
