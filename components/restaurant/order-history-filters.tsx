@@ -27,15 +27,21 @@ export type FilterState = {
 export function OrderHistoryFilters({
   filters,
   menuItems,
+  currentParams,
   onNavigate,
 }: {
   filters: FilterState;
   menuItems: { id: string; name: string }[];
+  /** Everything currently in the URL, including the table's own sort and search. */
+  currentParams: string;
   /** Navigation is owned by the view, so one transition covers the whole page. */
   onNavigate: (params: URLSearchParams) => void;
 }) {
   function apply(changes: Partial<Record<string, string | null>>) {
-    const params = new URLSearchParams();
+    // Built from the live query string rather than from scratch, so changing
+    // the date range doesn't quietly throw away the column sort, the row count
+    // and the search term the person had set.
+    const params = new URLSearchParams(currentParams);
     const next = {
       preset: filters.preset,
       status: filters.status,
@@ -47,6 +53,7 @@ export function OrderHistoryFilters({
 
     for (const [key, value] of Object.entries(next)) {
       if (value) params.set(key, value);
+      else params.delete(key);
     }
     // Any filter change invalidates the page number — page 3 of the old range
     // is meaningless in the new one.
@@ -55,14 +62,11 @@ export function OrderHistoryFilters({
     onNavigate(params);
   }
 
-  const exportQuery = new URLSearchParams();
-  exportQuery.set("preset", filters.preset);
-  exportQuery.set("status", filters.status);
-  if (filters.preset === "custom") {
-    exportQuery.set("from", filters.fromDate);
-    exportQuery.set("to", filters.toDate);
-  }
-  if (filters.menuItemId) exportQuery.set("menuItemId", filters.menuItemId);
+  // The export is the current view as a file, so it carries the same query —
+  // minus the page, since one page of a range is not an export.
+  const exportQuery = new URLSearchParams(currentParams);
+  exportQuery.delete("page");
+  exportQuery.delete("pageSize");
 
   return (
     <div className="flex flex-col gap-3">

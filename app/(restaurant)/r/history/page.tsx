@@ -4,7 +4,7 @@ import { History } from "lucide-react";
 import { db } from "@/lib/db";
 import { getRestaurantSession } from "@/lib/restaurant/auth";
 import {
-  HISTORY_PAGE_SIZE,
+  buildHistoryOrderBy,
   buildHistoryWhere,
   historyQuery,
   parseHistoryFilters,
@@ -45,9 +45,9 @@ export default async function RestaurantHistoryPage({
     db.restoOrder.count({ where }),
     db.restoOrder.findMany({
       where,
-      orderBy: { placedAt: "desc" },
-      skip: (filters.page - 1) * HISTORY_PAGE_SIZE,
-      take: HISTORY_PAGE_SIZE,
+      orderBy: buildHistoryOrderBy(filters),
+      skip: (filters.page - 1) * filters.pageSize,
+      take: filters.pageSize,
       select: {
         id: true,
         orderNumber: true,
@@ -85,7 +85,7 @@ export default async function RestaurantHistoryPage({
     }),
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(total / HISTORY_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / filters.pageSize));
 
   return (
     <main className="mx-auto max-w-7xl p-6 sm:p-8 lg:p-10">
@@ -106,6 +106,10 @@ export default async function RestaurantHistoryPage({
         currentParams={historyQuery(filters)}
         menuItems={menuItems}
         rangeLabel={`${filters.fromDate} to ${filters.toDate}`}
+        search={filters.q}
+        sort={{ key: filters.sort, dir: filters.dir }}
+        pageSize={filters.pageSize}
+        total={total}
         summary={{
           revenue: revenue._sum.total ?? 0,
           orders: total,

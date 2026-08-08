@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireRestaurantSession } from "@/lib/restaurant/auth";
 import {
+  buildHistoryOrderBy,
   buildHistoryWhere,
   csvRow,
   parseHistoryFilters,
@@ -58,7 +59,9 @@ export async function GET(req: Request) {
 
   const orders = await db.restoOrder.findMany({
     where: buildHistoryWhere(auth.session.restaurantId, filters),
-    orderBy: { placedAt: "desc" },
+    // Same sort the table is showing, so the file opens in the order the person
+    // who clicked Download was looking at.
+    orderBy: buildHistoryOrderBy(filters),
     take: EXPORT_LIMIT,
     select: {
       orderNumber: true,

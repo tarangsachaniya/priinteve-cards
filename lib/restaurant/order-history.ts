@@ -9,7 +9,37 @@ import type { Prisma, RestoOrderStatus } from "@prisma/client";
  * default range, not a 500.
  */
 
+/** Default rows per page; the length menu can override it per request. */
 export const HISTORY_PAGE_SIZE = 25;
+
+export const HISTORY_PAGE_SIZES = [10, 25, 50, 100];
+
+/**
+ * Sortable columns, as a whitelist.
+ *
+ * The keys double as Prisma field names, so this list is also what stops a
+ * hand-edited `?sort=` from reaching the query builder as an arbitrary column.
+ */
+export const HISTORY_SORTS = [
+  "orderNumber",
+  "placedAt",
+  "customerName",
+  "type",
+  "status",
+  "paymentStatus",
+  "total",
+] as const;
+
+export type HistorySort = (typeof HISTORY_SORTS)[number];
+
+export type SortDirection = "asc" | "desc";
+
+/**
+ * Longer than any real name or dish; a cap keeps a pasted essay out of the LIKE.
+ * The input enforces the same limit, so what the box holds and what the server
+ * searched for can never disagree.
+ */
+export const HISTORY_SEARCH_MAX_LENGTH = 80;
 
 export type HistoryStatus = "all" | RestoOrderStatus;
 
@@ -39,7 +69,12 @@ export type HistoryFilters = {
   toDate: string;
   status: HistoryStatus;
   menuItemId: string | null;
+  /** Free-text search across order number, customer, mobile and dish names. */
+  q: string;
+  sort: HistorySort;
+  dir: SortDirection;
   page: number;
+  pageSize: number;
 };
 
 /**
@@ -114,13 +149,30 @@ function parseStatus(value: string | undefined): HistoryStatus {
   return HISTORY_STATUSES.some((s) => s.key === value) ? (value as HistoryStatus) : "all";
 }
 
+function parseSort(value: string | undefined): HistorySort {
+  return HISTORY_SORTS.includes(value as HistorySort) ? (value as HistorySort) : "placedAt";
+}
+
+function parseDir(value: string | undefined): SortDirection {
+  return value === "asc" ? "asc" : "desc";
+}
+
+function parsePageSize(value: string | undefined): number {
+  const size = Number(value);
+  return HISTORY_PAGE_SIZES.includes(size) ? size : HISTORY_PAGE_SIZE;
+}
+
 export type HistorySearchParams = {
   preset?: string;
   from?: string;
   to?: string;
   status?: string;
   menuItemId?: string;
+  q?: string;
+  sort?: string;
+  dir?: string;
   page?: string;
+  pageSize?: string;
 };
 
 export function parseHistoryFilters(
@@ -165,21 +217,77 @@ export function parseHistoryFilters(
     toDate,
     status: parseStatus(searchParams.status),
     menuItemId: searchParams.menuItemId || null,
+    q: (searchParams.q ?? "").trim().slice(0, HISTORY_SEARCH_MAX_LENGTH),
+    sort: parseSort(searchParams.sort),
+    dir: parseDir(searchParams.dir),
     page,
+    pageSize: parsePageSize(searchParams.pageSize),
   };
+}
+
+/**
+ * The search box, as SQL.
+ *
+ * One box over four fields, because the person using it is holding one fact —
+ * a number on a receipt, a name, the last digits of a phone, a dish someone is
+ * disputing — and shouldn't have to say which kind of fact it is.
+ */
+function buildSearchWhere(term: string): Prisma.RestoOrderWhereInput | null {
+  if (!term) return null;
+
+  const or: Prisma.RestoOrderWhereInput[] = [
+    { customerName: { contains: term, mode: "insensitive" } },
+    { items: { some: { name: { contains: term, mode: "insensitive" } } } },
+  ];
+
+  // Mobiles are stored canonically as +91XXXXXXXXXX, so a search has to be
+  // reduced to digits before it can match "98765 43210" as typed on the phone.
+  const digits = term.replace(/\D/g, "");
+  if (digits) {
+    or.push({ customerMobile: { contains: digits } });
+
+    // "#42", "42" and "Order 42" all mean order forty-two. Guarded against
+    // int4 overflow, which Postgres would raise as an error rather than a miss.
+    const orderNumber = Number(digits);
+    if (Number.isSafeInteger(orderNumber) && orderNumber <= 2_147_483_647) {
+      or.push({ orderNumber });
+    }
+  }
+
+  return { OR: or };
 }
 
 export function buildHistoryWhere(
   restaurantId: string,
   filters: HistoryFilters
 ): Prisma.RestoOrderWhereInput {
+  const search = buildSearchWhere(filters.q);
+
   return {
     restaurantId,
     placedAt: { gte: filters.from, lt: filters.to },
     // "all" means every status, cancelled included — the point of this view.
     ...(filters.status === "all" ? {} : { status: filters.status }),
     ...(filters.menuItemId ? { items: { some: { menuItemId: filters.menuItemId } } } : {}),
+    // AND rather than spreading OR, so the search narrows the range instead of
+    // colliding with the dish filter's own `items: { some: ... }` key.
+    ...(search ? { AND: [search] } : {}),
   };
+}
+
+/**
+ * Column sort, with a tie-break that keeps paging honest.
+ *
+ * Sorting by status alone leaves hundreds of rows in an order Postgres is free
+ * to choose differently on each query, which is how a row shows up on page 2
+ * and page 3 and never on page 1. orderNumber is unique per restaurant, so
+ * appending it makes the sequence total.
+ */
+export function buildHistoryOrderBy(
+  filters: HistoryFilters
+): Prisma.RestoOrderOrderByWithRelationInput[] {
+  const primary = { [filters.sort]: filters.dir } as Prisma.RestoOrderOrderByWithRelationInput;
+  return filters.sort === "orderNumber" ? [primary] : [primary, { orderNumber: "desc" }];
 }
 
 /**
@@ -213,6 +321,13 @@ export function historyQuery(
     status: filters.status,
     ...(filters.preset === "custom" ? { from: filters.fromDate, to: filters.toDate } : {}),
     ...(filters.menuItemId ? { menuItemId: filters.menuItemId } : {}),
+    ...(filters.q ? { q: filters.q } : {}),
+    // Defaults stay out of the URL, so an untouched table still shares as a
+    // clean link rather than one carrying every implicit setting.
+    ...(filters.sort === "placedAt" && filters.dir === "desc"
+      ? {}
+      : { sort: filters.sort, dir: filters.dir }),
+    ...(filters.pageSize === HISTORY_PAGE_SIZE ? {} : { pageSize: String(filters.pageSize) }),
     ...(filters.page > 1 ? { page: String(filters.page) } : {}),
   };
 
