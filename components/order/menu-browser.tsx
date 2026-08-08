@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Clock, SearchX, UtensilsCrossed } from "lucide-react";
 
 import { CartBar, CartSheet } from "@/components/order/cart-sheet";
 import { CheckoutSheet } from "@/components/order/checkout-sheet";
+import { CustomerAuthDialog } from "@/components/order/customer-auth-dialog";
 import { ItemOptionsSheet } from "@/components/order/item-options-sheet";
 import { MenuItemCard } from "@/components/order/menu-item-card";
 import { MenuToolbar } from "@/components/order/menu-toolbar";
@@ -51,9 +52,44 @@ export function MenuBrowser({
   // Independent of `panel`: this is a lookup dialog reachable from anywhere
   // on the page, not a step in the cart → checkout flow.
   const [showTrackOrder, setShowTrackOrder] = useState(false);
+  // Same idea for the sign-in dialog: reachable from anywhere on the page,
+  // not part of the cart → checkout flow.
+  const [showAuth, setShowAuth] = useState(false);
+  const [customer, setCustomer] = useState<{ name: string; mobile: string } | null>(null);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const cart = useCart(categories);
+
+  // Whether a guest is already signed in with this restaurant only matters
+  // once, on load — nothing else on the page changes it besides the dialog
+  // and the sign-out button below, both of which update `customer` directly.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/order/customer-auth/me?restaurantSlug=${restaurant.slug}`);
+        const data = await res.json().catch(() => ({}));
+        if (!cancelled && data?.customer) setCustomer(data.customer);
+      } catch {
+        // Not signed in is the default state; nothing to recover from here.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [restaurant.slug]);
+
+  async function handleSignOut() {
+    try {
+      await fetch("/api/order/customer-auth/logout", { method: "POST" });
+    } catch {
+      // The cookie is httpOnly and cleared server-side; a dropped request
+      // just means the local "signed in" state below outlives it slightly.
+    }
+    setCustomer(null);
+  }
 
   /**
    * A closed restaurant still shows its full menu — browsing is the point of a
@@ -115,11 +151,33 @@ export function MenuBrowser({
 
       <ResumeOrderBanner slug={restaurant.slug} />
 
-      <div className="mx-auto mt-3 w-full max-w-[var(--resto-measure)] px-4 text-right">
+      <div className="mx-auto mt-3 flex w-full max-w-[var(--resto-measure)] items-center justify-between gap-3 px-4">
+        {customer ? (
+          <p className="text-xs" style={{ color: "var(--resto-text-muted)" }}>
+            Hi, {customer.name} ·{" "}
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="font-semibold underline-offset-2 hover:underline"
+              style={{ color: "var(--resto-text-muted)" }}
+            >
+              Sign out
+            </button>
+          </p>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowAuth(true)}
+            className="text-xs font-semibold underline-offset-2 hover:underline"
+            style={{ color: "var(--resto-text-muted)" }}
+          >
+            Sign in with mobile number
+          </button>
+        )}
         <button
           type="button"
           onClick={() => setShowTrackOrder(true)}
-          className="text-xs font-semibold underline-offset-2 hover:underline"
+          className="shrink-0 text-xs font-semibold underline-offset-2 hover:underline"
           style={{ color: "var(--resto-text-muted)" }}
         >
           Track my order
@@ -264,12 +322,21 @@ export function MenuBrowser({
           restaurant={restaurant}
           table={table}
           lines={cart.lines}
+          customer={customer}
           onClose={() => setPanel("cart")}
         />
       )}
 
       {showTrackOrder && (
         <TrackOrderDialog restaurant={restaurant} onClose={() => setShowTrackOrder(false)} />
+      )}
+
+      {showAuth && (
+        <CustomerAuthDialog
+          restaurant={restaurant}
+          onSignedIn={(signedIn) => setCustomer(signedIn)}
+          onClose={() => setShowAuth(false)}
+        />
       )}
     </div>
   );

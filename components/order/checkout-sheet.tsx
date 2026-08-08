@@ -40,11 +40,13 @@ export function CheckoutSheet({
   restaurant,
   table,
   lines,
+  customer,
   onClose,
 }: {
   restaurant: PublicRestaurant;
   table: PublicTable | null;
   lines: CartLine[];
+  customer?: { name: string; mobile: string } | null;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -79,6 +81,21 @@ export function CheckoutSheet({
   });
 
   const belowMinimum = totals.subtotal < restaurant.minOrderValue;
+
+  // A signed-in guest (Task 6) already told us who they are — prefill both
+  // fields from that session once, on mount. Same "never overwrite something
+  // already typed" rule as the debounced lookup below, so the two coexist:
+  // this effect usually wins the race (it doesn't wait on a network round
+  // trip), and once it has filled the fields the lookup below finds nothing
+  // left to do.
+  useEffect(() => {
+    if (!customer) return;
+    setName((current) => (current.trim() ? current : customer.name));
+    setMobile((current) => (current.trim() ? current : extractNationalDigits(customer.mobile)));
+    setPrefilled(true);
+    // Only ever runs against the customer session this sheet mounted with.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Look the number up once it's valid and prefill the name for a returning
   // guest. Debounced so we aren't querying on every keystroke.
