@@ -77,11 +77,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Enter your name" }, { status: 400 });
     }
 
-    // Deliberately not place/route.ts's upsert: that one always bumps
-    // orderCount/lastOrderAt as if an order was just placed. Logging in
-    // isn't placing an order, so this customer starts with no order history.
-    const created = await db.restoCustomer.create({
-      data: {
+    // upsert(), not create(): two concurrent first-time logins for the same
+    // brand-new number would otherwise both pass the `existing` check above
+    // and race on the @@unique([restaurantId, mobile]) constraint, so the
+    // loser needs a safe fallback rather than a raw 500. This is unlike
+    // place/route.ts's upsert, though: its `update` branch always bumps
+    // orderCount/lastOrderAt and overwrites name, as if an order was just
+    // placed. Logging in isn't placing an order, so `update` here is a
+    // deliberate no-op — if we lost the race, the winner's row (with its own
+    // name, orderCount: 0, lastOrderAt: null) is left untouched and reused.
+    const upserted = await db.restoCustomer.upsert({
+      where: { restaurantId_mobile: { restaurantId: restaurant.id, mobile } },
+      update: {},
+      create: {
         restaurantId: restaurant.id,
         mobile,
         name,
@@ -89,7 +97,7 @@ export async function POST(req: Request) {
         lastOrderAt: null,
       },
     });
-    customer = { id: created.id, name: created.name };
+    customer = { id: upserted.id, name: upserted.name };
   }
 
   await issueCustomerSession({
