@@ -11,7 +11,7 @@ import { trackOrderSchema } from "@/lib/validations/restaurant";
  * guest on a different device or with cleared storage, who can't use the
  * localStorage-backed resume banner (see resume-order-banner.tsx).
  *
- * This is a sharper enumeration surface than customer-lookup: a hit here
+ * This is the sharpest enumeration surface left on the public API: a hit here
  * returns real order data, not just a name. Mitigated for the MVP by
  * requiring a well-formed mobile number, rate limiting on both the caller's
  * IP and the mobile number itself (so one number can't be hammered from many
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ orders: [] });
   }
 
-  // Scoped to this restaurant, same as customer-lookup: a guest's order
+  // Scoped to this restaurant, same as the customer session: a guest's order
   // history at one venue is not shared with another.
   const customer = await db.restoCustomer.findUnique({
     where: { restaurantId_mobile: { restaurantId: restaurant.id, mobile } },

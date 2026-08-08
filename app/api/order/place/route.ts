@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
+import { getCustomerSession } from "@/lib/restaurant/customer-auth";
 import { resolveOpenState } from "@/lib/restaurant/hours";
 import { normalizeMobile } from "@/lib/restaurant/mobile";
 import { computeOrderTotals, resolveUnitPrice } from "@/lib/restaurant/pricing";
@@ -183,7 +184,20 @@ export async function POST(req: Request) {
     );
   }
 
-  const normalizedMobile = normalizeMobile(mobile);
+  // The body's name and mobile are now only ever an echo of the session the
+  // menu established, so trust the cookie over them when it's there and
+  // belongs to this restaurant — that's the copy the guest actually proved
+  // they hold. The body stays the fallback rather than the session becoming
+  // mandatory: a browser that blocks cookies still clears the sign-in prompt
+  // in memory, and requiring a readable session here would make its orders
+  // unplaceable.
+  const session = await getCustomerSession();
+  const identity =
+    session && session.restaurantId === restaurant.id
+      ? { name: session.name, mobile: session.mobile }
+      : { name: customerName, mobile };
+
+  const normalizedMobile = normalizeMobile(identity.mobile);
   if (!normalizedMobile) {
     return NextResponse.json({ error: "Enter a valid mobile number" }, { status: 400 });
   }
@@ -192,11 +206,11 @@ export async function POST(req: Request) {
     const customer = await tx.restoCustomer.upsert({
       where: { restaurantId_mobile: { restaurantId: restaurant.id, mobile: normalizedMobile } },
       // A returning guest can correct the name we prefilled for them.
-      update: { name: customerName, orderCount: { increment: 1 }, lastOrderAt: new Date() },
+      update: { name: identity.name, orderCount: { increment: 1 }, lastOrderAt: new Date() },
       create: {
         restaurantId: restaurant.id,
         mobile: normalizedMobile,
-        name: customerName,
+        name: identity.name,
         orderCount: 1,
         lastOrderAt: new Date(),
       },
@@ -216,7 +230,7 @@ export async function POST(req: Request) {
         orderNumber: counter.orderSeq,
         tableId,
         customerId: customer.id,
-        customerName,
+        customerName: identity.name,
         customerMobile: normalizedMobile,
         type,
         // Dine-in still pays after the meal, once staff close the bill. Take-away

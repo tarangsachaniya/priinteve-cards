@@ -3,7 +3,7 @@
  *
  * Deliberately simple: it holds counters in the process, so it resets on
  * deploy and doesn't coordinate across serverless instances. That's enough to
- * blunt casual abuse of the customer-lookup endpoint for an MVP. Move to a
+ * blunt casual abuse of the public order endpoints for an MVP. Move to a
  * shared store (Redis / Upstash) before this carries real traffic.
  */
 

@@ -148,10 +148,14 @@ function OrderCard({
     <Card className="border-border/80">
       <CardContent className="flex flex-col gap-2.5 p-3.5">
         <div className="flex items-start justify-between gap-2">
+          {/* Name and number get a line each. Sharing one truncated line meant
+              the number — the half staff need to call the guest — was always
+              the half that got cut. */}
           <div className="min-w-0">
             <p className="font-semibold">#{order.orderNumber}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {order.customerName} · {formatMobile(order.customerMobile)}
+            <p className="break-words text-xs text-muted-foreground">{order.customerName}</p>
+            <p className="text-xs tabular-nums text-muted-foreground">
+              {formatMobile(order.customerMobile)}
             </p>
           </div>
           <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
@@ -186,17 +190,21 @@ function OrderCard({
         </div>
 
         <ul className="flex flex-col gap-1 rounded-xl bg-muted/60 p-2 text-sm">
+          {/* Wrapping, not truncating: a missed "Jain" or a dropped add-on is a
+              remade dish, so the card growing taller is the cheaper outcome. */}
           {order.items.map((item) => {
             const options = [item.variantName, ...item.addOns].filter(Boolean).join(" · ");
             return (
               <li key={item.id} className="flex justify-between gap-2">
                 <span className="min-w-0">
-                  <span className="truncate">
+                  <span className="break-words">
                     <span className="text-muted-foreground tabular-nums">{item.quantity}×</span>{" "}
                     {item.name}
                   </span>
                   {options && (
-                    <span className="block truncate text-xs text-muted-foreground">{options}</span>
+                    <span className="block break-words text-xs text-muted-foreground">
+                      {options}
+                    </span>
                   )}
                 </span>
                 <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
@@ -551,7 +559,9 @@ export function OrdersBoard({ initialOrders }: { initialOrders: BoardOrder[] }) 
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+        // Three columns, not four: four left each card near 300px on a desktop
+        // screen, which is what forced the truncation this layout now avoids.
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {COLUMNS.map((column) => {
             const columnOrders = visibleOrders.filter((order) => order.status === column.status);
 

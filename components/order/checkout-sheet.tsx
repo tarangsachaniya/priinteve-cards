@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bike, Check, Loader2, ShoppingBag, Store, Wallet, X } from "lucide-react";
+import { Bike, Loader2, ShoppingBag, Store, Wallet, X } from "lucide-react";
 import type { RestoOrderType } from "@prisma/client";
 import { toast } from "sonner";
 
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/format";
-import { extractNationalDigits, INDIAN_MOBILE_REGEX } from "@/lib/restaurant/mobile";
+import { extractNationalDigits, formatMobile } from "@/lib/restaurant/mobile";
 import { computeOrderTotals } from "@/lib/restaurant/pricing";
 import { ORDER_TYPE_LABEL } from "@/lib/restaurant/order-status";
 import { writeResumeOrder } from "@/lib/restaurant/order-recovery";
@@ -41,12 +41,19 @@ export function CheckoutSheet({
   table,
   lines,
   customer,
+  onChangeIdentity,
   onClose,
 }: {
   restaurant: PublicRestaurant;
   table: PublicTable | null;
   lines: CartLine[];
-  customer?: { name: string; mobile: string } | null;
+  /**
+   * Required, not optional: the menu asks for a number before it can be
+   * browsed, so checkout is only ever reached by an identified guest. That is
+   * why this sheet no longer collects a name or a mobile itself.
+   */
+  customer: { name: string; mobile: string };
+  onChangeIdentity: () => void;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -56,8 +63,6 @@ export function CheckoutSheet({
     (type) => type !== "DINE_IN" || Boolean(table)
   );
 
-  const [name, setName] = useState("");
-  const [mobile, setMobile] = useState("");
   const [orderType, setOrderType] = useState<RestoOrderType>(availableTypes[0]);
   const [address, setAddress] = useState("");
   const [pincode, setPincode] = useState("");
@@ -65,11 +70,10 @@ export function CheckoutSheet({
   const [pickupInMinutes, setPickupInMinutes] = useState(0);
   const [note, setNote] = useState("");
   const [isPlacing, setIsPlacing] = useState(false);
-  const [prefilled, setPrefilled] = useState(false);
 
-  const nationalDigits = extractNationalDigits(mobile);
-  const mobileValid = INDIAN_MOBILE_REGEX.test(nationalDigits);
-  const mobileTouched = mobile.trim().length > 0;
+  // The session stores the mobile canonically as +91…; the API wants the bare
+  // ten digits.
+  const nationalDigits = extractNationalDigits(customer.mobile);
 
   // unitPrice, not item.price — the line already has variants and add-ons
   // folded in, and using the base price here would quote a total the server
@@ -82,56 +86,9 @@ export function CheckoutSheet({
 
   const belowMinimum = totals.subtotal < restaurant.minOrderValue;
 
-  // A signed-in guest (Task 6) already told us who they are — prefill both
-  // fields from that session once, on mount. Same "never overwrite something
-  // already typed" rule as the debounced lookup below, so the two coexist:
-  // this effect usually wins the race (it doesn't wait on a network round
-  // trip), and once it has filled the fields the lookup below finds nothing
-  // left to do.
-  useEffect(() => {
-    if (!customer) return;
-    setName((current) => (current.trim() ? current : customer.name));
-    setMobile((current) => (current.trim() ? current : extractNationalDigits(customer.mobile)));
-    setPrefilled(true);
-    // Only ever runs against the customer session this sheet mounted with.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Look the number up once it's valid and prefill the name for a returning
-  // guest. Debounced so we aren't querying on every keystroke.
-  const lookupRef = useRef<string>("");
-  useEffect(() => {
-    if (!mobileValid || lookupRef.current === nationalDigits) return;
-
-    const timer = setTimeout(async () => {
-      lookupRef.current = nationalDigits;
-      try {
-        const res = await fetch("/api/order/customer-lookup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ restaurantSlug: restaurant.slug, mobile: nationalDigits }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (data?.customer?.name) {
-          // Never overwrite something the customer has already typed.
-          setName((current) => (current.trim() ? current : data.customer.name));
-          setPrefilled(true);
-        }
-      } catch {
-        // A failed lookup is not worth interrupting checkout for.
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [mobileValid, nationalDigits, restaurant.slug]);
-
   async function placeOrder(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!mobileValid) {
-      toast.error("Enter a valid 10-digit mobile number");
-      return;
-    }
     if (belowMinimum) {
       toast.error(`Minimum order value is ${formatCurrency(restaurant.minOrderValue)}`);
       return;
@@ -145,7 +102,7 @@ export function CheckoutSheet({
         body: JSON.stringify({
           restaurantSlug: restaurant.slug,
           tableCode: table?.code,
-          customerName: name.trim(),
+          customerName: customer.name,
           mobile: nationalDigits,
           type: orderType,
           // Option ids travel with each line; the server re-prices them.
@@ -230,52 +187,22 @@ export function CheckoutSheet({
         </header>
 
         <form onSubmit={placeOrder} className="flex flex-1 flex-col gap-5 overflow-y-auto p-5">
+        {/* Shown rather than hidden: someone ordering on a friend's phone has
+            to be able to notice the wrong name and fix it. */}
         <section className="flex flex-col gap-3">
           <h3 className="text-sm font-semibold">Your details</h3>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="checkout-mobile">Mobile number</Label>
-            <div className="flex items-center gap-2">
-              <span className="flex h-10 items-center rounded-xl border border-border bg-muted px-3 text-sm text-muted-foreground">
-                +91
-              </span>
-              <Input
-                id="checkout-mobile"
-                inputMode="numeric"
-                autoComplete="tel"
-                maxLength={13}
-                placeholder="98765 43210"
-                value={mobile}
-                onChange={(e) => {
-                  setMobile(e.target.value);
-                  setPrefilled(false);
-                }}
-                aria-invalid={mobileTouched && !mobileValid}
-                required
-              />
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/50 px-3 py-2.5">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Ordering as</p>
+              <p className="break-words text-sm font-medium">{customer.name}</p>
+              <p className="text-xs tabular-nums text-muted-foreground">
+                {formatMobile(customer.mobile)}
+              </p>
             </div>
-            {mobileTouched && !mobileValid && (
-              <p className="text-xs text-destructive">
-                Enter a 10-digit number starting with 6, 7, 8 or 9.
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="checkout-name">Name</Label>
-            <Input
-              id="checkout-name"
-              autoComplete="name"
-              placeholder="Your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            {prefilled && (
-              <p className="flex items-center gap-1 text-xs text-emerald-600">
-                <Check className="size-3" /> Welcome back — we filled in your name.
-              </p>
-            )}
+            <Button type="button" variant="outline" size="xs" onClick={onChangeIdentity}>
+              Change
+            </Button>
           </div>
         </section>
 

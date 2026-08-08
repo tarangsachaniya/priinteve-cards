@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,12 +25,29 @@ export function CustomerAuthDialog({
   restaurant,
   onSignedIn,
   onClose,
+  dismissible = true,
 }: {
   restaurant: PublicRestaurant;
   onSignedIn: (customer: SignedInCustomer) => void;
   onClose: () => void;
+  /**
+   * False on the menu's arrival prompt, where a number is required before the
+   * guest can browse: no close button and a dead backdrop. True everywhere
+   * else — notably checkout's "Change", which must be cancellable.
+   */
+  dismissible?: boolean;
 }) {
   const [step, setStep] = useState<"mobile" | "name">("mobile");
+  // Without this the menu keeps scrolling behind the blur, which reads as
+  // "the page is usable" when it deliberately isn't.
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
+
   const [mobile, setMobile] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -87,12 +104,16 @@ export function CustomerAuthDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center">
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={onClose}
-        className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
-      />
+      {dismissible ? (
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+      )}
 
       <div
         role="dialog"
@@ -120,15 +141,17 @@ export function CustomerAuthDialog({
                 : "First time here — what should we call you?"}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="shrink-0 rounded-full p-1 transition-opacity hover:opacity-70"
-            style={{ color: "var(--resto-text-muted)" }}
-          >
-            <X className="size-5" aria-hidden />
-          </button>
+          {dismissible && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="shrink-0 rounded-full p-1 transition-opacity hover:opacity-70"
+              style={{ color: "var(--resto-text-muted)" }}
+            >
+              <X className="size-5" aria-hidden />
+            </button>
+          )}
         </header>
 
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">

@@ -16,9 +16,16 @@ import { customerAuthLoginSchema } from "@/lib/validations/restaurant";
  * app/api/order/track/route.ts.
  */
 export async function POST(req: Request) {
+  // Deliberately loose. Signing in is no longer an opt-in link a few guests
+  // click — the menu asks every visitor for a number before it can be read,
+  // and in a restaurant nearly all of them share one public IP behind the
+  // venue's WiFi. A tight per-IP limit here would 429 the busiest tables and,
+  // because that prompt blocks the menu, lock them out of it entirely. The
+  // per-mobile limit below is the one that actually guards against someone
+  // mass-claiming numbers, and shared IPs don't weaken it.
   const ipLimited = rateLimit({
     key: `customer-login:${clientIp(req)}`,
-    limit: 20,
+    limit: 120,
     windowMs: 60_000,
   });
   if (!ipLimited.allowed) {

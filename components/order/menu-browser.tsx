@@ -60,6 +60,10 @@ export function MenuBrowser({
   // reads the session instead of asking.
   const [showHistory, setShowHistory] = useState(false);
   const [customer, setCustomer] = useState<{ name: string; mobile: string } | null>(null);
+  // Tri-state, not just `customer`: "no session yet" and "session still
+  // loading" have to be told apart, or the arrival prompt below flashes in
+  // the face of a guest who is already signed in.
+  const [sessionChecked, setSessionChecked] = useState(false);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const cart = useCart(categories);
@@ -77,6 +81,10 @@ export function MenuBrowser({
         if (!cancelled && data?.customer) setCustomer(data.customer);
       } catch {
         // Not signed in is the default state; nothing to recover from here.
+      } finally {
+        // Always, including on failure: a guest whose /me request died still
+        // has to be able to reach the prompt rather than a blank screen.
+        if (!cancelled) setSessionChecked(true);
       }
     })();
 
@@ -324,18 +332,35 @@ export function MenuBrowser({
         />
       )}
 
-      {panel === "checkout" && (
+      {/* `customer` is guaranteed in practice — the arrival prompt blocks the
+          menu until it is set — but the guard keeps the type honest and means
+          a signed-out edge case degrades to the prompt, not a crash. */}
+      {panel === "checkout" && customer && (
         <CheckoutSheet
           restaurant={restaurant}
           table={table}
           lines={cart.lines}
           customer={customer}
+          onChangeIdentity={() => setShowAuth(true)}
           onClose={() => setPanel("cart")}
         />
       )}
 
       {showTrackOrder && (
         <TrackOrderDialog restaurant={restaurant} onClose={() => setShowTrackOrder(false)} />
+      )}
+
+      {/* The arrival prompt. Held back until the session check resolves so an
+          already-signed-in guest never sees it, and non-dismissible because a
+          number is what the rest of the flow is built on: checkout no longer
+          asks for one. `showAuth` is the separate, cancellable "Change" path. */}
+      {sessionChecked && !customer && !showAuth && (
+        <CustomerAuthDialog
+          restaurant={restaurant}
+          dismissible={false}
+          onSignedIn={(signedIn) => setCustomer(signedIn)}
+          onClose={() => {}}
+        />
       )}
 
       {showAuth && (
