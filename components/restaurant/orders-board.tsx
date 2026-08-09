@@ -7,6 +7,7 @@ import {
   IndianRupee,
   MapPin,
   Phone,
+  Receipt,
   RefreshCw,
   ShoppingBag,
   Store,
@@ -58,8 +59,8 @@ export type BoardOrder = {
   orderNumber: number;
   status: RestoOrderStatus;
   type: RestoOrderType;
-  /** Null until the customer picks cash or UPI on the payment screen. */
-  paymentMode: "ONLINE" | "COUNTER" | null;
+  /** Null until the customer picks a method on the payment screen. */
+  paymentMode: "ONLINE" | "COUNTER" | "UPI_QR" | null;
   paymentStatus: "PENDING" | "REQUESTED" | "PAID" | "FAILED" | "REFUNDED";
   customerName: string;
   customerMobile: string;
@@ -87,20 +88,32 @@ function minutesAgo(iso: string): string {
   return `${Math.floor(minutes / 60)}h ago`;
 }
 
+/** How a settled bill was settled, for the pill and nothing else. */
+const PAID_LABEL: Record<NonNullable<BoardOrder["paymentMode"]>, string> = {
+  ONLINE: "Paid · UPI",
+  COUNTER: "Paid · cash",
+  UPI_QR: "Paid · UPI QR",
+};
+
 /**
  * The payment pill.
  *
- * Five states now, not two. The one that matters operationally is "Cash at
- * counter" — the customer has said they will pay in cash and is waiting for
- * someone to take it, which is a different job from an unpaid order nobody has
- * been asked about yet.
+ * Five states now, not two. The two that matter operationally are the waiting
+ * ones — "Cash at counter" and "UPI QR sent". In both the customer has
+ * committed to a method and someone still has to confirm the money arrived,
+ * which is a different job from an unpaid order nobody has been asked about
+ * yet. They are told apart because the staff member checks a different place:
+ * the till for one, the bank alert for the other.
  */
 function PaymentPill({ order }: { order: BoardOrder }) {
   const { paymentStatus, paymentMode } = order;
 
   const { label, tone } =
     paymentStatus === "PAID"
-      ? { label: paymentMode === "COUNTER" ? "Paid · cash" : "Paid · UPI", tone: "bg-emerald-500/10 text-emerald-700" }
+      ? {
+          label: paymentMode ? PAID_LABEL[paymentMode] : "Paid",
+          tone: "bg-emerald-500/10 text-emerald-700",
+        }
       : paymentStatus === "FAILED"
         ? { label: "Payment failed", tone: "bg-destructive/10 text-destructive" }
         : paymentStatus === "REFUNDED"
@@ -108,7 +121,9 @@ function PaymentPill({ order }: { order: BoardOrder }) {
           : paymentStatus === "REQUESTED"
             ? paymentMode === "COUNTER"
               ? { label: "Cash at counter", tone: "bg-blue-500/10 text-blue-700" }
-              : { label: "Awaiting payment", tone: "bg-violet-500/10 text-violet-700" }
+              : paymentMode === "UPI_QR"
+                ? { label: "UPI QR sent", tone: "bg-blue-500/10 text-blue-700" }
+                : { label: "Awaiting payment", tone: "bg-violet-500/10 text-violet-700" }
             : { label: "Bill open", tone: "bg-amber-500/10 text-amber-700" };
 
   return <Badge className={cn("border-transparent", tone)}>{label}</Badge>;
@@ -252,7 +267,10 @@ function OrderCard({
             )}
             {canMarkPaid && (
               <Button type="button" variant="outline" size="xs" disabled={isBusy} onClick={() => onMarkPaid(order)}>
-                Mark paid (cash)
+                {/* Names where to look before tapping. A UPI QR guest has
+                    already paid into the bank, not into the till, and a button
+                    that says "cash" would have staff checking the wrong one. */}
+                {order.paymentMode === "UPI_QR" ? "Mark paid (UPI received)" : "Mark paid (cash)"}
               </Button>
             )}
           </div>
@@ -283,6 +301,20 @@ function OrderCard({
               render={<a href={`tel:${order.customerMobile}`} aria-label="Call customer" />}
             >
               <Phone />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              render={
+                <a
+                  href={`/api/restaurant/orders/${order.id}/invoice`}
+                  download
+                  aria-label={`Download the bill for order ${order.orderNumber}`}
+                />
+              }
+            >
+              <Receipt />
             </Button>
             {advanceTo && (
               <Button

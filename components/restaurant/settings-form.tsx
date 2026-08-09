@@ -47,6 +47,12 @@ export type RestaurantSettings = {
   deliveryEnabled: boolean;
   onlinePaymentEnabled: boolean;
   counterPaymentEnabled: boolean;
+  upiQrEnabled: boolean;
+  upiVpa: string | null;
+  upiPayeeName: string | null;
+  legalName: string | null;
+  gstin: string | null;
+  fssaiLicence: string | null;
   taxPercent: number;
   deliveryFee: number;
   minOrderValue: number;
@@ -193,6 +199,12 @@ const SETTINGS_FIELD_LABELS: Record<string, string> = {
   deliveryEnabled: "Order types",
   onlinePaymentEnabled: "Payments",
   counterPaymentEnabled: "Payments",
+  upiQrEnabled: "Payments",
+  upiVpa: "UPI ID",
+  upiPayeeName: "UPI payee name",
+  legalName: "Registered business name",
+  gstin: "GSTIN",
+  fssaiLicence: "FSSAI licence number",
   taxPercent: "Tax (%)",
   deliveryFee: "Delivery fee (₹)",
   minOrderValue: "Minimum order (₹)",
@@ -234,6 +246,11 @@ export function SettingsForm({
     logoPublicId: settings.logoPublicId ?? "",
     tagline: settings.tagline ?? "",
     description: settings.description ?? "",
+    upiVpa: settings.upiVpa ?? "",
+    upiPayeeName: settings.upiPayeeName ?? "",
+    legalName: settings.legalName ?? "",
+    gstin: settings.gstin ?? "",
+    fssaiLicence: settings.fssaiLicence ?? "",
     // Edited as one comma-separated field rather than a chip picker — six
     // short tags at most, and a text field is one control instead of five.
     cuisineTags: settings.cuisineTags.join(", "),
@@ -376,10 +393,15 @@ export function SettingsForm({
             <Label htmlFor="settings-address">Address</Label>
             <Textarea
               id="settings-address"
-              rows={2}
+              rows={3}
               value={form.address}
               onChange={(e) => update("address", e.target.value)}
+              placeholder={"Shop 4, Linking Road\nBandra West, Mumbai\nMaharashtra 400050"}
             />
+            <p className="text-xs text-muted-foreground">
+              Printed on every bill — use your full postal address, including city, state and
+              pincode.
+            </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -620,6 +642,58 @@ export function SettingsForm({
             checked={form.counterPaymentEnabled}
             onChange={(checked) => update("counterPaymentEnabled", checked)}
           />
+          <ToggleRow
+            id="upi-qr-payment"
+            title="Pay by UPI QR"
+            description="Shows a QR with the amount filled in. You confirm each payment yourself."
+            checked={form.upiQrEnabled}
+            onChange={(checked) => update("upiQrEnabled", checked)}
+          />
+
+          {form.upiQrEnabled && (
+            <div className="flex flex-col gap-3 rounded-2xl border border-border/70 p-3">
+              {/* Said plainly and up front, because it is the one thing an
+                  owner will otherwise assume works the other way round. */}
+              <div className="flex gap-2 rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+                <Info className="size-4 shrink-0" />
+                <p>
+                  A UPI QR can&apos;t tell us when it&apos;s been paid — no bank sends us a
+                  confirmation. The order stays unpaid until you tap{" "}
+                  <span className="font-medium text-foreground">Mark paid</span> on the orders
+                  board, so check your bank alert before you do. Use a{" "}
+                  <span className="font-medium text-foreground">merchant</span> UPI ID where you
+                  can: a personal one has a daily limit and isn&apos;t meant for business takings.
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="settings-upi-vpa">UPI ID</Label>
+                  <Input
+                    id="settings-upi-vpa"
+                    value={form.upiVpa}
+                    onChange={(e) => update("upiVpa", e.target.value)}
+                    placeholder="kitchen@okhdfcbank"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="settings-upi-payee">Name shown to the customer</Label>
+                  <Input
+                    id="settings-upi-payee"
+                    value={form.upiPayeeName}
+                    onChange={(e) => update("upiPayeeName", e.target.value)}
+                    placeholder={form.name || "Your restaurant"}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Optional — defaults to your restaurant name.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-4 pt-2 sm:grid-cols-3">
             <div className="flex flex-col gap-1.5">
@@ -658,6 +732,80 @@ export function SettingsForm({
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/80">
+        <CardHeader>
+          <CardTitle className="text-base">Bill details</CardTitle>
+          <CardDescription>
+            What appears on the PDF bill you and your customers can download.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {/* Stated once, plainly, because it is the thing that decides what
+              kind of document leaves the building. */}
+          <div className="flex gap-2 rounded-2xl bg-muted p-3 text-xs text-muted-foreground">
+            <Info className="size-4 shrink-0" />
+            <p>
+              Add a GSTIN and every bill becomes a proper{" "}
+              <span className="font-medium text-foreground">tax invoice</span>, with GST split into
+              CGST and SGST. Leave it blank and customers still get a clean bill — just not one
+              that claims a registration you don&apos;t have.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="settings-legal-name">Registered business name</Label>
+              <Input
+                id="settings-legal-name"
+                value={form.legalName}
+                onChange={(e) => update("legalName", e.target.value)}
+                placeholder={form.name || "Sharma Hospitality Pvt Ltd"}
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional — only if it differs from {form.name || "your restaurant name"}.
+              </p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="settings-gstin">GSTIN</Label>
+              <Input
+                id="settings-gstin"
+                value={form.gstin}
+                onChange={(e) => update("gstin", e.target.value.toUpperCase())}
+                placeholder="27AAACR1234R1ZQ"
+                maxLength={15}
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                Your state is read from the first two digits, so you don&apos;t need to enter it.
+              </p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="settings-fssai">FSSAI licence number</Label>
+              <Input
+                id="settings-fssai"
+                value={form.fssaiLicence}
+                onChange={(e) => update("fssaiLicence", e.target.value)}
+                placeholder="11522998000123"
+                maxLength={20}
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                Required on food bills in India.
+              </p>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Your address, phone and email from{" "}
+            <span className="font-medium text-foreground">Restaurant details</span> above are
+            printed on the bill too — make sure the address there is your full postal one.
+          </p>
         </CardContent>
       </Card>
 

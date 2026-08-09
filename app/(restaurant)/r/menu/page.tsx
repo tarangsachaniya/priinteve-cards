@@ -54,6 +54,8 @@ export default async function RestaurantMenuPage() {
           isVeg: i.isVeg,
           isAvailable: i.isAvailable,
           badge: i.badge,
+          prepMinutes: i.prepMinutes,
+          demoteAtPeak: i.demoteAtPeak,
           sortOrder: i.sortOrder,
           variants: i.variants.map((v) => ({
             id: v.id,

@@ -7,6 +7,7 @@ import { isRazorpayConfigured } from "@/lib/restaurant/payment";
 import { normalizeRestoMode } from "@/lib/restaurant/theme";
 import { PageHeader } from "@/components/shared/page-header";
 import { HoursForm } from "@/components/restaurant/hours-form";
+import { PeakHoursForm } from "@/components/restaurant/peak-hours-form";
 import { SettingsForm } from "@/components/restaurant/settings-form";
 
 export const dynamic = "force-dynamic";
@@ -17,12 +18,18 @@ export default async function RestaurantSettingsPage() {
 
   // Counted the same way the public aggregate is (non-hidden only), so the
   // starting-rating fields lock at exactly the moment real reviews take over.
-  const [restaurant, publishedReviews] = await Promise.all([
+  const [restaurant, publishedReviews, demotedDishCount] = await Promise.all([
     db.restaurant.findUnique({
       where: { id: session.restaurantId },
-      include: { hours: { orderBy: { dayOfWeek: "asc" } } },
+      include: {
+        hours: { orderBy: { dayOfWeek: "asc" } },
+        peakWindows: { orderBy: [{ dayOfWeek: "asc" }, { startsAt: "asc" }] },
+      },
     }),
     db.restoReview.count({ where: { restaurantId: session.restaurantId, isHidden: false } }),
+    // Drives the rush preview line: windows with nothing flagged to move are
+    // a setting that silently does nothing, which is worth saying out loud.
+    db.menuItem.count({ where: { restaurantId: session.restaurantId, demoteAtPeak: true } }),
   ]);
   if (!restaurant) redirect("/r/login");
 
@@ -62,6 +69,12 @@ export default async function RestaurantSettingsPage() {
           deliveryEnabled: restaurant.deliveryEnabled,
           onlinePaymentEnabled: restaurant.onlinePaymentEnabled,
           counterPaymentEnabled: restaurant.counterPaymentEnabled,
+          upiQrEnabled: restaurant.upiQrEnabled,
+          upiVpa: restaurant.upiVpa,
+          upiPayeeName: restaurant.upiPayeeName,
+          legalName: restaurant.legalName,
+          gstin: restaurant.gstin,
+          fssaiLicence: restaurant.fssaiLicence,
           taxPercent: restaurant.taxPercent,
           deliveryFee: restaurant.deliveryFee,
           minOrderValue: restaurant.minOrderValue,
@@ -84,6 +97,27 @@ export default async function RestaurantSettingsPage() {
               opensAt,
               closesAt,
               isClosed,
+            })),
+          }}
+        />
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold tracking-tight">Rush hours</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          When your kitchen is busiest. Dishes you marked &ldquo;Hide during rush&rdquo; move to the
+          last page of your menu during these windows, so fewer guests order them while you&apos;re
+          under load.
+        </p>
+        <PeakHoursForm
+          demotedDishCount={demotedDishCount}
+          initial={{
+            timezone: restaurant.timezone,
+            windows: restaurant.peakWindows.map(({ dayOfWeek, startsAt, endsAt, label }) => ({
+              dayOfWeek,
+              startsAt,
+              endsAt,
+              label,
             })),
           }}
         />

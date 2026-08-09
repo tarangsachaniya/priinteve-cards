@@ -29,12 +29,15 @@ const EXAMPLE = {
           description: "Cottage cheese in a rich tomato and butter gravy",
           price: 180,
           isVeg: true,
+          prepMinutes: 15,
         },
         {
           name: "Chicken Tikka",
           price: 260,
           isVeg: false,
           badge: "BESTSELLER",
+          prepMinutes: 35,
+          demoteAtPeak: true,
           variants: [
             { name: "Half", priceDelta: -60 },
             { name: "Full", priceDelta: 0, isDefault: true },
@@ -206,8 +209,14 @@ export function MenuBulkImport({
               </pre>
               <p className="mt-2 font-medium text-foreground">Per item</p>
               <p className="mt-1">
-                name, price, description?, isVeg?, isAvailable?, imageUrl?, badge?, variants?,
-                addOns?
+                name, price, description?, isVeg?, isAvailable?, imageUrl?, badge?, prepMinutes?,
+                demoteAtPeak?, variants?, addOns?
+              </p>
+              <p className="mt-2">
+                <span className="font-medium text-foreground">prepMinutes</span> is the approximate
+                serve time in minutes.{" "}
+                <span className="font-medium text-foreground">demoteAtPeak</span> moves the dish to
+                the last page of your menu during rush hours.
               </p>
             </div>
 

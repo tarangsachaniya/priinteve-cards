@@ -1,7 +1,10 @@
 import { z } from "zod";
 
 import { INDIAN_MOBILE_REGEX, extractNationalDigits } from "@/lib/restaurant/mobile";
+import { isValidGstin, normalizeGstin } from "@/lib/restaurant/gst";
+import { MAX_PEAK_WINDOWS_PER_DAY } from "@/lib/restaurant/peak-hours";
 import { RESTO_MODE_IDS } from "@/lib/restaurant/theme";
+import { isValidVpa } from "@/lib/restaurant/upi";
 
 /**
  * Every zod schema for the restaurant ordering module, following the
@@ -131,6 +134,18 @@ export const restaurantSettingsSchema = z
     deliveryEnabled: z.boolean(),
     onlinePaymentEnabled: z.boolean(),
     counterPaymentEnabled: z.boolean(),
+    upiQrEnabled: z.boolean().default(false),
+    upiVpa: optionalText(80),
+    upiPayeeName: optionalText(80),
+
+    // Tax invoice identity. All optional — a restaurant without a GSTIN still
+    // issues bills, just not tax invoices.
+    legalName: optionalText(120),
+    gstin: z.preprocess(
+      (v) => (v === "" || v == null ? null : normalizeGstin(String(v))),
+      z.string().nullable()
+    ).optional(),
+    fssaiLicence: optionalText(20),
     taxPercent: z.coerce.number().int().min(0).max(50),
     deliveryFee: z.coerce.number().int().min(0).max(10000),
     minOrderValue: z.coerce.number().int().min(0).max(100000),
@@ -154,9 +169,23 @@ export const restaurantSettingsSchema = z
     message: "Enable at least one order type, or customers can't order at all",
     path: ["dineInEnabled"],
   })
-  .refine((v) => v.onlinePaymentEnabled || v.counterPaymentEnabled, {
+  .refine((v) => v.onlinePaymentEnabled || v.counterPaymentEnabled || v.upiQrEnabled, {
     message: "Enable at least one payment mode",
     path: ["onlinePaymentEnabled"],
+  })
+  // A UPI QR with no VPA would render a code that opens an error screen in the
+  // guest's app — worse than not offering it, because it fails after they have
+  // committed to paying that way.
+  .refine((v) => !v.upiQrEnabled || (v.upiVpa != null && isValidVpa(v.upiVpa)), {
+    message: "Enter a valid UPI ID, like kitchen@okhdfcbank",
+    path: ["upiVpa"],
+  })
+  // Checked only when one was entered. A malformed GSTIN on a tax invoice is
+  // worse than none at all: it turns a plain bill into a document that claims
+  // a registration the restaurant can't back up.
+  .refine((v) => v.gstin == null || isValidGstin(v.gstin), {
+    message: "A GSTIN is 15 characters, like 27AAACR1234R1ZQ",
+    path: ["gstin"],
   })
   .refine(
     (v) => v.prepTimeMinMins == null || v.prepTimeMaxMins == null || v.prepTimeMinMins <= v.prepTimeMaxMins,
@@ -234,6 +263,10 @@ export const menuItemCreateSchema = z.object({
   imagePublicId: z.string().optional().or(z.literal("")),
   badge: z.preprocess(emptyToNull, z.enum(["BESTSELLER", "CHEFS_PICK", "POPULAR", "NEW"]).nullable()).optional(),
   ratingValue: optionalDisplayRating,
+  // Capped at 240 to match the restaurant-level prep quote. Optional rather
+  // than defaulted: "not quoted" must stay distinguishable from "quoted zero".
+  prepMinutes: optionalInt(240),
+  demoteAtPeak: z.boolean().default(false),
   // Capped at 20: a dish with no size choice and no extras is the common
   // case, and 20 of either is already more than a printed menu shows.
   variants: z
@@ -297,6 +330,11 @@ const bulkItemSchema = z.object({
   badge: z
     .preprocess(emptyToNull, z.enum(["BESTSELLER", "CHEFS_PICK", "POPULAR", "NEW"]).nullable())
     .optional(),
+  // Same fields as the single-item form. Omitting them is the common case and
+  // leaves the dish untimed and never demoted, which is what a document
+  // written before these existed should mean.
+  prepMinutes: optionalInt(240),
+  demoteAtPeak: z.boolean().default(false),
   // Optional and capped: a dish with no size choice and no extras is the
   // common case, and 20 of either is already more than a printed menu shows.
   variants: z
@@ -419,7 +457,10 @@ export const verifyPaymentSchema = z.object({
  * the restaurant to confirm receipt.
  */
 export const settleOrderSchema = z.object({
-  method: z.enum(["UPI", "CASH"]),
+  // UPI routes through Razorpay Checkout. UPI_QR is the gateway-less path: a
+  // deep-link QR the guest scans, confirmed by staff like cash — see
+  // lib/restaurant/upi.ts for why it cannot confirm itself.
+  method: z.enum(["UPI", "CASH", "UPI_QR"]),
 });
 
 // ─── Restaurant: opening hours ─────────────────────────────────────────────
@@ -445,6 +486,45 @@ export const hoursUpdateSchema = z.object({
   // All seven days at once. A partial update would let a restaurant end up
   // with Tuesday missing, which the resolver reads as closed all day.
   days: z.array(hoursDaySchema).length(7).optional(),
+});
+
+// ─── Restaurant: peak hours ────────────────────────────────────────────────
+
+/**
+ * One rush window. Same minute-from-midnight units as hoursDaySchema, and the
+ * same tolerance for an end earlier than the start — that means past midnight.
+ *
+ * A zero-length window is rejected rather than accepted-and-ignored: it is
+ * always a half-filled form row, and silently dropping it would leave an owner
+ * looking at a window that does nothing.
+ */
+export const peakWindowSchema = z
+  .object({
+    dayOfWeek: z.coerce.number().int().min(0).max(6),
+    startsAt: z.coerce.number().int().min(0).max(1439),
+    endsAt: z.coerce.number().int().min(0).max(1439),
+    label: optionalText(40),
+  })
+  .refine((v) => v.startsAt !== v.endsAt, {
+    message: "A rush window needs a start and an end that differ",
+    path: ["endsAt"],
+  });
+
+export const peakWindowsUpdateSchema = z.object({
+  // The whole week at once. These rows have no natural key, so a partial
+  // update has nothing to reconcile against — the route replaces the set.
+  windows: z
+    .array(peakWindowSchema)
+    .max(7 * MAX_PEAK_WINDOWS_PER_DAY)
+    .refine(
+      (windows) =>
+        windows.every(
+          (window) =>
+            windows.filter((other) => other.dayOfWeek === window.dayOfWeek).length <=
+            MAX_PEAK_WINDOWS_PER_DAY
+        ),
+      { message: `A day can hold at most ${MAX_PEAK_WINDOWS_PER_DAY} rush windows` }
+    ),
 });
 
 // ─── Customer: reviews ─────────────────────────────────────────────────────

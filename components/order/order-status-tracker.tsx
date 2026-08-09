@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, CircleX, Clock, Loader2, PartyPopper } from "lucide-react";
+import { Check, CircleX, Clock, Download, Loader2, PartyPopper } from "lucide-react";
 import type { RestoOrderStatus, RestoPaymentStatus } from "@prisma/client";
 
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { estimateOrderMinutes } from "@/lib/restaurant/menu-display";
 import {
   ORDER_STATUS_CUSTOMER_LABEL,
   ORDER_STATUS_FLOW,
@@ -32,7 +33,7 @@ export type StatusOrder = {
   orderNumber: number;
   status: RestoOrderStatus;
   paymentStatus: RestoPaymentStatus;
-  paymentMode: "ONLINE" | "COUNTER" | null;
+  paymentMode: "ONLINE" | "COUNTER" | "UPI_QR" | null;
   type: "DINE_IN" | "TAKE_AWAY" | "DELIVERY";
   tableLabel: string | null;
   customerName: string;
@@ -41,12 +42,16 @@ export type StatusOrder = {
   deliveryFee: number;
   total: number;
   cancelReason: string | null;
+  /** ISO instant the order was placed; the estimate below counts from it. */
+  placedAt: string;
   items: {
     id: string;
     name: string;
     quantity: number;
     lineTotal: number;
     variantName: string | null;
+    /** Snapshotted at order time — see RestoOrderItem.prepMinutes. */
+    prepMinutes: number | null;
     addOns: string[];
   }[];
   restaurantName: string;
@@ -54,6 +59,7 @@ export type StatusOrder = {
   brandColor: string;
   canPayOnline: boolean;
   canPayCash: boolean;
+  canPayUpiQr: boolean;
   hasReview: boolean;
 };
 
@@ -129,6 +135,7 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
           restaurantName={initialOrder.restaurantName}
           canPayOnline={initialOrder.canPayOnline}
           canPayCash={initialOrder.canPayCash}
+          canPayUpiQr={initialOrder.canPayUpiQr}
           paymentMode={paymentMode}
           onPaid={() => {
             setPaymentStatus("PAID");
@@ -182,6 +189,8 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
           </p>
         </div>
       ) : (
+        <>
+        <ReadyEstimate placedAt={initialOrder.placedAt} items={initialOrder.items} />
         <ol
           className="flex flex-col gap-0 border p-5"
           style={{
@@ -249,6 +258,7 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
             );
           })}
         </ol>
+        </>
       )}
 
       {/* Asked only once the meal is actually over. Payment is no longer the
@@ -322,6 +332,27 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
             Pay after your meal — the restaurant will open your bill here.
           </p>
         )}
+
+        {/* A plain <a download>, not a fetch-and-blob: the browser's own
+            download handling is what a guest expects on a phone, and it works
+            when the page's JavaScript doesn't.
+
+            Offered before payment too. Looking at the bill is exactly what
+            someone does while deciding whether it's right, and the PDF marks
+            itself "Not paid" rather than pretending otherwise. */}
+        <a
+          href={`/api/order/${initialOrder.id}/invoice`}
+          download
+          className="mt-3 flex items-center justify-center gap-2 border py-2.5 text-sm font-semibold transition-colors"
+          style={{
+            borderColor: "var(--resto-border)",
+            borderRadius: "var(--resto-radius-full)",
+            color: "var(--resto-text)",
+          }}
+        >
+          <Download className="size-4" aria-hidden />
+          Download bill (PDF)
+        </a>
       </section>
 
       <Link
@@ -338,6 +369,61 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
 
       <PlatformCredit />
     </main>
+  );
+}
+
+/** How often the countdown redraws. A minute-resolution figure needs no more. */
+const ESTIMATE_TICK_MS = 30_000;
+
+/**
+ * "Ready in about 20 minutes", counting down from when the order was placed.
+ *
+ * Rendered only while the kitchen still has the order — the caller mounts this
+ * inside the in-progress branch, so it disappears the moment the status turns
+ * READY, COMPLETED or CANCELLED. That gate is the point: a countdown still
+ * running beside "Ready — collect it" contradicts the food in front of the
+ * guest, and the food wins.
+ *
+ * It ticks rather than rendering the estimate as placed. A figure that still
+ * claimed twenty minutes after a guest had waited thirty would be worse than
+ * saying nothing, which is exactly what happens when no dish carries a time.
+ */
+function ReadyEstimate({
+  placedAt,
+  items,
+}: {
+  placedAt: string;
+  items: StatusOrder["items"];
+}) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), ESTIMATE_TICK_MS);
+    return () => clearInterval(timer);
+  }, []);
+
+  const quoted = estimateOrderMinutes(items);
+  if (quoted == null) return null;
+
+  const elapsed = Math.floor((now - new Date(placedAt).getTime()) / 60_000);
+  const remaining = quoted - elapsed;
+
+  return (
+    <p
+      className="flex items-center justify-center gap-2 border px-4 py-3 text-sm font-medium"
+      role="status"
+      style={{
+        backgroundColor: "var(--resto-surface)",
+        borderColor: "var(--resto-border)",
+        borderRadius: "var(--resto-radius-md)",
+        color: "var(--resto-text-muted)",
+      }}
+    >
+      <Clock className="size-4 shrink-0" aria-hidden />
+      {/* Past the estimate the honest thing is to stop counting. A negative
+          number, or a stuck "1 min", both read as a broken screen. */}
+      {remaining > 0 ? `Ready in about ${remaining} min` : "Should be ready any moment now"}
+    </p>
   );
 }
 

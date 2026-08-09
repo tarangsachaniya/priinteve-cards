@@ -1,19 +1,24 @@
 import { NextResponse } from "next/server";
 
+import { generateQrDataUrl } from "@/lib/qr";
 import { db } from "@/lib/db";
 import {
   getRazorpayKeyId,
   isRazorpayConfigured,
   restaurantPaymentGateway,
 } from "@/lib/restaurant/payment";
+import { buildPaymentNote, buildTransactionRef, buildUpiUri } from "@/lib/restaurant/upi";
 import { settleOrderSchema } from "@/lib/validations/restaurant";
 
 /**
  * The customer choosing how to pay, once the restaurant has closed the bill.
  *
- * UPI opens Razorpay Checkout (UPI is one of its methods, alongside cards and
- * netbanking, so one integration covers all of them). CASH records the
- * intention and hands the order to the counter.
+ * Three methods, two behaviours. UPI opens Razorpay Checkout (UPI is one of
+ * its methods, alongside cards and netbanking, so one integration covers all
+ * of them) and confirms itself through a signature and a webhook. CASH and
+ * UPI_QR both only record an intention and hand the order to the counter — a
+ * deep-link QR reports nothing back, so a person has to confirm the money
+ * arrived either way.
  *
  * Only reachable while paymentStatus is REQUESTED. That single check is what
  * guarantees nobody is charged before the restaurant says the meal is over.
@@ -28,6 +33,7 @@ export async function POST(req: Request, { params }: { params: { orderId: string
     where: { id: params.orderId },
     select: {
       id: true,
+      orderNumber: true,
       total: true,
       customerId: true,
       customerName: true,
@@ -39,6 +45,9 @@ export async function POST(req: Request, { params }: { params: { orderId: string
           name: true,
           onlinePaymentEnabled: true,
           counterPaymentEnabled: true,
+          upiQrEnabled: true,
+          upiVpa: true,
+          upiPayeeName: true,
         },
       },
     },
@@ -72,6 +81,46 @@ export async function POST(req: Request, { params }: { params: { orderId: string
     });
 
     return NextResponse.json({ method: "CASH", order: updated });
+  }
+
+  if (parsed.data.method === "UPI_QR") {
+    const { upiQrEnabled, upiVpa, upiPayeeName, name } = order.restaurant;
+    if (!upiQrEnabled || !upiVpa) {
+      return NextResponse.json({ error: "UPI QR isn't available here" }, { status: 400 });
+    }
+
+    // Stays REQUESTED, exactly as CASH does. Scanning a QR is not paying: the
+    // link reports nothing back, so until a staff member confirms the credit
+    // this order is a promise, not a payment.
+    const updated = await db.restoOrder.update({
+      where: { id: order.id },
+      data: { paymentMode: "UPI_QR", paymentStatus: "REQUESTED" },
+      select: { id: true, paymentStatus: true, paymentMode: true },
+    });
+
+    const upiUri = buildUpiUri({
+      vpa: upiVpa,
+      payeeName: upiPayeeName?.trim() || name,
+      amount: order.total,
+      note: buildPaymentNote({ orderNumber: order.orderNumber, restaurantName: name }),
+      // Travels into the restaurant's bank statement, which is how staff match
+      // a credit to this order rather than guessing from the amount.
+      transactionRef: buildTransactionRef({
+        orderNumber: order.orderNumber,
+        orderId: order.id,
+      }),
+    });
+
+    return NextResponse.json({
+      method: "UPI_QR",
+      order: updated,
+      upi: {
+        uri: upiUri,
+        qrDataUrl: await generateQrDataUrl(upiUri),
+        vpa: upiVpa,
+        payeeName: upiPayeeName?.trim() || name,
+      },
+    });
   }
 
   if (!order.restaurant.onlinePaymentEnabled || !isRazorpayConfigured()) {

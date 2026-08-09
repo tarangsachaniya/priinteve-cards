@@ -1,6 +1,7 @@
 import type { RestoItemBadge, RestoOrderType, RestoPaymentMode } from "@prisma/client";
 
 import type { DayHours, OpenState } from "@/lib/restaurant/hours";
+import type { PeakState } from "@/lib/restaurant/peak-hours";
 import type { ReviewSummary } from "@/lib/restaurant/reviews";
 
 /** Shared shapes for the customer ordering surface. */
@@ -30,6 +31,14 @@ export type PublicMenuItem = {
   badge: RestoItemBadge | null;
   /** Stored ×10 — format with formatRating(). */
   ratingValue: number | null;
+  /** Approximate minutes to plate; null when the owner quoted none. */
+  prepMinutes: number | null;
+  /**
+   * Owner-flagged as a rush bottleneck. Only ever read by flattenMenu() to
+   * sort the dish last while peak is on — the card never renders it, because
+   * from the guest's side nothing about the dish has changed.
+   */
+  demoteAtPeak: boolean;
   /** Available options only; a sold-out variant never reaches the customer. */
   variants: PublicVariant[];
   addOns: PublicAddOn[];
@@ -67,6 +76,13 @@ export type PublicRestaurant = {
   paymentModes: RestoPaymentMode[];
   /** Resolved server-side so the badge and the order API can never disagree. */
   openState: OpenState;
+  /**
+   * Whether the kitchen is in a declared rush. Drives dish order only — see
+   * flattenMenu(). Never surfaced to the guest: from their side the menu is
+   * simply a menu, and telling them the kitchen is busy would only invite
+   * them to leave.
+   */
+  peakState: PeakState;
   /** The full week, for the "see all hours" panel. Empty means always open. */
   hours: DayHours[];
   /** The restaurant's own clock — hours are read in this zone, not the guest's. */

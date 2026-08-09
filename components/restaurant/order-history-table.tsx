@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Receipt } from "lucide-react";
 import type { RestoOrderStatus, RestoOrderType, RestoPaymentStatus } from "@prisma/client";
 
 import { cn } from "@/lib/utils";
@@ -53,7 +54,7 @@ export type HistoryRow = {
 };
 
 /** Number of columns, for the empty row's colSpan. */
-const COLUMN_COUNT = 8;
+const COLUMN_COUNT = 9;
 
 /**
  * Which way a column opens on its first click. A name is looked up
@@ -211,6 +212,8 @@ export function OrderHistoryTable({
                 <SortableHead columnKey="total" sort={sort} onSort={toggleSort} align="right">
                   Total
                 </SortableHead>
+                {/* Unsortable and unlabelled — an action column, not data. */}
+                <TableHead className="w-10" aria-label="Bill" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -269,6 +272,17 @@ export function OrderHistoryTable({
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-right tabular-nums">
                     {formatCurrency(row.total)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <a
+                      href={`/api/restaurant/orders/${row.id}/invoice`}
+                      download
+                      aria-label={`Download the bill for order ${row.orderNumber}`}
+                      title="Download bill"
+                      className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <Receipt className="size-4" />
+                    </a>
                   </TableCell>
                 </TableRow>
               ))}

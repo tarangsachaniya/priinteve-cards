@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FolderPlus, Leaf, Pencil, Plus, Trash2, UtensilsCrossed } from "lucide-react";
+import { Clock, FolderPlus, Leaf, Pencil, Plus, Trash2, TrendingDown, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrency } from "@/lib/format";
+import { formatServeTime } from "@/lib/restaurant/menu-display";
 import { categoryCreateSchema } from "@/lib/validations/restaurant";
 import { MenuBulkImport } from "@/components/restaurant/menu-bulk-import";
 import { MenuItemForm, type MenuItemRow } from "@/components/restaurant/menu-item-form";
@@ -335,8 +336,14 @@ export function MenuManager({
                               {item.isVeg && <Leaf className="size-3.5 shrink-0 text-emerald-600" />}
                               {item.name}
                             </p>
-                            <p className="text-sm font-semibold tabular-nums">
+                            <p className="flex items-center gap-2 text-sm font-semibold tabular-nums">
                               {formatCurrency(item.price)}
+                              {formatServeTime(item.prepMinutes) && (
+                                <span className="inline-flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                                  <Clock className="size-3" />
+                                  {formatServeTime(item.prepMinutes)}
+                                </span>
+                              )}
                             </p>
                           </div>
                           <div className="flex shrink-0 gap-0.5">
@@ -383,6 +390,14 @@ export function MenuManager({
                           <span className="text-xs text-muted-foreground">
                             {item.isAvailable ? "Available" : "Out of stock"}
                           </span>
+                          {/* Only ever shown when set. A row of "not hidden"
+                              badges across an entire menu would say nothing. */}
+                          {item.demoteAtPeak && (
+                            <Badge variant="secondary" className="gap-1 text-[10px]">
+                              <TrendingDown className="size-3" />
+                              Hidden during rush
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </CardContent>

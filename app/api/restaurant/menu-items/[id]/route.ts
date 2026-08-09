@@ -107,6 +107,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     imageUrl,
     imagePublicId,
     badge,
+    prepMinutes,
+    demoteAtPeak,
     sortOrder,
     variants,
     addOns,
@@ -135,6 +137,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         ...(imageUrl !== undefined && { imageUrl: imageUrl || null }),
         ...(imagePublicId !== undefined && { imagePublicId: imagePublicId || null }),
         ...(badge !== undefined && { badge: badge ?? null }),
+        ...(prepMinutes !== undefined && { prepMinutes: prepMinutes ?? null }),
+        ...(demoteAtPeak !== undefined && { demoteAtPeak }),
         ...(sortOrder !== undefined && { sortOrder }),
       },
     });

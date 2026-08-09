@@ -57,6 +57,7 @@ export default async function RestaurantOrderPage({ params }: { params: { slug: 
         restaurant={{ ...data.restaurant, orderTypes: takeawayOrDelivery }}
         table={null}
         categories={data.categories}
+        recommendedItemIds={data.recommendedItemIds}
       />
     </RestoPage>
   );

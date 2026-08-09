@@ -54,6 +54,8 @@ export default async function OrderStatusPage({
           themeMode: true,
           onlinePaymentEnabled: true,
           counterPaymentEnabled: true,
+          upiQrEnabled: true,
+          upiVpa: true,
         },
       },
     },
@@ -89,12 +91,14 @@ export default async function OrderStatusPage({
           deliveryFee: order.deliveryFee,
           total: order.total,
           cancelReason: order.cancelReason,
+          placedAt: order.placedAt.toISOString(),
           items: order.items.map((item) => ({
             id: item.id,
             name: item.name,
             quantity: item.quantity,
             lineTotal: item.lineTotal,
             variantName: item.variantName,
+            prepMinutes: item.prepMinutes,
             addOns: item.addOns.map((addOn) => addOn.name),
           })),
           restaurantName: order.restaurant.branch
@@ -107,6 +111,9 @@ export default async function OrderStatusPage({
           // deployment has no Razorpay keys.
           canPayOnline: order.restaurant.onlinePaymentEnabled && isRazorpayConfigured(),
           canPayCash: order.restaurant.counterPaymentEnabled,
+          // A QR needs a VPA to encode, so the toggle alone isn't enough —
+          // same gate loadPublicMenu() applies when it builds paymentModes.
+          canPayUpiQr: order.restaurant.upiQrEnabled && Boolean(order.restaurant.upiVpa),
           hasReview: order.review !== null,
         }}
       />

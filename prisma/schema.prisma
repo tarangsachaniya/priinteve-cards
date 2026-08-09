@@ -291,9 +291,15 @@ enum RestoOrderStatus {
   CANCELLED
 }
 
+/// ONLINE settles itself — Razorpay verifies the signature and a webhook
+/// confirms it. COUNTER and UPI_QR both wait for a staff member to say the
+/// money arrived, because neither cash nor a UPI deep link tells us on its own.
+/// UPI_QR is kept apart from COUNTER rather than folded into it so the till
+/// report can tell notes from a bank credit.
 enum RestoPaymentMode {
   ONLINE
   COUNTER
+  UPI_QR
 }
 
 /// PENDING is "the meal is not over yet" — no one is expected to pay.
@@ -378,9 +384,37 @@ model Restaurant {
   onlinePaymentEnabled  Boolean @default(true)
   counterPaymentEnabled Boolean @default(true)
 
+  // ─── UPI QR ──────────────────────────────────────────────────────────────
+  // A pre-filled UPI deep link the guest scans, for restaurants with no
+  // Razorpay account. It carries no callback, so nothing here can confirm a
+  // payment: the guest scanning is the start, a staff member marking it paid
+  // is the end. Deliberately not routed through the ONLINE flow for that
+  // reason — see lib/restaurant/upi.ts.
+  /// The payee VPA, e.g. "kitchen@okhdfcbank". A merchant VPA, ideally: a
+  /// personal one hits UPI's P2P daily cap and reads as an individual.
+  upiVpa       String?
+  /// Name shown in the guest's UPI app. Falls back to `name` when unset.
+  upiPayeeName String?
+  upiQrEnabled Boolean @default(false)
+
   taxPercent    Int @default(0)
   deliveryFee   Int @default(0)
   minOrderValue Int @default(0)
+
+  // ─── Tax invoice identity ────────────────────────────────────────────────
+  // What has to appear on a downloadable bill for it to be a valid Indian
+  // restaurant invoice rather than a receipt-shaped picture. All nullable: a
+  // restaurant that fills in none of it still gets a clean bill, just one
+  // headed "Bill" instead of "Tax Invoice" — see lib/restaurant/invoice.ts.
+  /// The registered business name, when it differs from the trading name —
+  /// "Sharma Hospitality Pvt Ltd" trading as "Rasoi". The invoice needs the
+  /// registered one; every other screen wants the name guests recognise.
+  legalName     String?
+  /// 15-character GSTIN. Its first two digits are the state code, which is why
+  /// the state is not stored separately — see parseGstinStateCode().
+  gstin         String?
+  /// FSSAI licence number, legally required on an Indian food bill.
+  fssaiLicence  String?
 
   // Per-restaurant order counter, incremented atomically when an order is
   // placed so each restaurant gets a gap-free #1, #2, #3 sequence.
@@ -394,14 +428,15 @@ model Restaurant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users      RestaurantUser[]
-  categories MenuCategory[]
-  menuItems  MenuItem[]
-  tables     RestaurantTable[]
-  customers  RestoCustomer[]
-  orders     RestoOrder[]
-  hours      RestaurantHours[]
-  reviews    RestoReview[]
+  users       RestaurantUser[]
+  categories  MenuCategory[]
+  menuItems   MenuItem[]
+  tables      RestaurantTable[]
+  customers   RestoCustomer[]
+  orders      RestoOrder[]
+  hours       RestaurantHours[]
+  peakWindows RestaurantPeakWindow[]
+  reviews     RestoReview[]
 
   @@index([isActive])
   @@map("resto_restaurant")
@@ -463,6 +498,37 @@ model RestaurantHours {
   @@map("resto_hours")
 }
 
+/// A rush the owner has declared — lunch, dinner, Friday night.
+///
+/// Unlike RestaurantHours there is deliberately no unique constraint on
+/// (restaurantId, dayOfWeek): a day may hold any number of rushes, and two —
+/// lunch and dinner — is the ordinary case rather than the exception.
+///
+/// A restaurant with no rows here is simply never at peak. That default has to
+/// be the quiet one: a tenant who never opened this screen must not find their
+/// menu silently reordering itself.
+model RestaurantPeakWindow {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  /// 0 = Sunday … 6 = Saturday, matching Date.getDay() as RestaurantHours does.
+  dayOfWeek Int
+  /// Minutes from midnight in the restaurant's timezone — same units, and the
+  /// same reasoning, as RestaurantHours.opensAt.
+  startsAt  Int
+  /// May be less than startsAt, meaning the rush runs past midnight. 21:00 →
+  /// 01:00 on a Saturday is a real dinner service, not bad data.
+  endsAt    Int
+  /// The owner's own note, e.g. "Lunch rush". Never shown to guests.
+  label     String?
+
+  createdAt DateTime @default(now())
+
+  @@index([restaurantId, dayOfWeek])
+  @@map("resto_peak_window")
+}
+
 model RestaurantUser {
   id           String        @id @default(cuid())
   restaurantId String
@@ -516,6 +582,15 @@ model MenuItem {
   badge         RestoItemBadge?
   /// Display rating, stored ×10 — see Restaurant.ratingValue.
   ratingValue   Int?
+  /// Roughly how long the kitchen takes to plate this, in minutes. Null means
+  /// the owner hasn't quoted one, and every display helper omits rather than
+  /// inventing a number — a wrong estimate is worse than none.
+  prepMinutes   Int?
+  /// Owner-set: during a peak window this dish sorts to the end of the menu,
+  /// so it lands on the last page and gets ordered less while the kitchen is
+  /// under load. Affects browsing order only — a guest who searches for it by
+  /// name still finds it where they'd expect.
+  demoteAtPeak  Boolean         @default(false)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
@@ -690,6 +765,10 @@ model RestoOrderItem {
   quantity          Int
   lineTotal         Int
   note              String?
+  /// The serve time quoted when this was ordered, snapshotted for the same
+  /// reason the name and price are: the waiting guest must keep seeing the
+  /// estimate they agreed to, even if the owner edits the dish mid-service.
+  prepMinutes       Int?
 
   addOns RestoOrderItemAddOn[]
 

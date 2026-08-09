@@ -3,14 +3,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Clock, SearchX, UtensilsCrossed } from "lucide-react";
 
+import {
+  MENU_PAGE_SIZE,
+  MIN_ITEMS_FOR_RECOMMENDATIONS,
+  filterMenu,
+  flattenMenu,
+  headingBefore,
+  pageCount,
+  pageOf,
+} from "@/lib/restaurant/menu-order";
 import { CartBar, CartSheet } from "@/components/order/cart-sheet";
 import { CheckoutSheet } from "@/components/order/checkout-sheet";
 import { CustomerAuthDialog } from "@/components/order/customer-auth-dialog";
 import { OrderHistoryDialog } from "@/components/order/order-history-dialog";
 import { ItemOptionsSheet } from "@/components/order/item-options-sheet";
 import { MenuItemCard } from "@/components/order/menu-item-card";
+import { MenuPager } from "@/components/order/menu-pager";
 import { MenuToolbar } from "@/components/order/menu-toolbar";
 import { PlatformCredit } from "@/components/order/platform-credit";
+import { RecommendedStrip } from "@/components/order/recommended-strip";
 import { RestaurantHero } from "@/components/order/restaurant-hero";
 import { ResumeOrderBanner } from "@/components/order/resume-order-banner";
 import { ReviewsSection } from "@/components/order/reviews-section";
@@ -26,28 +37,33 @@ import type {
 /**
  * The customer menu.
  *
- * This component owns state only — cart, search, filter, which panel is open —
- * and delegates every pixel to the components below it. It used to render its
- * own hero, toolbar and dish row inline while parallel versions of all three
- * sat unused next to it; keeping rendering out of here is what stops that
- * happening again.
+ * This component owns state only — cart, search, filter, page, which panel is
+ * open — and delegates every pixel to the components below it. It used to
+ * render its own hero, toolbar and dish row inline while parallel versions of
+ * all three sat unused next to it; keeping rendering out of here is what stops
+ * that happening again. The ordering, filtering and paging maths lives in
+ * lib/restaurant/menu-order.ts for the same reason.
  *
- * Filtering is client-side: a menu is small and already fully loaded, so a
- * round trip per keystroke would be slower and would fail on the patchy
- * connections this page is usually opened over.
+ * Filtering and paging are both client-side: the menu arrives whole, so a
+ * round trip per keystroke or per page turn would be slower and would fail on
+ * exactly the patchy connections this page is usually opened over.
  */
 export function MenuBrowser({
   restaurant,
   table,
   categories,
+  recommendedItemIds,
 }: {
   restaurant: PublicRestaurant;
   table: PublicTable | null;
   categories: PublicMenuCategory[];
+  /** Dish ids to feature, most-ordered first. Empty means show no strip. */
+  recommendedItemIds: string[];
 }) {
   const [query, setQuery] = useState("");
   const [vegOnly, setVegOnly] = useState(false);
-  const [activeCategory, setActiveCategory] = useState(categories[0]?.id ?? "");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const [panel, setPanel] = useState<"none" | "cart" | "checkout">("none");
   const [optionsFor, setOptionsFor] = useState<PublicMenuItem | null>(null);
   // Independent of `panel`: this is a lookup dialog reachable from anywhere
@@ -60,11 +76,17 @@ export function MenuBrowser({
   // reads the session instead of asking.
   const [showHistory, setShowHistory] = useState(false);
   const [customer, setCustomer] = useState<{ name: string; mobile: string } | null>(null);
+  // The signed-in guest's own most-ordered dishes. Personal, so it can't ride
+  // down with the page — that payload is shared and cached. Fetched from the
+  // session cookie once the guest is known.
+  const [favouriteItemIds, setFavouriteItemIds] = useState<string[]>([]);
   // Tri-state, not just `customer`: "no session yet" and "session still
   // loading" have to be told apart, or the arrival prompt below flashes in
   // the face of a guest who is already signed in.
   const [sessionChecked, setSessionChecked] = useState(false);
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  // Scroll target for a page change. Turning a page and landing halfway down
+  // the new one is the single most disorienting thing a pager can do.
+  const listRef = useRef<HTMLDivElement | null>(null);
 
   const cart = useCart(categories);
 
@@ -93,6 +115,38 @@ export function MenuBrowser({
     };
   }, [restaurant.slug]);
 
+  /**
+   * Re-run whenever the guest changes, not just on load: signing in mid-visit
+   * is the moment their history becomes available, and signing out is the
+   * moment it must stop being shown on a shared table QR.
+   */
+  useEffect(() => {
+    if (!customer) {
+      setFavouriteItemIds([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/order/customer-auth/favourites?restaurantSlug=${restaurant.slug}`
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!cancelled && Array.isArray(data?.itemIds)) setFavouriteItemIds(data.itemIds);
+      } catch {
+        // A first-time guest has no history either, and that renders the same
+        // way — so a failed fetch degrades into the trending strip rather
+        // than into an error the guest can do nothing about.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [customer, restaurant.slug]);
+
   async function handleSignOut() {
     try {
       await fetch("/api/order/customer-auth/logout", { method: "POST" });
@@ -112,34 +166,88 @@ export function MenuBrowser({
   const { isOpen } = restaurant.openState;
 
   /**
-   * Categories left empty by the filters are dropped entirely rather than
-   * shown with a heading and nothing under it — spec §6. The categories
-   * themselves still drive the chip row, so the strip does not reflow as the
-   * guest types.
+   * The whole menu as one ordered stream, with rush-demoted dishes pushed to
+   * the end. Recomputed only when the menu or the rush state changes — not on
+   * every keystroke, which is what the separate filter step below is for.
    */
-  const visible = useMemo(() => {
-    const needle = query.trim().toLowerCase();
+  const stream = useMemo(
+    () => flattenMenu(categories, { isPeak: restaurant.peakState.isPeak }),
+    [categories, restaurant.peakState.isPeak]
+  );
 
-    return categories
-      .map((category) => ({
-        ...category,
-        items: category.items.filter((item) => {
-          if (vegOnly && !item.isVeg) return false;
-          if (!needle) return true;
-          return (
-            item.name.toLowerCase().includes(needle) ||
-            (item.description?.toLowerCase().includes(needle) ?? false)
-          );
-        }),
-      }))
-      .filter((category) => category.items.length > 0);
-  }, [categories, query, vegOnly]);
+  const matched = useMemo(
+    () => filterMenu(stream, { query, vegOnly, categoryId: categoryFilter }),
+    [stream, query, vegOnly, categoryFilter]
+  );
 
-  const isFiltering = query.trim().length > 0 || vegOnly;
+  const totalPages = pageCount(matched.length);
+  // Clamped rather than stored: filters shrink the result set as the guest
+  // types, and a stored page 4 against a one-page result would render blank.
+  const currentPage = Math.min(page, totalPages);
+  const visible = pageOf(matched, currentPage);
 
-  function scrollToCategory(id: string) {
-    setActiveCategory(id);
-    sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const isFiltering = query.trim().length > 0 || vegOnly || categoryFilter !== null;
+
+  /**
+   * Resolves a list of ids against the live menu.
+   *
+   * Kept in id order rather than menu order: the whole point of both strips is
+   * that the most-ordered dish leads. The lookup is defensive because the ids
+   * and the menu are produced on different clocks — trending is cached for
+   * five minutes, favourites are fetched separately, and either can name a
+   * dish the owner has since pulled.
+   */
+  const resolveStrip = useMemo(() => {
+    const byId = new Map(stream.map((item) => [item.id, item]));
+
+    return (ids: string[]) => {
+      if (stream.length < MIN_ITEMS_FOR_RECOMMENDATIONS) return [];
+      return ids
+        .map((id) => byId.get(id))
+        .filter((item): item is (typeof stream)[number] => Boolean(item))
+        .filter((item) => item.isAvailable)
+        // A demoted dish must not be promoted back to the top of the page by
+        // the very demand the demotion exists to dampen.
+        .filter((item) => !(restaurant.peakState.isPeak && item.demoteAtPeak));
+    };
+  }, [stream, restaurant.peakState.isPeak]);
+
+  const favourites = useMemo(
+    () => resolveStrip(favouriteItemIds),
+    [resolveStrip, favouriteItemIds]
+  );
+  const trending = useMemo(
+    () => resolveStrip(recommendedItemIds),
+    [resolveStrip, recommendedItemIds]
+  );
+
+  /**
+   * One strip, not two.
+   *
+   * A returning guest's own history beats the crowd's — someone who orders the
+   * same sandwich every week is telling us more about their next order than
+   * the whole restaurant's last hour is. Trending fills in for everyone else:
+   * a first visit, a signed-out guest, or a regular whose usual dishes are all
+   * off the menu today.
+   *
+   * They are not stacked because two strips is roughly a phone screen of
+   * shortcuts before the menu itself begins, which defeats the point of both.
+   */
+  const strip =
+    favourites.length > 0
+      ? { variant: "favourites" as const, items: favourites }
+      : { variant: "trending" as const, items: trending };
+
+  /** Any filter change puts the guest back on page 1 — page 4 of a new result
+   * set is a different, arbitrary place. */
+  function changeFilter(apply: () => void) {
+    apply();
+    setPage(1);
+  }
+
+  function goToPage(next: number) {
+    setPage(next);
+    listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   /**
@@ -218,19 +326,35 @@ export function MenuBrowser({
         </div>
       )}
 
+      {/* Above the toolbar, not inside the paged list: it is a shortcut past
+          the menu, and one that moved between pages would not be a shortcut.
+          Hidden while filtering — a guest who is searching has told us what
+          they want, and "trending" is no longer the answer to their question. */}
+      {!isFiltering && (
+        <RecommendedStrip
+          items={strip.items}
+          variant={strip.variant}
+          orderingDisabled={!isOpen}
+          onSelect={handleAdd}
+        />
+      )}
+
       <div className="mt-6">
         <MenuToolbar
           categories={categories}
           query={query}
-          onQueryChange={setQuery}
+          onQueryChange={(value) => changeFilter(() => setQuery(value))}
           vegOnly={vegOnly}
-          onVegOnlyChange={setVegOnly}
-          activeCategory={activeCategory}
-          onCategorySelect={scrollToCategory}
+          onVegOnlyChange={(value) => changeFilter(() => setVegOnly(value))}
+          categoryFilter={categoryFilter}
+          onCategoryFilterChange={(id) => changeFilter(() => setCategoryFilter(id))}
         />
       </div>
 
-      <main className="mx-auto w-full max-w-[var(--resto-measure)] px-4 py-8">
+      <main
+        ref={listRef}
+        className="mx-auto w-full max-w-[var(--resto-measure)] scroll-mt-32 px-4 py-8"
+      >
         {categories.length === 0 ? (
           <EmptyState
             icon={<UtensilsCrossed className="size-8" aria-hidden />}
@@ -245,56 +369,65 @@ export function MenuBrowser({
             action={
               isFiltering
                 ? {
-                    label: "Clear search",
-                    onClick: () => {
-                      setQuery("");
-                      setVegOnly(false);
-                    },
+                    label: "Clear filters",
+                    onClick: () =>
+                      changeFilter(() => {
+                        setQuery("");
+                        setVegOnly(false);
+                        setCategoryFilter(null);
+                      }),
                   }
                 : undefined
             }
           />
         ) : (
-          <div className="space-y-8">
-            {visible.map((category) => (
-              <section
-                key={category.id}
-                ref={(el) => {
-                  sectionRefs.current[category.id] = el;
-                }}
-                className="scroll-mt-32"
-              >
-                <h2
-                  className="resto-display text-xl font-semibold"
-                  style={{ color: "var(--resto-text)" }}
-                >
-                  {category.name}
-                </h2>
-                {category.description && (
-                  <p className="mt-1 text-sm" style={{ color: "var(--resto-text-muted)" }}>
-                    {category.description}
-                  </p>
-                )}
+          <>
+            {/* One flat grid rather than a section per category. The category
+                name still prints above the first dish it owns on this page —
+                headingBefore() decides where — so a guest keeps the structure
+                without the page having to break on category boundaries. */}
+            <ul className="grid gap-4 md:grid-cols-2">
+              {visible.map((item, index) => {
+                const heading = headingBefore(visible, index);
+                const plainKey = cart.plainLineKey(item);
 
-                <ul className="mt-4 grid gap-4 md:grid-cols-2">
-                  {category.items.map((item) => {
-                    const plainKey = cart.plainLineKey(item);
-                    return (
-                      <MenuItemCard
-                        key={item.id}
-                        item={item}
-                        quantity={cart.quantityByItem.get(item.id) ?? 0}
-                        orderingDisabled={!isOpen}
-                        onAdd={() => handleAdd(item)}
-                        onIncrement={() => handleAdd(item)}
-                        onDecrement={() => cart.decrement(plainKey)}
-                      />
-                    );
-                  })}
-                </ul>
-              </section>
-            ))}
-          </div>
+                return (
+                  <li key={item.id} className="contents">
+                    {heading && (
+                      <h2
+                        className="resto-display text-xl font-semibold md:col-span-2"
+                        style={{ color: "var(--resto-text)" }}
+                      >
+                        {heading}
+                      </h2>
+                    )}
+                    <MenuItemCard
+                      item={item}
+                      quantity={cart.quantityByItem.get(item.id) ?? 0}
+                      orderingDisabled={!isOpen}
+                      onAdd={() => handleAdd(item)}
+                      onIncrement={() => handleAdd(item)}
+                      onDecrement={() => cart.decrement(plainKey)}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+
+            <p
+              className="mt-6 text-center text-xs"
+              style={{ color: "var(--resto-text-muted)" }}
+              role="status"
+            >
+              {matched.length <= MENU_PAGE_SIZE
+                ? `${matched.length} ${matched.length === 1 ? "dish" : "dishes"}`
+                : `Showing ${(currentPage - 1) * MENU_PAGE_SIZE + 1}–${
+                    (currentPage - 1) * MENU_PAGE_SIZE + visible.length
+                  } of ${matched.length} dishes`}
+            </p>
+
+            <MenuPager page={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+          </>
         )}
 
         <ReviewsSection summary={restaurant.reviewSummary} />
