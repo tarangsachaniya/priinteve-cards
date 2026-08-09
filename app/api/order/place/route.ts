@@ -124,6 +124,7 @@ export async function POST(req: Request) {
     quantity: number;
     lineTotal: number;
     note: string | null;
+    prepMinutes: number | null;
     addOns: { create: { name: string; price: number }[] };
   }[] = [];
 
@@ -165,6 +166,10 @@ export async function POST(req: Request) {
       quantity: line.quantity,
       lineTotal: unitPrice * line.quantity,
       note: line.note ?? null,
+      // Snapshotted with the name and the price, and for the same reason: the
+      // waiting guest must keep seeing the estimate they were given, even if
+      // the owner retimes the dish halfway through service.
+      prepMinutes: menuItem.prepMinutes,
       addOns: {
         create: resolvedAddOns.map((addOn) => ({ name: addOn.name, price: addOn.price })),
       },

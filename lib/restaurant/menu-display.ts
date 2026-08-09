@@ -35,6 +35,43 @@ export function formatCostForTwo(value: number | null | undefined): string | nul
   return value == null ? null : `₹${new Intl.NumberFormat("en-IN").format(value)} for two`;
 }
 
+/**
+ * One dish's serve time — "~25 min".
+ *
+ * The tilde is doing real work: this is the kitchen's rough figure, and a bare
+ * "25 min" reads as a promise. Zero is treated as unset for the same reason
+ * null is — a dish that arrives instantly is not a claim any kitchen makes.
+ */
+export function formatServeTime(minutes: number | null | undefined): string | null {
+  if (minutes == null || minutes <= 0) return null;
+  return `~${minutes} min`;
+}
+
+/**
+ * How long a whole order should take.
+ *
+ * The *maximum*, never the sum. A kitchen cooks in parallel, so six dishes
+ * take as long as the slowest one, and adding them up would quote three hours
+ * for a table of six — a number so wrong the guest stops believing any of it.
+ *
+ * Returns null when nothing in the order has a quoted time, so the caller can
+ * omit the line rather than print an estimate built from no data.
+ */
+export function estimateOrderMinutes(
+  items: { prepMinutes: number | null | undefined }[]
+): number | null {
+  const quoted = items
+    .map((item) => item.prepMinutes)
+    .filter((minutes): minutes is number => minutes != null && minutes > 0);
+
+  return quoted.length === 0 ? null : Math.max(...quoted);
+}
+
+/** "Ready in about 30 min" — the order-level line in the cart and on status. */
+export function formatOrderEstimate(minutes: number | null): string | null {
+  return minutes == null ? null : `Ready in about ${minutes} min`;
+}
+
 export const ITEM_BADGE_LABEL: Record<RestoItemBadge, string> = {
   BESTSELLER: "Bestseller",
   CHEFS_PICK: "Chef's pick",

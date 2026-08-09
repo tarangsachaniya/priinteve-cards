@@ -3,7 +3,12 @@ import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-re
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-function getPageList(page: number, totalPages: number): (number | "ellipsis")[] {
+/**
+ * Which page numbers to render, collapsing the middle once there are enough
+ * pages to need it. Exported because the customer menu needs the same
+ * sequence with entirely different chrome — see components/order/menu-pager.tsx.
+ */
+export function getPageList(page: number, totalPages: number): (number | "ellipsis")[] {
   if (totalPages <= 7) {
     return Array.from({ length: totalPages }, (_, i) => i + 1)
   }

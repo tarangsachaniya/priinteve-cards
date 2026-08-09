@@ -66,7 +66,12 @@ export default async function TableOrderPage({
       brandColor={data.restaurant.brandColor}
       themeMode={data.restaurant.themeMode}
     >
-      <MenuBrowser restaurant={data.restaurant} table={table} categories={data.categories} />
+      <MenuBrowser
+        restaurant={data.restaurant}
+        table={table}
+        categories={data.categories}
+        recommendedItemIds={data.recommendedItemIds}
+      />
     </RestoPage>
   );
 }

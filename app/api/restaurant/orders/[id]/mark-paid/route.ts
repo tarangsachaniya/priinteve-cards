@@ -4,11 +4,12 @@ import { db } from "@/lib/db";
 import { requireRestaurantSession } from "@/lib/restaurant/auth";
 
 /**
- * Records that cash was handed over at the counter.
+ * A staff member confirming the money arrived.
  *
  * The manual settlement path, and the reason a restaurant with no Razorpay
  * keys is still a working restaurant rather than one whose orders can never
- * be closed.
+ * be closed. It covers both gateway-less methods: notes handed over at the
+ * counter, and a UPI transfer the staff member has seen land.
  */
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const auth = await requireRestaurantSession();
@@ -16,7 +17,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   const order = await db.restoOrder.findFirst({
     where: { id: params.id, restaurantId: auth.session.restaurantId },
-    select: { id: true, paymentStatus: true },
+    select: { id: true, paymentStatus: true, paymentMode: true },
   });
   if (!order) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -33,7 +34,14 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   const updated = await db.restoOrder.update({
     where: { id: order.id },
-    data: { paymentStatus: "PAID", paymentMode: "COUNTER" },
+    data: {
+      paymentStatus: "PAID",
+      // A guest who chose UPI QR already told us how they were paying, and
+      // overwriting that with COUNTER would file a bank credit as cash — which
+      // is precisely the distinction the till report exists to make. COUNTER
+      // is only assumed when nothing was chosen, which is the walk-up case.
+      paymentMode: order.paymentMode === "UPI_QR" ? "UPI_QR" : "COUNTER",
+    },
     select: { id: true, paymentStatus: true, paymentMode: true },
   });
 

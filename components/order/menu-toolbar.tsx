@@ -12,6 +12,12 @@ import type { PublicMenuCategory } from "@/components/order/types";
  * round trip per keystroke would be slower and would fail on the patchy
  * connections this page is usually opened over.
  *
+ * The chips *filter* the list rather than scrolling to a section. They used to
+ * be scroll anchors, back when the menu was one long stack of category
+ * sections; now that it is paged, an anchor would jump to a heading that may
+ * not be on the current page at all. "All" leads, so the way back is always
+ * one tap and always in the same place.
+ *
  * The chips are sticky. Their active state is driven by --resto-chip-* tokens
  * rather than classes, so the accent decision stays in one place — see
  * section 6 of app/resto-theme.css.
@@ -22,16 +28,17 @@ export function MenuToolbar({
   onQueryChange,
   vegOnly,
   onVegOnlyChange,
-  activeCategory,
-  onCategorySelect,
+  categoryFilter,
+  onCategoryFilterChange,
 }: {
   categories: PublicMenuCategory[];
   query: string;
   onQueryChange: (value: string) => void;
   vegOnly: boolean;
   onVegOnlyChange: (value: boolean) => void;
-  activeCategory: string;
-  onCategorySelect: (id: string) => void;
+  /** Null means every category. */
+  categoryFilter: string | null;
+  onCategoryFilterChange: (id: string | null) => void;
 }) {
   // A restaurant with no non-veg dish at all has nothing for the toggle to
   // filter out — showing it anyway would just be a switch that does nothing,
@@ -94,35 +101,58 @@ export function MenuToolbar({
           <div
             className="resto-no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5"
             role="tablist"
-            aria-label="Menu categories"
+            aria-label="Filter by category"
           >
-            {categories.map((category) => {
-              const isActive = activeCategory === category.id;
-              return (
-                <button
-                  key={category.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  onClick={() => onCategorySelect(category.id)}
-                  className="shrink-0 border px-3 py-1 text-[13px] font-medium transition-colors"
-                  style={{
-                    backgroundColor: isActive ? "var(--resto-chip-active-bg)" : "var(--resto-chip-bg)",
-                    color: isActive ? "var(--resto-chip-active-text)" : "var(--resto-chip-text)",
-                    borderColor: isActive
-                      ? "var(--resto-chip-active-border)"
-                      : "var(--resto-chip-border)",
-                    borderRadius: "var(--resto-radius-full)",
-                  }}
-                >
-                  {category.name}
-                </button>
-              );
-            })}
+            <CategoryChip
+              label="All"
+              isActive={categoryFilter === null}
+              onClick={() => onCategoryFilterChange(null)}
+            />
+            {categories.map((category) => (
+              <CategoryChip
+                key={category.id}
+                label={category.name}
+                isActive={categoryFilter === category.id}
+                // Tapping the live chip clears it. Without that, a guest who
+                // filtered by mistake has to find "All" to get back, and on a
+                // scrolled chip row it may be off-screen.
+                onClick={() =>
+                  onCategoryFilterChange(categoryFilter === category.id ? null : category.id)
+                }
+              />
+            ))}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function CategoryChip({
+  label,
+  isActive,
+  onClick,
+}: {
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={isActive}
+      onClick={onClick}
+      className="shrink-0 border px-3 py-1 text-[13px] font-medium transition-colors"
+      style={{
+        backgroundColor: isActive ? "var(--resto-chip-active-bg)" : "var(--resto-chip-bg)",
+        color: isActive ? "var(--resto-chip-active-text)" : "var(--resto-chip-text)",
+        borderColor: isActive ? "var(--resto-chip-active-border)" : "var(--resto-chip-border)",
+        borderRadius: "var(--resto-radius-full)",
+      }}
+    >
+      {label}
+    </button>
   );
 }
 

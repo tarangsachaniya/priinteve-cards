@@ -1,9 +1,9 @@
 "use client";
 
-import { ImageOff, Minus, Plus, Star } from "lucide-react";
+import { Clock, ImageOff, Minus, Plus, Star } from "lucide-react";
 
 import { formatCurrency } from "@/lib/format";
-import { ITEM_BADGE_LABEL, formatRating } from "@/lib/restaurant/menu-display";
+import { ITEM_BADGE_LABEL, formatRating, formatServeTime } from "@/lib/restaurant/menu-display";
 import { isCustomisable } from "@/components/order/use-cart";
 import type { PublicMenuItem } from "@/components/order/types";
 
@@ -35,6 +35,7 @@ export function MenuItemCard({
   onDecrement: () => void;
 }) {
   const rating = formatRating(item.ratingValue);
+  const serveTime = formatServeTime(item.prepMinutes);
   const customisable = isCustomisable(item);
   const unavailable = !item.isAvailable;
 
@@ -100,6 +101,19 @@ export function MenuItemCard({
                 aria-hidden
               />
               {rating}
+            </span>
+          )}
+          {/* Muted, beside the rating rather than under the name: it's a
+              qualifier on the dish, not a headline. A guest scanning for
+              something quick finds it; everyone else reads past it. */}
+          {serveTime && (
+            <span
+              className="resto-numeric flex items-center gap-1 text-xs"
+              style={{ color: "var(--resto-text-muted)" }}
+            >
+              <Clock className="size-3" aria-hidden />
+              <span className="sr-only">Takes about </span>
+              {serveTime}
             </span>
           )}
         </div>

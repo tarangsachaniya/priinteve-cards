@@ -42,6 +42,9 @@ export type MenuItemRow = {
   isVeg: boolean;
   isAvailable: boolean;
   badge: string | null;
+  /** Approximate minutes to plate. Null means the owner hasn't quoted one. */
+  prepMinutes: number | null;
+  demoteAtPeak: boolean;
   sortOrder: number;
   variants: VariantRow[];
   addOns: AddOnRow[];
@@ -63,6 +66,9 @@ type ItemFormState = {
   price: string;
   isVeg: boolean;
   isAvailable: boolean;
+  /** String for the same reason price is — an emptied field must not snap to 0. */
+  prepMinutes: string;
+  demoteAtPeak: boolean;
   imageUrl: string;
   imagePublicId: string;
   variants: VariantFormRow[];
@@ -77,6 +83,8 @@ function toFormState(item: MenuItemRow | undefined, defaultCategoryId: string): 
     price: item ? String(item.price) : "",
     isVeg: item?.isVeg ?? true,
     isAvailable: item?.isAvailable ?? true,
+    prepMinutes: item?.prepMinutes == null ? "" : String(item.prepMinutes),
+    demoteAtPeak: item?.demoteAtPeak ?? false,
     imageUrl: item?.imageUrl ?? "",
     imagePublicId: item?.imagePublicId ?? "",
     variants: (item?.variants ?? []).map((v) => ({
@@ -330,6 +338,27 @@ export function MenuItemForm({
           </div>
 
           <div className="flex flex-col gap-1.5">
+            <Label htmlFor="item-serve-time">Serve time (optional)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="item-serve-time"
+                type="number"
+                min={0}
+                max={240}
+                value={form.prepMinutes}
+                onChange={(e) => update("prepMinutes", e.target.value)}
+                placeholder="20"
+                className="w-28"
+              />
+              <span className="text-sm text-muted-foreground">minutes</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Roughly how long the kitchen takes. Guests see it as &ldquo;~20 min&rdquo;. Leave
+              blank to show nothing.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="item-description">Description</Label>
             <Textarea
               id="item-description"
@@ -364,6 +393,23 @@ export function MenuItemForm({
               id="item-available"
               checked={form.isAvailable}
               onCheckedChange={(checked) => update("isAvailable", checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl border border-border/70 px-3 py-2">
+            <div>
+              <Label htmlFor="item-demote-at-peak" className="cursor-pointer">
+                Hide during rush
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Moves this dish to the last page of your menu during your rush hours, so fewer
+                guests order it while the kitchen is busy. It stays fully orderable.
+              </p>
+            </div>
+            <Switch
+              id="item-demote-at-peak"
+              checked={form.demoteAtPeak}
+              onCheckedChange={(checked) => update("demoteAtPeak", checked)}
             />
           </div>
           </div>

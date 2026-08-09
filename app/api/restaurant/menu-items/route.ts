@@ -26,8 +26,21 @@ export async function POST(req: Request) {
   }
 
   const { restaurantId } = auth.session;
-  const { categoryId, name, description, price, isVeg, isAvailable, imageUrl, imagePublicId, badge, variants, addOns } =
-    parsed.data;
+  const {
+    categoryId,
+    name,
+    description,
+    price,
+    isVeg,
+    isAvailable,
+    imageUrl,
+    imagePublicId,
+    badge,
+    prepMinutes,
+    demoteAtPeak,
+    variants,
+    addOns,
+  } = parsed.data;
 
   // The category must belong to this restaurant — otherwise a caller could
   // attach an item to someone else's menu.
@@ -57,6 +70,8 @@ export async function POST(req: Request) {
       imageUrl: imageUrl || null,
       imagePublicId: imagePublicId || null,
       badge: badge ?? null,
+      prepMinutes: prepMinutes ?? null,
+      demoteAtPeak,
       sortOrder: (last?.sortOrder ?? -1) + 1,
       // New items never carry an `id` on their options — every row here is a
       // create, in the order the form listed them.

@@ -114,6 +114,8 @@ export async function POST(req: Request) {
                   isAvailable: incomingItem.isAvailable,
                   imageUrl: incomingItem.imageUrl || null,
                   badge: incomingItem.badge ?? null,
+                  prepMinutes: incomingItem.prepMinutes ?? null,
+                  demoteAtPeak: incomingItem.demoteAtPeak,
                   sortOrder: nextItemSort++,
                   variants: {
                     create: incomingItem.variants.map((variant, index) => ({

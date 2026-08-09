@@ -1,8 +1,9 @@
 "use client";
 
-import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { Clock, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 
 import { formatCurrency } from "@/lib/format";
+import { estimateOrderMinutes, formatOrderEstimate } from "@/lib/restaurant/menu-display";
 import type { CartLine } from "@/components/order/types";
 
 /**
@@ -28,6 +29,12 @@ export function CartSheet({
   onDecrement: (key: string) => void;
   onCheckout: () => void;
 }) {
+  // The slowest dish, not the sum — a kitchen cooks in parallel. See
+  // estimateOrderMinutes() for why that distinction matters here.
+  const estimate = formatOrderEstimate(
+    estimateOrderMinutes(lines.map((line) => ({ prepMinutes: line.item.prepMinutes })))
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-end sm:justify-center">
       <button
@@ -152,6 +159,20 @@ export function CartSheet({
               className="space-y-3 border-t px-5 py-4"
               style={{ borderColor: "var(--resto-border)", backgroundColor: "var(--resto-surface)" }}
             >
+              {/* Above the total, because it is the other thing a guest is
+                  deciding on. Omitted entirely when nothing in the cart has a
+                  quoted time — an estimate built from no data is worse than
+                  none. */}
+              {estimate && (
+                <p
+                  className="flex items-center gap-1.5 text-sm"
+                  style={{ color: "var(--resto-text-muted)" }}
+                >
+                  <Clock className="size-3.5 shrink-0" aria-hidden />
+                  {estimate}
+                </p>
+              )}
+
               <div className="flex items-baseline justify-between">
                 <span className="text-sm" style={{ color: "var(--resto-text-muted)" }}>
                   Item total
