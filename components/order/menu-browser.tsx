@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Clock, SearchX, UtensilsCrossed } from "lucide-react";
 
 import {
@@ -13,6 +13,7 @@ import {
   pageOf,
 } from "@/lib/restaurant/menu-order";
 import { CartBar, CartSheet } from "@/components/order/cart-sheet";
+import { CategoryCarousel } from "@/components/order/category-carousel";
 import { CheckoutSheet } from "@/components/order/checkout-sheet";
 import { CustomerAuthDialog } from "@/components/order/customer-auth-dialog";
 import { OrderHistoryDialog } from "@/components/order/order-history-dialog";
@@ -33,6 +34,16 @@ import type {
   PublicRestaurant,
   PublicTable,
 } from "@/components/order/types";
+
+/**
+ * Tiles per shortcut strip.
+ *
+ * Both strips can now show at once, so each is capped: six tiles is a little
+ * over two screens of horizontal swipe on a phone and keeps the pair from
+ * pushing the menu itself below the fold, which is the whole reason only one
+ * strip used to render.
+ */
+const STRIP_LIMIT = 6;
 
 /**
  * The customer menu.
@@ -222,21 +233,30 @@ export function MenuBrowser({
   );
 
   /**
-   * One strip, not two.
+   * Two strips, each answering a different question.
    *
-   * A returning guest's own history beats the crowd's — someone who orders the
-   * same sandwich every week is telling us more about their next order than
-   * the whole restaurant's last hour is. Trending fills in for everyone else:
-   * a first visit, a signed-out guest, or a regular whose usual dishes are all
-   * off the menu today.
+   * This used to pick one: favourites replaced recommendations outright, on the
+   * grounds that two strips is roughly a phone screen of shortcuts before the
+   * menu begins. The cost of that was invisible and worse — a returning guest
+   * could never see what the restaurant is known for, because having any order
+   * history permanently suppressed it. "What do I usually get" and "what is
+   * good here" are different questions and a guest may well be asking the
+   * second one.
    *
-   * They are not stacked because two strips is roughly a phone screen of
-   * shortcuts before the menu itself begins, which defeats the point of both.
+   * The screen-space objection is answered by capping each strip rather than by
+   * deleting one of them, and recommendations lead: they are the answer for a
+   * guest who has not decided yet, while a guest who wants their usual is
+   * already looking for it.
    */
-  const strip =
-    favourites.length > 0
-      ? { variant: "favourites" as const, items: favourites }
-      : { variant: "trending" as const, items: trending };
+  const recommended = useMemo(() => {
+    // A dish already offered under "Order it again" must not appear twice on
+    // one screen — the same tile in two rows reads as a rendering bug, and the
+    // second copy spends a slot that another dish could have used.
+    const inFavourites = new Set(favourites.map((item) => item.id));
+    return trending.filter((item) => !inFavourites.has(item.id)).slice(0, STRIP_LIMIT);
+  }, [trending, favourites]);
+
+  const favouritesStrip = useMemo(() => favourites.slice(0, STRIP_LIMIT), [favourites]);
 
   /** Any filter change puts the guest back on page 1 — page 4 of a new result
    * set is a different, arbitrary place. */
@@ -331,11 +351,37 @@ export function MenuBrowser({
           Hidden while filtering — a guest who is searching has told us what
           they want, and "trending" is no longer the answer to their question. */}
       {!isFiltering && (
-        <RecommendedStrip
-          items={strip.items}
-          variant={strip.variant}
-          orderingDisabled={!isOpen}
-          onSelect={handleAdd}
+        <>
+          <RecommendedStrip
+            items={recommended}
+            variant="recommended"
+            orderingDisabled={!isOpen}
+            onSelect={handleAdd}
+          />
+          <RecommendedStrip
+            items={favouritesStrip}
+            variant="favourites"
+            orderingDisabled={!isOpen}
+            onSelect={handleAdd}
+          />
+        </>
+      )}
+
+      {/* Outside the !isFiltering guard the strips sit behind, and deliberately
+          so: choosing a category *is* filtering, so hiding this on filter would
+          delete the control the guest just used the moment they used it. It
+          hides only for a text search, where the guest has already said what
+          they want and browsing by category is no longer the question. */}
+      {query.trim().length === 0 && (
+        <CategoryCarousel
+          categories={categories}
+          activeCategoryId={categoryFilter}
+          onSelect={(id) =>
+            // Toggles, like the chips: tapping the category you are already in
+            // is far more likely to mean "show me everything again" than a
+            // mis-tap on the tile you just chose.
+            changeFilter(() => setCategoryFilter(id === categoryFilter ? null : id))
+          }
         />
       )}
 
@@ -392,14 +438,21 @@ export function MenuBrowser({
                 const plainKey = cart.plainLineKey(item);
 
                 return (
-                  <li key={item.id} className="contents">
+                  /* The heading gets its own grid cell rather than sharing the
+                     card's. It used to be wrapped with the card in an <li
+                     className="contents">, which put an <li> inside an <li> —
+                     invalid, and browsers repair it by closing the outer one
+                     early, so the DOM never matched the JSX. */
+                  <Fragment key={item.id}>
                     {heading && (
-                      <h2
-                        className="resto-display text-xl font-semibold md:col-span-2"
-                        style={{ color: "var(--resto-text)" }}
-                      >
-                        {heading}
-                      </h2>
+                      <li className="md:col-span-2" role="presentation">
+                        <h2
+                          className="resto-display text-xl font-semibold"
+                          style={{ color: "var(--resto-text)" }}
+                        >
+                          {heading}
+                        </h2>
+                      </li>
                     )}
                     <MenuItemCard
                       item={item}
@@ -409,7 +462,7 @@ export function MenuBrowser({
                       onIncrement={() => handleAdd(item)}
                       onDecrement={() => cart.decrement(plainKey)}
                     />
-                  </li>
+                  </Fragment>
                 );
               })}
             </ul>

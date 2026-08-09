@@ -253,7 +253,9 @@ export default async function RestaurantDashboardPage({
                   href={`/r/dashboard?period=${key}`}
                   aria-current={key === period ? "page" : undefined}
                   className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                    key === period ? "bg-card shadow-sm" : "text-muted-foreground"
+                    key === period
+                      ? "bg-card shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {tab}

@@ -155,11 +155,9 @@ export function CheckoutSheet({
         role="dialog"
         aria-modal="true"
         aria-label="Checkout"
-        className="relative flex max-h-[90vh] w-full flex-col overflow-hidden sm:max-w-lg"
+        className="relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-[var(--resto-radius-xl)] sm:max-w-lg sm:rounded-[var(--resto-radius-xl)]"
         style={{
           backgroundColor: "var(--resto-bg)",
-          borderTopLeftRadius: "var(--resto-radius-xl)",
-          borderTopRightRadius: "var(--resto-radius-xl)",
           boxShadow: "var(--resto-shadow-overlay)",
         }}
       >

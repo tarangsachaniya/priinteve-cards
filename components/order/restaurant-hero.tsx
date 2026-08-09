@@ -86,10 +86,17 @@ export function RestaurantHero({
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto -mt-14 w-full max-w-[var(--resto-measure)] px-4 md:-mt-16">
-        <div className="mb-4 flex items-center gap-3">
+      {/* Only the logo tile is allowed onto the photo. The negative margin used
+          to sit on this wrapper with the row centred, which dragged the eyebrow
+          and the restaurant name up into the image too — text over a
+          tenant-supplied photo, exactly what the note above rules out, and it
+          rendered the name unreadable against a dark cover. Pulling the tile
+          alone keeps the overlap that ties the two halves together while every
+          word stays on the page background. */}
+      <div className="relative z-10 mx-auto w-full max-w-[var(--resto-measure)] px-4">
+        <div className="mb-4 flex items-end gap-3">
           <span
-            className="grid size-20 shrink-0 place-items-center overflow-hidden border p-2 md:size-24"
+            className="-mt-14 grid size-20 shrink-0 place-items-center overflow-hidden border p-2 md:-mt-16 md:size-24"
             style={{
               backgroundColor: "var(--resto-card)",
               borderColor: "var(--resto-border)",

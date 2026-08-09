@@ -63,11 +63,9 @@ export function OrderHistoryDialog({
         role="dialog"
         aria-modal="true"
         aria-label="My orders"
-        className="relative flex max-h-[90vh] w-full flex-col overflow-hidden sm:max-w-sm sm:rounded-[var(--resto-radius-xl)]"
+        className="relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-[var(--resto-radius-xl)] sm:max-w-sm sm:rounded-[var(--resto-radius-xl)]"
         style={{
           backgroundColor: "var(--resto-bg)",
-          borderTopLeftRadius: "var(--resto-radius-xl)",
-          borderTopRightRadius: "var(--resto-radius-xl)",
           boxShadow: "var(--resto-shadow-overlay)",
         }}
       >

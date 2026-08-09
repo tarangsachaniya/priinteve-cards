@@ -106,25 +106,31 @@
    Four decimal places nowhere: these are authored values, not conversions.
    ========================================================================== */
 
-/* ── Dark (default) ──────────────────────────────────────────────────────── */
-[data-resto-theme][data-resto-mode="dark"] {
-  --resto-bg: oklch(16% 0.012 55);
-  --resto-surface: oklch(19% 0.014 55);
-  --resto-card: oklch(21.5% 0.015 55);
-  --resto-surface-alt: oklch(26% 0.016 55);
-  --resto-border: oklch(100% 0 0 / 0.1);
-  --resto-divider: oklch(100% 0 0 / 0.06);
-  --resto-text: oklch(96% 0.008 80);
-  --resto-text-muted: oklch(71% 0.015 70);
-  --resto-text-subtle: oklch(58% 0.014 70);
+/* ── Light (also the no-script fallback) ─────────────────────────────────────
+   The `:root` half of this selector is load-bearing, not tidiness.
 
-  --resto-shadow-card: 0 1px 2px oklch(0% 0 0 / 0.4), 0 16px 32px -20px oklch(0% 0 0 / 0.6);
-  --resto-shadow-overlay: 0 -8px 40px oklch(0% 0 0 / 0.55);
+   [data-resto-mode] reaches <html> from one place only: the try/catch'd inline
+   script in <RestoModeScript>. If that script never runs — strict CSP, an
+   ad-blocker, a QR-scan in-app browser, a route that forgets <RestoPage> — a
+   palette keyed solely on the compound selector resolves to *nothing*.
+   `background-color: var(--resto-bg)` is then invalid at computed-value time
+   and falls back to `transparent`: the page went white, every dish card and
+   modal panel went see-through, and the veg mark lost its green, while radii,
+   shadows and the brand fill (which need no mode) kept rendering — which is
+   what made it read as a design bug rather than as a missing attribute.
 
-  --resto-placeholder: linear-gradient(135deg, oklch(24% 0.016 55), oklch(18% 0.012 55));
-}
+   Anchoring the light values to `:root` means a missing attribute degrades to
+   a complete, readable light page instead of to nothing.
 
-/* ── Light ───────────────────────────────────────────────────────────────── */
+   It has to be `:root` and NOT a bare [data-resto-theme]: the scope <div>
+   carries [data-resto-theme] with no mode of its own (see <RestoThemeScope>),
+   and any rule that matches that div *sets* the token there, which beats the
+   dark value inherited from <html> and would silently strand the whole menu in
+   light mode. `:root` only ever matches <html>, so the div keeps inheriting.
+   The dark block below is more specific than `:root`, so it still wins on
+   <html>, and an explicitly-moded preview div still resolves on its own.
+   ────────────────────────────────────────────────────────────────────────── */
+:root,
 [data-resto-theme][data-resto-mode="light"] {
   --resto-bg: oklch(98.5% 0.008 80);
   --resto-surface: oklch(97.5% 0.012 78);
@@ -142,6 +148,24 @@
   --resto-placeholder: linear-gradient(135deg, oklch(95.5% 0.014 75), oklch(90% 0.014 75));
 }
 
+/* ── Dark ────────────────────────────────────────────────────────────────── */
+[data-resto-theme][data-resto-mode="dark"] {
+  --resto-bg: oklch(16% 0.012 55);
+  --resto-surface: oklch(19% 0.014 55);
+  --resto-card: oklch(21.5% 0.015 55);
+  --resto-surface-alt: oklch(26% 0.016 55);
+  --resto-border: oklch(100% 0 0 / 0.1);
+  --resto-divider: oklch(100% 0 0 / 0.06);
+  --resto-text: oklch(96% 0.008 80);
+  --resto-text-muted: oklch(71% 0.015 70);
+  --resto-text-subtle: oklch(58% 0.014 70);
+
+  --resto-shadow-card: 0 1px 2px oklch(0% 0 0 / 0.4), 0 16px 32px -20px oklch(0% 0 0 / 0.6);
+  --resto-shadow-overlay: 0 -8px 40px oklch(0% 0 0 / 0.55);
+
+  --resto-placeholder: linear-gradient(135deg, oklch(24% 0.016 55), oklch(18% 0.012 55));
+}
+
 /* ============================================================================
    3. LOCKED ACCENT + IMAGE TREATMENT
    ----------------------------------------------------------------------------
@@ -150,11 +174,12 @@
    colour do the job would mean a restaurant's stars change meaning with its
    logo.
    ========================================================================== */
-[data-resto-theme][data-resto-mode="dark"] {
-  --resto-gold: oklch(84% 0.12 88);
-}
+:root,
 [data-resto-theme][data-resto-mode="light"] {
   --resto-gold: oklch(78% 0.13 85);
+}
+[data-resto-theme][data-resto-mode="dark"] {
+  --resto-gold: oklch(84% 0.12 88);
 }
 
 [data-resto-theme] {
@@ -251,6 +276,7 @@
    The two modes carry different values only so each clears contrast on its own
    background — the meaning is identical.
    ========================================================================== */
+:root,
 [data-resto-theme][data-resto-mode="light"] {
   --resto-success: oklch(58% 0.16 145);
   --resto-warn: oklch(70% 0.16 70);
@@ -344,6 +370,11 @@
   --input: 0.2732 0.014 67.18;
 }
 
+/* Deliberately NOT anchored to :root like §2 — these names are the card
+   product's too, and globals.css owns them there. Hoisting the restaurant
+   values onto :root would repaint every dashboard and card page warm. The
+   no-script case needs no fallback here anyway: globals.css already gives all
+   of these opaque values, so a reused <Button> or <Dialog> stays solid. */
 [data-resto-theme][data-resto-mode="light"] {
   --background: 0.985 0.008 80;
   --foreground: 0.19 0.02 45;
@@ -387,9 +418,18 @@
 [data-resto-theme] {
   background-color: var(--resto-bg);
   color: var(--resto-text);
+}
+
+/* Scoped to the element that actually carries the mode, which is <html>.
+   Declaring color-scheme on [data-resto-theme] also hit the inner scope <div>,
+   and that div deliberately has no [data-resto-mode] (see <RestoThemeScope>) —
+   so the dark override could never match it, and `color-scheme: light` was
+   pinned on the whole menu subtree, leaving light scrollbars and light native
+   form controls on an otherwise dark page. */
+html[data-resto-mode="light"] {
   color-scheme: light;
 }
-[data-resto-theme][data-resto-mode="dark"] {
+html[data-resto-mode="dark"] {
   color-scheme: dark;
 }
 

@@ -41,7 +41,12 @@ export function MenuItemCard({
 
   return (
     <li
-      className="relative flex gap-4 border p-3 transition-colors"
+      /* items-start, not the default stretch: the Add control is positioned
+         against the bottom of the image column, so a stretched column would
+         push it down by however tall the text happens to be. That is what made
+         the gap under the photo differ card to card — a dish with a badge and a
+         two-line description sat visibly lower than a bare one. */
+      className="relative flex items-start gap-4 border p-3 transition-colors"
       style={{
         backgroundColor: "var(--resto-card)",
         borderColor: "var(--resto-border)",

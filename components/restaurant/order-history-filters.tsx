@@ -71,7 +71,15 @@ export function OrderHistoryFilters({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <nav aria-label="Date range" className="flex gap-1 rounded-full bg-muted p-1">
+        {/* max-w-full + scroll: the four presets measure ~320px, which is wider
+            than a 320–360px phone once the page padding is taken off, and the
+            row had neither wrap nor scroll — so it pushed the whole page into a
+            horizontal scroll. Scrolling the strip beats wrapping it: these read
+            as one segmented control and a wrapped second line looks broken. */}
+        <nav
+          aria-label="Date range"
+          className="scrollbar-none flex max-w-full gap-1 overflow-x-auto rounded-full bg-muted p-1"
+        >
           {HISTORY_PRESETS.map(({ key, label }) => (
             <button
               key={key}
@@ -85,8 +93,13 @@ export function OrderHistoryFilters({
               }
               aria-pressed={filters.preset === key}
               className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                filters.preset === key ? "bg-card shadow-sm" : "text-muted-foreground"
+                "shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                filters.preset === key
+                  ? "bg-card shadow-sm"
+                  : // Matches the status pills below, which already had this:
+                    // transition-colors with nothing to transition to left the
+                    // inactive presets reading as static labels, not buttons.
+                    "text-muted-foreground hover:text-foreground"
               )}
             >
               {label}
@@ -153,7 +166,12 @@ export function OrderHistoryFilters({
             aria-label="Filter by dish"
             value={filters.menuItemId ?? ""}
             onChange={(e) => apply({ menuItemId: e.target.value || null })}
-            className="ml-auto h-9 rounded-xl border border-border bg-card px-3 text-sm text-foreground"
+            /* A <select> sizes itself to its widest <option> and, as a flex
+               item, defaults to min-width:auto — so it refuses to shrink. One
+               long dish name ("Paneer Butter Masala with Extra Cheese") was
+               enough to push the row past a phone viewport and scroll the page
+               sideways. min-w-0 lets it shrink, max-w caps it on desktop. */
+            className="ml-auto h-9 w-full min-w-0 max-w-[14rem] rounded-xl border border-border bg-card px-3 text-sm text-foreground sm:w-auto"
           >
             <option value="">All dishes</option>
             {menuItems.map((item) => (

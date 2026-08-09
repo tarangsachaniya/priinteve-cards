@@ -48,11 +48,14 @@ export function CartSheet({
         role="dialog"
         aria-modal="true"
         aria-label="Your order"
-        className="relative flex max-h-[90vh] w-full flex-col overflow-hidden sm:mr-4 sm:max-w-md"
+        /* Radii live in classes, not inline: this is a bottom sheet on a phone
+           (top corners only — the lower ones are off-screen) but a floating
+           card on a desktop, where square bottom corners looked like a
+           rendering fault. An inline borderTopLeftRadius silently outranks any
+           sm: variant, so the responsive half could never take effect. */
+        className="relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-[var(--resto-radius-xl)] sm:mr-4 sm:max-w-md sm:rounded-[var(--resto-radius-xl)]"
         style={{
           backgroundColor: "var(--resto-bg)",
-          borderTopLeftRadius: "var(--resto-radius-xl)",
-          borderTopRightRadius: "var(--resto-radius-xl)",
           boxShadow: "var(--resto-shadow-overlay)",
         }}
       >

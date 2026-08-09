@@ -343,7 +343,7 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
         <a
           href={`/api/order/${initialOrder.id}/invoice`}
           download
-          className="mt-3 flex items-center justify-center gap-2 border py-2.5 text-sm font-semibold transition-colors"
+          className="mt-3 flex items-center justify-center gap-2 border py-2.5 text-sm font-semibold transition-colors hover:bg-[var(--resto-surface-alt)]"
           style={{
             borderColor: "var(--resto-border)",
             borderRadius: "var(--resto-radius-full)",
@@ -357,7 +357,7 @@ export function OrderStatusTracker({ order: initialOrder }: { order: StatusOrder
 
       <Link
         href={`/order/${initialOrder.restaurantSlug}`}
-        className="self-center border px-4 py-2 text-sm font-medium transition-colors"
+        className="self-center border px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--resto-surface-alt)]"
         style={{
           borderColor: "var(--resto-border)",
           borderRadius: "var(--resto-radius-full)",

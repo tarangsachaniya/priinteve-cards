@@ -20,7 +20,17 @@ export function RestoModeToggle({ slug, ownerMode }: { slug: string; ownerMode: 
 
   useEffect(() => {
     const current = document.documentElement.getAttribute("data-resto-mode");
-    setMode(current === "light" ? "light" : "dark");
+    if (current === "light" || current === "dark") {
+      setMode(current);
+      return;
+    }
+
+    // No attribute means the pre-paint script didn't run. The stylesheet paints
+    // its light base in that case, so report light — the old fallback said
+    // "dark", which put a moon on a white page and made the first tap look
+    // broken: it switched to the mode already showing.
+    document.documentElement.setAttribute("data-resto-mode", "light");
+    setMode("light");
   }, []);
 
   // With the owner on "system" and no stored override, keep following the OS.

@@ -189,14 +189,30 @@ export function HoursForm({ initial }: { initial: HoursSettings }) {
                   </div>
                 )}
 
-                <label className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
+                {/* htmlFor + id rather than wrapping the Switch in a <label>,
+                    which is the pattern settings-form and menu-item-form use.
+                    Switch renders a <button> *and* a hidden checkbox, so a
+                    wrapping label had two labelable descendants — invalid, and
+                    it leaves which control the label points at up to the
+                    browser. */}
+                <div className="flex shrink-0 items-center gap-2">
                   <Switch
+                    id={`day-open-${day.dayOfWeek}`}
                     checked={!day.isClosed}
                     onCheckedChange={(open) => updateDay(day.dayOfWeek, { isClosed: !open })}
-                    aria-label={`${DAY_LABELS[day.dayOfWeek]} open`}
                   />
-                  Open
-                </label>
+                  <Label
+                    htmlFor={`day-open-${day.dayOfWeek}`}
+                    className="cursor-pointer text-sm font-normal text-muted-foreground"
+                  >
+                    {/* Seven rows all reading "Open" tell a screen-reader user
+                        nothing about which day they are on. The day name is in
+                        the accessible name and out of the visual one, where the
+                        row heading beside it already says so. */}
+                    <span className="sr-only">{DAY_LABELS[day.dayOfWeek]} </span>
+                    Open
+                  </Label>
+                </div>
               </div>
             ))}
           </div>

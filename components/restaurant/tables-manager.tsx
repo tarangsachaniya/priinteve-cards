@@ -89,7 +89,9 @@ function AddTablesDialog({
               type="button"
               onClick={() => setMode(value)}
               className={`flex-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                mode === value ? "bg-card shadow-sm" : "text-muted-foreground"
+                mode === value
+                  ? "bg-card shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {value === "single" ? "One table" : "Several at once"}

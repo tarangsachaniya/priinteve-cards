@@ -71,11 +71,9 @@ export function TrackOrderDialog({
         role="dialog"
         aria-modal="true"
         aria-label="Track my order"
-        className="relative flex max-h-[90vh] w-full flex-col overflow-hidden sm:max-w-sm sm:rounded-[var(--resto-radius-xl)]"
+        className="relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-[var(--resto-radius-xl)] sm:max-w-sm sm:rounded-[var(--resto-radius-xl)]"
         style={{
           backgroundColor: "var(--resto-bg)",
-          borderTopLeftRadius: "var(--resto-radius-xl)",
-          borderTopRightRadius: "var(--resto-radius-xl)",
           boxShadow: "var(--resto-shadow-overlay)",
         }}
       >

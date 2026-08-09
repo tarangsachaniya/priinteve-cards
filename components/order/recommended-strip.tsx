@@ -23,10 +23,14 @@ import type { PublicMenuItem } from "@/components/order/types";
  * ordered this 6 times" reads as being watched. The heading says the useful
  * part and stops.
  */
-export type StripVariant = "trending" | "favourites";
+export type StripVariant = "recommended" | "favourites";
 
 const VARIANT: Record<StripVariant, { title: string; Icon: typeof Flame }> = {
-  trending: { title: "Trending now", Icon: Flame },
+  // Titled "Recommended" rather than "Trending now" now that it renders
+  // alongside the guest's own history instead of standing in for it. Both
+  // headings then describe what the row *is* to the guest; "trending" described
+  // how it was computed, which is our business and not theirs.
+  recommended: { title: "Recommended", Icon: Flame },
   // "Order it again" rather than "Your favourites": it names the action the
   // guest is about to take, and it doesn't claim to know what they like.
   favourites: { title: "Order it again", Icon: RotateCcw },
