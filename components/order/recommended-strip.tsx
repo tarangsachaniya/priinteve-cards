@@ -18,6 +18,13 @@ import type { PublicMenuItem } from "@/components/order/types";
  * nothing else. Tapping one opens the options sheet where the dish needs it,
  * exactly as tapping Add on a card does.
  *
+ * Two actions per tile, and they are different. Tapping the tile adds the dish
+ * and leaves the guest where they were, to carry on browsing. "Buy now" adds it
+ * and opens checkout, for the guest who scanned the QR code already knowing
+ * what they wanted. It adds rather than replaces: a restaurant order is one
+ * order per table, so anything already in the cart goes with it — silently
+ * dropping it would be the worst possible reading of "buy now".
+ *
  * Deliberately unlabelled as to *why* each dish is here. "Ordered 14 times in
  * the last hour" invites arithmetic about how busy the kitchen is; "You've
  * ordered this 6 times" reads as being watched. The heading says the useful
@@ -41,11 +48,13 @@ export function RecommendedStrip({
   variant,
   orderingDisabled,
   onSelect,
+  onBuyNow,
 }: {
   items: PublicMenuItem[];
   variant: StripVariant;
   orderingDisabled: boolean;
   onSelect: (item: PublicMenuItem) => void;
+  onBuyNow: (item: PublicMenuItem) => void;
 }) {
   if (items.length === 0) return null;
 
@@ -66,12 +75,13 @@ export function RecommendedStrip({
           const serveTime = formatServeTime(item.prepMinutes);
 
           return (
+            /* h-full on the tile, not on the <li>: the list is a flex row, so
+               every <li> already stretches to the tallest tile, but the tile
+               inside it kept its own content height and the strip ended in a
+               ragged row of bottom edges. */
             <li key={item.id} className="shrink-0">
-              <button
-                type="button"
-                onClick={() => onSelect(item)}
-                disabled={orderingDisabled}
-                className="flex w-[132px] flex-col gap-2 border p-2 text-left transition-colors disabled:opacity-60"
+              <div
+                className="flex h-full w-[132px] flex-col gap-2 border p-2"
                 style={{
                   backgroundColor: "var(--resto-card)",
                   borderColor: "var(--resto-border)",
@@ -79,56 +89,84 @@ export function RecommendedStrip({
                   boxShadow: "var(--resto-shadow-card)",
                 }}
               >
-                {item.imageUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={item.imageUrl}
-                    alt=""
-                    loading="lazy"
-                    className="w-full object-cover"
-                    style={{
-                      aspectRatio: "var(--resto-dish-ratio)",
-                      borderRadius: "var(--resto-radius-md)",
-                    }}
-                  />
-                ) : (
-                  <span
-                    className="flex w-full items-center justify-center"
-                    style={{
-                      aspectRatio: "var(--resto-dish-ratio)",
-                      background: "var(--resto-placeholder)",
-                      borderRadius: "var(--resto-radius-md)",
-                    }}
-                    aria-hidden
-                  >
-                    <ImageOff className="size-4" style={{ color: "var(--resto-text-subtle)" }} />
-                  </span>
-                )}
-
-                <span
-                  className="line-clamp-2 text-[13px] font-semibold leading-snug"
-                  style={{ color: "var(--resto-text)" }}
+                <button
+                  type="button"
+                  onClick={() => onSelect(item)}
+                  disabled={orderingDisabled}
+                  className="flex flex-col gap-2 text-left transition-opacity disabled:opacity-60"
                 >
-                  {item.name}
-                </span>
-
-                <span className="flex items-baseline justify-between gap-1">
-                  <span
-                    className="resto-numeric text-[13px] font-semibold"
-                    style={{ color: "var(--resto-text)" }}
-                  >
-                    {formatCurrency(item.price)}
-                  </span>
-                  {serveTime && (
+                  {item.imageUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={item.imageUrl}
+                      alt=""
+                      loading="lazy"
+                      className="w-full object-cover"
+                      style={{
+                        aspectRatio: "var(--resto-dish-ratio)",
+                        borderRadius: "var(--resto-radius-md)",
+                      }}
+                    />
+                  ) : (
                     <span
-                      className="resto-numeric text-[11px]"
-                      style={{ color: "var(--resto-text-muted)" }}
+                      className="flex w-full items-center justify-center"
+                      style={{
+                        aspectRatio: "var(--resto-dish-ratio)",
+                        background: "var(--resto-placeholder)",
+                        borderRadius: "var(--resto-radius-md)",
+                      }}
+                      aria-hidden
                     >
-                      {serveTime}
+                      <ImageOff className="size-4" style={{ color: "var(--resto-text-subtle)" }} />
                     </span>
                   )}
-                </span>
-              </button>
+
+                  {/* Two lines' worth of box whether the name fills it or not.
+                      Without it a one-word dish sits its price row 18px higher
+                      than its neighbour's, and prices are the one thing a guest
+                      reads across the strip rather than down a tile. */}
+                  <span
+                    className="line-clamp-2 min-h-[36px] text-[13px] font-semibold leading-snug"
+                    style={{ color: "var(--resto-text)" }}
+                  >
+                    {item.name}
+                  </span>
+
+                  <span className="flex items-baseline justify-between gap-1">
+                    <span
+                      className="resto-numeric text-[13px] font-semibold"
+                      style={{ color: "var(--resto-text)" }}
+                    >
+                      {formatCurrency(item.price)}
+                    </span>
+                    {serveTime && (
+                      <span
+                        className="resto-numeric text-[11px]"
+                        style={{ color: "var(--resto-text-muted)" }}
+                      >
+                        {serveTime}
+                      </span>
+                    )}
+                  </span>
+                </button>
+
+                {/* mt-auto so it sits on the tile's bottom edge even if a name
+                    somehow renders shorter than the box above allows for. */}
+                <button
+                  type="button"
+                  onClick={() => onBuyNow(item)}
+                  disabled={orderingDisabled}
+                  aria-label={`Buy ${item.name} now`}
+                  className="mt-auto w-full py-1.5 text-[12px] font-semibold transition-opacity disabled:opacity-60"
+                  style={{
+                    backgroundColor: "var(--resto-add-bg)",
+                    color: "var(--resto-add-text)",
+                    borderRadius: "var(--resto-radius-full)",
+                  }}
+                >
+                  Buy now
+                </button>
+              </div>
             </li>
           );
         })}

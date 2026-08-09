@@ -76,7 +76,14 @@ export function MenuBrowser({
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [panel, setPanel] = useState<"none" | "cart" | "checkout">("none");
-  const [optionsFor, setOptionsFor] = useState<PublicMenuItem | null>(null);
+  // The dish being configured, plus where to go once it is. "Buy now" on a
+  // shortcut tile has to survive the options sheet, or a customisable dish
+  // would quietly land in the cart and leave the guest on the menu — the one
+  // thing that button promises not to do.
+  const [optionsFor, setOptionsFor] = useState<{
+    item: PublicMenuItem;
+    checkoutAfter: boolean;
+  } | null>(null);
   // Independent of `panel`: this is a lookup dialog reachable from anywhere
   // on the page, not a step in the cart → checkout flow.
   const [showTrackOrder, setShowTrackOrder] = useState(false);
@@ -279,10 +286,27 @@ export function MenuBrowser({
   function handleAdd(item: PublicMenuItem) {
     if (!isOpen) return;
     if (isCustomisable(item)) {
-      setOptionsFor(item);
+      setOptionsFor({ item, checkoutAfter: false });
       return;
     }
     cart.add({ itemId: item.id, variantId: null, addOnIds: [] });
+  }
+
+  /**
+   * The same add, followed by checkout rather than by staying on the menu.
+   *
+   * Deliberately not a cart reset. A table orders once, so whatever is already
+   * in the cart is part of the same order and travels to checkout with this
+   * dish; "buy now" is a shortcut past the cart screen, not a different basket.
+   */
+  function handleBuyNow(item: PublicMenuItem) {
+    if (!isOpen) return;
+    if (isCustomisable(item)) {
+      setOptionsFor({ item, checkoutAfter: true });
+      return;
+    }
+    cart.add({ itemId: item.id, variantId: null, addOnIds: [] });
+    setPanel("checkout");
   }
 
   return (
@@ -357,12 +381,14 @@ export function MenuBrowser({
             variant="recommended"
             orderingDisabled={!isOpen}
             onSelect={handleAdd}
+            onBuyNow={handleBuyNow}
           />
           <RecommendedStrip
             items={favouritesStrip}
             variant="favourites"
             orderingDisabled={!isOpen}
             onSelect={handleAdd}
+            onBuyNow={handleBuyNow}
           />
         </>
       )}
@@ -498,10 +524,11 @@ export function MenuBrowser({
 
       {optionsFor && (
         <ItemOptionsSheet
-          item={optionsFor}
+          item={optionsFor.item}
           onClose={() => setOptionsFor(null)}
           onConfirm={({ quantity, ...selection }) => {
             cart.add(selection, quantity);
+            if (optionsFor.checkoutAfter) setPanel("checkout");
             setOptionsFor(null);
           }}
         />
