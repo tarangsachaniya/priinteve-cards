@@ -67,7 +67,8 @@ export function ItemOptionsSheet({
         aria-label={item.name}
         className="relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-[var(--resto-radius-xl)] sm:max-w-lg sm:rounded-[var(--resto-radius-xl)]"
         style={{
-          backgroundColor: "var(--resto-bg)",
+          backgroundColor: "var(--resto-surface)",
+          border: "1px solid var(--resto-border)",
           boxShadow: "var(--resto-shadow-overlay)",
         }}
       >
@@ -98,7 +99,14 @@ export function ItemOptionsSheet({
 
         <div className="flex-1 overflow-y-auto">
           {item.variants.length > 0 && (
-            <section className="space-y-3 px-5 py-4" style={{ backgroundColor: "var(--resto-surface)" }}>
+            <section
+              /* Raised off the sheet body, which is itself --resto-surface
+                 now. Banding the required group is the whole point of this
+                 block, so it has to sit a level above the panel — painting it
+                 the panel's own colour would delete it. */
+              className="space-y-3 px-5 py-4"
+              style={{ backgroundColor: "var(--resto-card)" }}
+            >
               <GroupHeading title="Choose size" requirement="Required" />
               <div className="space-y-2">
                 {item.variants.map((option) => (
@@ -136,7 +144,7 @@ export function ItemOptionsSheet({
 
         <footer
           className="flex items-center gap-3 border-t px-5 py-4"
-          style={{ borderColor: "var(--resto-border)", backgroundColor: "var(--resto-bg)" }}
+          style={{ borderColor: "var(--resto-border)", backgroundColor: "var(--resto-surface)" }}
         >
           <div
             className="flex items-center gap-1 border"

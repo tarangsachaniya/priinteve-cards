@@ -54,8 +54,15 @@ export function CartSheet({
            rendering fault. An inline borderTopLeftRadius silently outranks any
            sm: variant, so the responsive half could never take effect. */
         className="relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-[var(--resto-radius-xl)] sm:mr-4 sm:max-w-md sm:rounded-[var(--resto-radius-xl)]"
+        /* One step off the page, not the page itself. A panel painted
+           --resto-bg is the same colour as what it sits on, so it reads as a
+           continuation of the menu rather than as a layer above it. The border
+           carries the rest of the separation: --resto-surface is only about a
+           percent of lightness away in light mode, which the eye will not find
+           on its own. */
         style={{
-          backgroundColor: "var(--resto-bg)",
+          backgroundColor: "var(--resto-surface)",
+          border: "1px solid var(--resto-border)",
           boxShadow: "var(--resto-shadow-overlay)",
         }}
       >
@@ -160,7 +167,7 @@ export function CartSheet({
 
             <footer
               className="space-y-3 border-t px-5 py-4"
-              style={{ borderColor: "var(--resto-border)", backgroundColor: "var(--resto-surface)" }}
+              style={{ borderColor: "var(--resto-border)", backgroundColor: "var(--resto-card)" }}
             >
               {/* Above the total, because it is the other thing a guest is
                   deciding on. Omitted entirely when nothing in the cart has a

@@ -101,7 +101,15 @@
    Three surface levels, and they are not interchangeable:
      --resto-bg           the page
      --resto-surface      banded sections (checkout groups, sheet bodies)
-     --resto-card         raised things (dish cards, logo tile, search field)
+     --resto-card         raised things (dish cards, logo tile, search field,
+                          grouped sections inside a sheet)
+
+   A sheet body is --resto-surface and never --resto-bg. Painting a panel the
+   colour of the page it sits on makes it read as a continuation of the menu
+   rather than as a layer above it, and the fix is not a darker scrim: the
+   scrim dims the page, not the panel. The step is small in light mode — about
+   a percent of lightness — so every overlay pairs it with a 1px
+   --resto-border edge, which is what actually makes the boundary findable.
 
    Four decimal places nowhere: these are authored values, not conversions.
    ========================================================================== */
